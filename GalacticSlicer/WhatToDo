@@ -1,0 +1,69 @@
+TODO: 
+TASK 1
+Create Home page for Galactic Slicer
+
+TASK 2
+Create Challenge model
+
+TASK 3
+Create database connection
+
+TASK 4
+Create GalacticSlicerDbContext
+
+TASK 5
+Register database in Program.cs
+
+TASK 6
+Create ChallengeController
+
+TASK 7
+Create CRUD views
+- Index
+- Create
+- Edit
+- Details
+- Delete
+
+TASK 8
+Add server-side validation
+
+TASK 9
+Add test data / seed data
+
+TASK 10
+Create Galaxy page
+
+TASK 11
+Connect Challenges to planets
+
+TASK 12
+Create Credits system
+
+TASK 13
+Create Rank system
+
+TASK 14
+Create Progress page
+
+TASK 15
+Create navigation
+- Home
+- Galaxy
+- Challenges
+- Progress
+
+TASK 16
+Add Galactic Slicer styling
+
+TASK 17
+Add logging
+
+TASK 18
+Add error handling
+
+TASK 19
+Create README
+
+TASK 20
+Test the full application
