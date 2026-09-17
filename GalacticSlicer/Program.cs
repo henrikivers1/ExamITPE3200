@@ -1,4 +1,14 @@
+using ExamITPE3200.Models;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<GalacticSlicerDbContext>(options =>
+{
+    options.UseSqlite(
+        builder.Configuration["ConnectionStrings:GalacticSlicerDbContextConnection"] ?? throw new InvalidOperationException("Connection string 'GalacticSlicerDbContextConnection' not found."));
+});
+
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
