@@ -1,25 +1,46 @@
-TODO: 
+TODO: OBLIG 2 – GALACTIC SLICER
+
+JONAS
+
 TASK 1
-Set up ASP.NET Core 10 MVC project. DONE
+Set up ASP.NET Core 10 MVC project
+DONE
 
 TASK 2
-Create one main entity
-Example:
-- Challenge
+Create Challenge model
+Can be done immediately
 
 TASK 3
-Set up database
-- Use Entity Framework Core
-- Connect entity to database
+Set up database with Entity Framework Core
+Needs TASK 2 first
 
 TASK 4
 Create DbContext
+Needs TASK 2 and TASK 3 first
 
 TASK 5
 Register database in Program.cs
+Needs TASK 4 first
+
+TASK 10
+Add server-side validation
+Can be done after TASK 2
+
+TASK 14
+Add error handling
+Best done after CRUD is working
+
+TASK 15
+Add server-side logging
+Best done after Controller/CRUD exists
+
+
+HENRIK
 
 TASK 6
-Create Controller for the entity
+Create ChallengeController
+Needs Jonas to finish TASK 2–5 first
+NOTE: Ask Jonas if the model/database setup is finished before continuing
 
 TASK 7
 Create CRUD functionality
@@ -27,55 +48,67 @@ Create CRUD functionality
 - Read
 - Update
 - Delete
+Needs TASK 6 first
 
 TASK 8
-Create Views for CRUD
+Create CRUD views
 - Index
 - Create
 - Edit
 - Details
 - Delete
+Needs TASK 7 first
 
 TASK 9
 Create forms
-
-TASK 10
-Add server-side validation
+Needs TASK 8 first
 
 TASK 11
 Add dynamic content from database
+Needs database + CRUD to be working
+
+
+FILIP
 
 TASK 12
 Create basic navigation
-Example:
 - Home
 - Challenges
+Can be done immediately
 
 TASK 13
 Add basic design
-- Not plain text
-- Use Bootstrap / CSS
+- Bootstrap / CSS
+- Galactic Slicer theme
 - Make pages easy to navigate
-
-TASK 14
-Add error handling
-
-TASK 15
-Add server-side logging
+Can be done immediately
 
 TASK 16
 Make code neat and structured
 - Clear names
-- Keep Models, Views and Controllers separated
-- Add English comments where needed
+- English comments where needed
+Can be worked on throughout the project
 
 TASK 17
 Create README
-Include:
 - Project description
 - .NET version
 - Node.js version
 - How to start the application
+Can be started immediately
+Finish it when the project setup is complete
+
+TASK 19
+Prepare submission
+- Remove /bin
+- Remove /obj
+- Remove /node_modules if present
+- Zip project
+Needs everyone else to be finished first
+NOTE: Ask Jonas and Henrik if their parts are complete before making the final ZIP
+
+
+ALL
 
 TASK 18
 Test everything
@@ -85,10 +118,36 @@ Test everything
 - Database works
 - Navigation works
 - No crashes during normal use
+Needs all main tasks to be finished first
 
-TASK 19
-Prepare submission
-- Remove /bin
-- Remove /obj
-- Remove /node_modules if present
-- Zip project
+
+WHO CAN START RIGHT AWAY
+
+Jonas:
+- TASK 2
+- TASK 10
+
+Filip:
+- TASK 12
+- TASK 13
+- TASK 16
+- TASK 17
+
+Henrik:
+- Can prepare folders/files
+- Should wait for Jonas to finish TASK 2–5 before building CRUD against the database
+
+
+IMPORTANT DEPENDENCIES
+
+Jonas finishes TASK 2–5
+→ Henrik can continue with TASK 6–11
+
+Henrik finishes CRUD
+→ Jonas can finish error handling/logging properly
+
+Everyone finishes
+→ ALL do TASK 18 testing
+
+After testing
+→ Filip does TASK 19 submission prep
