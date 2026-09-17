@@ -1,69 +1,94 @@
 TODO: 
 TASK 1
-Create Home page for Galactic Slicer
+Set up ASP.NET Core 10 MVC project. DONE
 
 TASK 2
-Create Challenge model
+Create one main entity
+Example:
+- Challenge
 
 TASK 3
-Create database connection
+Set up database
+- Use Entity Framework Core
+- Connect entity to database
 
 TASK 4
-Create GalacticSlicerDbContext
+Create DbContext
 
 TASK 5
 Register database in Program.cs
 
 TASK 6
-Create ChallengeController
+Create Controller for the entity
 
 TASK 7
-Create CRUD views
+Create CRUD functionality
+- Create
+- Read
+- Update
+- Delete
+
+TASK 8
+Create Views for CRUD
 - Index
 - Create
 - Edit
 - Details
 - Delete
 
-TASK 8
-Add server-side validation
-
 TASK 9
-Add test data / seed data
+Create forms
 
 TASK 10
-Create Galaxy page
+Add server-side validation
 
 TASK 11
-Connect Challenges to planets
+Add dynamic content from database
 
 TASK 12
-Create Credits system
+Create basic navigation
+Example:
+- Home
+- Challenges
 
 TASK 13
-Create Rank system
+Add basic design
+- Not plain text
+- Use Bootstrap / CSS
+- Make pages easy to navigate
 
 TASK 14
-Create Progress page
-
-TASK 15
-Create navigation
-- Home
-- Galaxy
-- Challenges
-- Progress
-
-TASK 16
-Add Galactic Slicer styling
-
-TASK 17
-Add logging
-
-TASK 18
 Add error handling
 
-TASK 19
-Create README
+TASK 15
+Add server-side logging
 
-TASK 20
-Test the full application
+TASK 16
+Make code neat and structured
+- Clear names
+- Keep Models, Views and Controllers separated
+- Add English comments where needed
+
+TASK 17
+Create README
+Include:
+- Project description
+- .NET version
+- Node.js version
+- How to start the application
+
+TASK 18
+Test everything
+- App starts
+- CRUD works
+- Validation works
+- Database works
+- Navigation works
+- No crashes during normal use
+
+TASK 19
+Prepare submission
+- Remove /bin
+- Remove /obj
+- Remove /node_modules if present
+- Zip project
