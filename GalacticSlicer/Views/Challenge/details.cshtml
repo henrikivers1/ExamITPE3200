@@ -1,0 +1,43 @@
+@model ExamITPE3200.Models.Challenge
+
+@{
+    ViewData["Title"] = "Challenge Details";
+}
+
+<h1>Challenge Details</h1>
+
+<div class="card">
+    <div class="card-body">
+
+        <h3>@Model.Title</h3>
+
+        <p>
+            <strong>Question:</strong>
+            @Model.Question
+        </p>
+
+        <p>
+            <strong>Correct Answer:</strong>
+            @Model.CorrectAnswer
+        </p>
+
+        <p>
+            <strong>Reward:</strong>
+            @Model.CreditReward Credits
+        </p>
+
+        <p>
+            <strong>Planet:</strong>
+            @Model.PlanetName
+        </p>
+
+        <a asp-action="Edit" asp-route-id="@Model.ChallengeId" class="btn btn-warning">
+            Edit
+        </a>
+
+        <a asp-action="Index" class="btn btn-secondary">
+            Back
+        </a>
+
+    </div>
+</div>
