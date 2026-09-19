@@ -1,9 +1,17 @@
+using ExamITPE3200.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace GalacticSlicer.Controllers
+namespace ExamITPE3200.Controllers
 {
     public class ChallengeController : Controller
     {
+        private readonly GalacticSlicerDbContext _context;
+
+        public ChallengeController(GalacticSlicerDbContext context)
+        {
+            _context = context;
+        }
+
         public IActionResult Index()
         {
             return View();
