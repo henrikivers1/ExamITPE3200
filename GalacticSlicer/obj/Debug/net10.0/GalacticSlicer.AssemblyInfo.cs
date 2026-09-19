@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GalacticSlicer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+335b6df2cdd696ccf9101a11056a0aaafba83300")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+eaf66a4f83389c6771865ef71df7f54acb454b9b")]
 [assembly: System.Reflection.AssemblyProductAttribute("GalacticSlicer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GalacticSlicer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

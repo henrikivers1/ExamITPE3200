@@ -8,19 +8,19 @@
     "net10.0": []
   },
   "packageFolders": {
-    "C:\\Users\\Henrik\\.nuget\\packages\\": {}
+    "C:\\Users\\henri\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Henrik\\OneDrive\\Documents\\GitHub\\ExamITPE3200\\GalacticSlicer\\GalacticSlicer.csproj",
+      "projectUniqueName": "C:\\Users\\henri\\Documents\\GitHub\\ExamITPE3200\\GalacticSlicer\\GalacticSlicer.csproj",
       "projectName": "GalacticSlicer",
-      "projectPath": "C:\\Users\\Henrik\\OneDrive\\Documents\\GitHub\\ExamITPE3200\\GalacticSlicer\\GalacticSlicer.csproj",
-      "packagesPath": "C:\\Users\\Henrik\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Henrik\\OneDrive\\Documents\\GitHub\\ExamITPE3200\\GalacticSlicer\\obj\\",
+      "projectPath": "C:\\Users\\henri\\Documents\\GitHub\\ExamITPE3200\\GalacticSlicer\\GalacticSlicer.csproj",
+      "packagesPath": "C:\\Users\\henri\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\henri\\Documents\\GitHub\\ExamITPE3200\\GalacticSlicer\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Henrik\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\henri\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
