@@ -1,0 +1,48 @@
+@model List<ExamITPE3200.Models.PlanetViewModel>
+@{
+    ViewData["Title"] = "Galaxy";
+    var unlockedCount = Model.Count(p => p.IsUnlocked);
+}
+
+<section class="gs-page-intro">
+    <h1>The Starchart</h1>
+    <p>
+        Follow the path from world to world. Clear every challenge on a planet
+        to unlock the next system.
+    </p>
+    <p class="gs-starchart-progress">@unlockedCount of @Model.Count planets unlocked</p>
+</section>
+
+<section class="gs-starchart">
+    <ol class="gs-starchart-path">
+        @foreach (var planet in Model)
+        {
+            <li class="gs-star-node @(planet.IsUnlocked ? "gs-star-node--unlocked" : "gs-star-node--locked")">
+                @if (planet.IsUnlocked)
+                {
+                    <a class="gs-star-node-link" asp-area="" asp-controller="Challenge" asp-action="Index">
+                        <span class="gs-planet gs-planet--@planet.CssClass" aria-hidden="true"></span>
+                        <span class="gs-star-node-info">
+                            <span class="gs-star-node-step">@planet.StepLabel</span>
+                            <span class="gs-star-node-name">@planet.Name</span>
+                            <span class="gs-star-node-meta">@planet.ChallengeCount challenges</span>
+                        </span>
+                    </a>
+                }
+                else
+                {
+                    <span class="gs-star-node-link" aria-disabled="true">
+                        <span class="gs-planet gs-planet--@planet.CssClass" aria-hidden="true">
+                            <span class="gs-lock-icon" aria-hidden="true">&#128274;</span>
+                        </span>
+                        <span class="gs-star-node-info">
+                            <span class="gs-star-node-step">@planet.StepLabel</span>
+                            <span class="gs-star-node-name">@planet.Name</span>
+                            <span class="gs-star-node-meta">Locked</span>
+                        </span>
+                    </span>
+                }
+            </li>
+        }
+    </ol>
+</section>

@@ -39,7 +39,8 @@
                            asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                     </li>
                     <li>
-                        <a class="gs-nav-link" href="#">Galaxy</a>
+                        <a class="gs-nav-link @(activeController == "Planet" ? "is-active" : "")"
+                           asp-area="" asp-controller="Planet" asp-action="Index">Galaxy</a>
                     </li>
                     <li>
                         <a class="gs-nav-link @(activeController == "Challenge" ? "is-active" : "")"
