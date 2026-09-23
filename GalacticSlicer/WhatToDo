@@ -78,7 +78,11 @@ TASK 12
 Create basic navigation
 - Home
 - Challenges
+- Log in/Sign up
+- Galaxy
+- Progress
 Can be done immediately
+DONE
 
 TASK 13
 Add basic design
@@ -86,11 +90,13 @@ Add basic design
 - Galactic Slicer theme
 - Make pages easy to navigate
 Can be done immediately
+DONE
 
 TASK 16
 Make code neat and structured
 - Clear names
 - English comments where needed
+- Finish Frontend
 Can be worked on throughout the project
 
 TASK 17
