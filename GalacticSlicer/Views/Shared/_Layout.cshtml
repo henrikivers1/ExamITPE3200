@@ -44,10 +44,11 @@
                     </li>
                     <li>
                         <a class="gs-nav-link @(activeController == "Challenge" ? "is-active" : "")"
-                           asp-area="" asp-controller="Challenge" asp-action="Index">Challenges</a>
+                           asp-area="" asp-controller="Challenge" asp-action="Topics">Challenges</a>
                     </li>
                     <li>
-                        <a class="gs-nav-link" href="#">Progress</a>
+                        <a class="gs-nav-link @(activeController == "Progress" ? "is-active" : "")"
+                           asp-area="" asp-controller="Progress" asp-action="Index">Progress</a>
                     </li>
                 </ul>
                 <div class="gs-nav-auth">
