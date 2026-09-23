@@ -413,6 +413,87 @@ a:hover {
   color: var(--gs-text);
 }
 
+/* ---------- auth forms (login / sign up) ---------- */
+
+.gs-auth-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 260px);
+  padding: 3rem 1rem;
+}
+
+.gs-auth-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--gs-bg-card);
+  border: 1px solid var(--gs-border);
+  border-radius: var(--gs-radius-lg);
+  box-shadow: var(--gs-shadow);
+  padding: 2rem;
+  text-align: center;
+}
+
+.gs-auth-title {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.gs-auth-subtitle {
+  font-size: 0.9rem;
+  margin-bottom: 1.75rem;
+}
+
+.gs-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  text-align: left;
+}
+
+.gs-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.gs-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gs-text);
+}
+
+.gs-input {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--gs-radius-sm);
+  border: 1px solid var(--gs-border-strong);
+  background: var(--gs-bg-elevated);
+  color: var(--gs-text);
+  font-family: var(--gs-font);
+  font-size: 0.95rem;
+}
+
+.gs-input::placeholder {
+  color: var(--gs-text-muted);
+}
+
+.gs-input:focus-visible {
+  outline: none;
+  border-color: var(--gs-accent);
+  box-shadow: 0 0 0 3px var(--gs-accent-soft);
+}
+
+.gs-form-submit {
+  justify-content: center;
+  margin-top: 0.4rem;
+}
+
+.gs-form-footer {
+  margin: 1.5rem 0 0;
+  font-size: 0.875rem;
+}
+
 /* ---------- responsive ---------- */
 
 @media (max-width: 860px) {
