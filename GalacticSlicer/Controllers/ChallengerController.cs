@@ -3,13 +3,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ExamITPE3200.Controllers
 {
+    
+
     public class ChallengeController : Controller
     {
         private readonly GalacticSlicerDbContext _context;
+        private readonly ILogger<ChallengeController> _logger;
 
-        public ChallengeController(GalacticSlicerDbContext context)
+        public ChallengeController(GalacticSlicerDbContext context, ILogger<ChallengeController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public IActionResult Index()
@@ -48,6 +52,7 @@ namespace ExamITPE3200.Controllers
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "An error occurred while creating the challenge.");
                     ModelState.AddModelError(string.Empty, $"An error occurred while creating the challenge: {ex.Message}");
                     return View(challenge);
                 }
@@ -87,6 +92,7 @@ namespace ExamITPE3200.Controllers
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "An error occurred while updating the challenge.");
                     ModelState.AddModelError(string.Empty, $"An error occurred while updating the challenge: {ex.Message}");
                     return View(challenge);
                 }
@@ -127,6 +133,7 @@ namespace ExamITPE3200.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "An error occurred while deleting the challenge.");
                 ModelState.AddModelError(string.Empty, $"An error occurred while deleting the challenge: {ex.Message}");
                 return View("Delete", challenge);
             }
