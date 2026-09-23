@@ -1,52 +1,45 @@
-@model IEnumerable<ExamITPE3200.Models.Challenge>
-
+@model List<ExamITPE3200.Models.ChallengeTopicViewModel>
 @{
     ViewData["Title"] = "Challenges";
 }
 
-<h1>Challenges</h1>
+<section class="gs-page-intro">
+    <h1>Challenges</h1>
+    <p>Pick a topic and practice hands-on cybersecurity challenges at your own pace.</p>
+</section>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">
-        Create New Challenge
-    </a>
-</p>
-
-@foreach (var challenge in Model)
-{
-    <div class="card mb-3">
-        <div class="card-body">
-
-            <h4>@challenge.Title</h4>
-
-            <p>
-                <strong>Planet:</strong>
-                @challenge.PlanetName
-            </p>
-
-            <p>
-                <strong>Reward:</strong>
-                @challenge.CreditReward Credits
-            </p>
-
-            <a asp-action="Details"
-               asp-route-id="@challenge.ChallengeId"
-               class="btn btn-info">
-                Details
-            </a>
-
-            <a asp-action="Edit"
-               asp-route-id="@challenge.ChallengeId"
-               class="btn btn-warning">
-                Edit
-            </a>
-
-            <a asp-action="Delete"
-               asp-route-id="@challenge.ChallengeId"
-               class="btn btn-danger">
-                Delete
-            </a>
-
-        </div>
-    </div>
-}
+<section class="gs-topic-grid">
+    @foreach (var topic in Model)
+    {
+        <a class="gs-topic-card" asp-area="" asp-controller="Challenge" asp-action="Index">
+            <div class="gs-topic-icon gs-topic-icon--@topic.IconKey" aria-hidden="true">
+                @switch (topic.IconKey)
+                {
+                    case "crypto":
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+                        break;
+                    case "network":
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2" /><circle cx="5" cy="19" r="2.2" /><circle cx="19" cy="19" r="2.2" /><path d="M12 7.2V13M12 13 6.6 17.3M12 13l5.4 4.3" /></svg>
+                        break;
+                    case "web":
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5" /><path d="M3.5 12h17M12 3.5c2.2 2.3 3.3 5.3 3.3 8.5s-1.1 6.2-3.3 8.5c-2.2-2.3-3.3-5.3-3.3-8.5S9.8 5.8 12 3.5Z" /></svg>
+                        break;
+                    case "phishing":
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="2" /><path d="M4 7l8 6 8-6" /></svg>
+                        break;
+                    case "malware":
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="7" width="8" height="11" rx="4" /><path d="M9 7V5.5a3 3 0 0 1 6 0V7M5 11h3M16 11h3M5 15h3M16 15h3M10.5 3.5l-1-1M13.5 3.5l1-1" /></svg>
+                        break;
+                    default:
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6.5v5.4c0 4.6 3.2 7.7 8 8.6 4.8-.9 8-4 8-8.6V6.5L12 3Z" /><circle cx="12" cy="11" r="2.4" /><path d="M12 13.4V16" /></svg>
+                        break;
+                }
+            </div>
+            <h3 class="gs-topic-title">@topic.Name</h3>
+            <div class="gs-topic-meta">
+                <span class="gs-topic-tag">@topic.Difficulty</span>
+                <span>@topic.ChallengeCount challenges</span>
+            </div>
+        </a>
+    }
+</section>
