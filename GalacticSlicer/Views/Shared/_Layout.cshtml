@@ -15,6 +15,13 @@
 <body>
     @{
         var activeController = ViewContext.RouteData.Values["controller"]?.ToString();
+
+        // PLACEHOLDER auth state - replace with a real check once accounts/
+        // sessions exist (e.g. User.Identity?.IsAuthenticated == true).
+        // Toggle this to true locally to preview the logged-in navbar state.
+        var isLoggedIn = false;
+        var currentUsername = "Slicer_01";
+        var currentCredits = 120;
     }
     <header class="gs-header">
         <nav class="gs-navbar">
@@ -52,8 +59,25 @@
                     </li>
                 </ul>
                 <div class="gs-nav-auth">
-                    <a class="gs-btn gs-btn--ghost" asp-area="" asp-controller="Account" asp-action="Login">Log in</a>
-                    <a class="gs-btn gs-btn--primary gs-btn--sm" asp-area="" asp-controller="Account" asp-action="SignUp">Sign up</a>
+                    @if (isLoggedIn)
+                    {
+                        <div class="gs-nav-user">
+                            <span class="gs-user-avatar" aria-hidden="true">@currentUsername.Substring(0, 1).ToUpper()</span>
+                            <span class="gs-user-name">@currentUsername</span>
+                            <span class="gs-user-credits">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="9" />
+                                    <path d="M12 7v10M9.5 9.5h4a1.8 1.8 0 0 1 0 3.6h-3a1.8 1.8 0 0 0 0 3.6h4.5" />
+                                </svg>
+                                @currentCredits
+                            </span>
+                        </div>
+                    }
+                    else
+                    {
+                        <a class="gs-btn gs-btn--ghost" asp-area="" asp-controller="Account" asp-action="Login">Log in</a>
+                        <a class="gs-btn gs-btn--primary gs-btn--sm" asp-area="" asp-controller="Account" asp-action="SignUp">Sign up</a>
+                    }
                 </div>
             </div>
         </nav>

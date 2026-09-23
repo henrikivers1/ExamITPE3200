@@ -1,0 +1,167 @@
+@{
+    ViewData["Title"] = "Practice";
+}
+
+<section class="gs-page-intro">
+    <h1>Practice</h1>
+    <p>Answer each question. You'll move to the next one automatically once you've answered.</p>
+</section>
+
+<section class="gs-quiz-wrapper">
+    <div class="gs-quiz-card">
+        <div class="gs-quiz-progress-row">
+            <span id="quizProgressLabel">Question 1 of 4</span>
+            <div class="gs-progress-bar gs-quiz-progress-bar">
+                <div class="gs-progress-bar-fill" id="quizProgressFill" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <div id="quizQuestionArea">
+            <h2 class="gs-quiz-question" id="quizQuestionText"></h2>
+            <div class="gs-quiz-options" id="quizOptions"></div>
+            <button type="button" class="gs-btn gs-btn--primary gs-quiz-next" id="quizNextBtn" hidden>
+                Next question
+            </button>
+        </div>
+
+        <div id="quizCompleteArea" class="gs-quiz-complete" hidden>
+            <h2>Field complete!</h2>
+            <p id="quizScoreText"></p>
+            <div class="gs-quiz-complete-actions">
+                <a class="gs-btn gs-btn--primary" asp-area="" asp-controller="Challenge" asp-action="Topics">Back to challenges</a>
+                <a class="gs-btn gs-btn--outline" asp-area="" asp-controller="Home" asp-action="Index">Back to home</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="gs-quiz-nav">
+        <a class="gs-btn gs-btn--ghost" asp-area="" asp-controller="Challenge" asp-action="Topics">&larr; Back to challenges</a>
+        <a class="gs-btn gs-btn--ghost" asp-area="" asp-controller="Home" asp-action="Index">&larr; Back to home</a>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        // PLACEHOLDER QUESTIONS - replace this list once the real challenges
+        // for this topic are known. `correctIndex` is the index (0-based)
+        // into `options` that counts as the right answer.
+        const quizQuestions = [
+            {
+                question: "What does HTTPS mainly provide compared to plain HTTP?",
+                options: [
+                    "Faster page loading",
+                    "Encrypted communication between browser and server",
+                    "Automatic virus scanning",
+                    "Unlimited bandwidth"
+                ],
+                correctIndex: 1
+            },
+            {
+                question: "Which of these passwords is generally considered strongest?",
+                options: ["password123", "qwerty", "Tr0ub4dor&3!xQ", "123456"],
+                correctIndex: 2
+            },
+            {
+                question: "What is 'phishing'?",
+                options: [
+                    "A method of encrypting files",
+                    "A type of firewall",
+                    "A social engineering attack that tricks users into revealing sensitive info",
+                    "A type of malware that mines cryptocurrency"
+                ],
+                correctIndex: 2
+            },
+            {
+                question: "What does two-factor authentication add to a login?",
+                options: [
+                    "A second, independent verification step",
+                    "A faster login process",
+                    "A second username",
+                    "Nothing, it is just marketing"
+                ],
+                correctIndex: 0
+            }
+        ];
+
+        let currentIndex = 0;
+        let correctCount = 0;
+        let answered = false;
+
+        const questionText = document.getElementById("quizQuestionText");
+        const optionsContainer = document.getElementById("quizOptions");
+        const nextBtn = document.getElementById("quizNextBtn");
+        const progressLabel = document.getElementById("quizProgressLabel");
+        const progressFill = document.getElementById("quizProgressFill");
+        const questionArea = document.getElementById("quizQuestionArea");
+        const completeArea = document.getElementById("quizCompleteArea");
+        const scoreText = document.getElementById("quizScoreText");
+
+        function renderQuestion() {
+            answered = false;
+            const q = quizQuestions[currentIndex];
+
+            progressLabel.textContent = "Question " + (currentIndex + 1) + " of " + quizQuestions.length;
+            progressFill.style.width = Math.round((currentIndex / quizQuestions.length) * 100) + "%";
+
+            questionText.textContent = q.question;
+            optionsContainer.innerHTML = "";
+            nextBtn.hidden = true;
+
+            q.options.forEach(function (optionText, index) {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "gs-quiz-option";
+                btn.textContent = optionText;
+                btn.addEventListener("click", function () {
+                    selectAnswer(index, btn);
+                });
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function selectAnswer(selectedIndex, selectedBtn) {
+            if (answered) {
+                return;
+            }
+            answered = true;
+
+            const q = quizQuestions[currentIndex];
+            const optionButtons = optionsContainer.querySelectorAll(".gs-quiz-option");
+
+            optionButtons.forEach(function (btn, index) {
+                btn.disabled = true;
+                if (index === q.correctIndex) {
+                    btn.classList.add("gs-quiz-option--correct");
+                } else if (index === selectedIndex) {
+                    btn.classList.add("gs-quiz-option--incorrect");
+                }
+            });
+
+            if (selectedIndex === q.correctIndex) {
+                correctCount++;
+            }
+
+            nextBtn.hidden = false;
+            nextBtn.textContent = currentIndex === quizQuestions.length - 1 ? "See results" : "Next question";
+        }
+
+        nextBtn.addEventListener("click", function () {
+            currentIndex++;
+            if (currentIndex >= quizQuestions.length) {
+                showComplete();
+            } else {
+                renderQuestion();
+            }
+        });
+
+        function showComplete() {
+            progressFill.style.width = "100%";
+            progressLabel.textContent = "Question " + quizQuestions.length + " of " + quizQuestions.length;
+            questionArea.hidden = true;
+            completeArea.hidden = false;
+            scoreText.textContent = "You got " + correctCount + " out of " + quizQuestions.length + " correct.";
+        }
+
+        renderQuestion();
+    </script>
+}

@@ -12,10 +12,6 @@ namespace ExamITPE3200.Controllers
             _context = context;
         }
 
-        // Public-facing "practice by topic" landing page.
-        // Topic names/counts are hardcoded placeholders for now - once challenges
-        // in the database have a real Topic/Category field, this should be
-        // replaced with a database query grouped by topic.
         public IActionResult Topics()
         {
             var topics = new List<ChallengeTopicViewModel>
@@ -29,6 +25,13 @@ namespace ExamITPE3200.Controllers
             };
 
             return View(topics);
+        }
+
+        // Placeholder - one topic with multiplle choice questions
+       
+        public IActionResult Practice()
+        {
+            return View();
         }
 
         public IActionResult Index()
