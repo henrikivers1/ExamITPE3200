@@ -1,0 +1,29 @@
+@{
+    ViewData["Title"] = "Sign up";
+}
+
+<section class="gs-auth-wrapper">
+    <div class="gs-auth-card">
+        <h1 class="gs-auth-title">Sign up</h1>
+        <p class="gs-auth-subtitle">Join the fight for a safer galaxy.</p>
+
+        <form method="post" class="gs-form">
+            <div class="gs-form-group">
+                <label class="gs-label" for="username">Username</label>
+                <input class="gs-input" type="text" id="username" name="Username" placeholder="Choose a username" autocomplete="username" />
+            </div>
+
+            <div class="gs-form-group">
+                <label class="gs-label" for="password">Password</label>
+                <input class="gs-input" type="password" id="password" name="Password" placeholder="Choose a password" autocomplete="new-password" />
+            </div>
+
+            <button type="submit" class="gs-btn gs-btn--primary gs-btn--lg gs-form-submit">Sign up</button>
+        </form>
+
+        <p class="gs-form-footer">
+            Already have an account?
+            <a asp-area="" asp-controller="Account" asp-action="Login">Log in</a>
+        </p>
+    </div>
+</section>
