@@ -1,0 +1,55 @@
+@model ExamITPE3200.Models.ProgressViewModel
+@{
+    ViewData["Title"] = "Progress";
+    var planetPercent = Model.PlanetsTotal == 0 ? 0 : (int)Math.Round(100.0 * Model.PlanetsUnlocked / Model.PlanetsTotal);
+    var challengePercent = Model.ChallengesTotal == 0 ? 0 : (int)Math.Round(100.0 * Model.ChallengesCompleted / Model.ChallengesTotal);
+}
+
+<section class="gs-profile-header">
+    <div>
+        <span class="gs-rank-badge">@Model.Rank</span>
+        <h1>@Model.Username</h1>
+        <p class="gs-profile-meta">Member since @Model.MemberSince.ToString("MMMM yyyy")</p>
+    </div>
+</section>
+
+<section class="gs-stats-grid">
+    <div class="gs-stat-card">
+        <span class="gs-stat-label">Credits</span>
+        <span class="gs-stat-value">@Model.Credits</span>
+    </div>
+    <div class="gs-stat-card">
+        <span class="gs-stat-label">Challenges completed</span>
+        <span class="gs-stat-value">@Model.ChallengesCompleted <span class="gs-stat-value-total">/ @Model.ChallengesTotal</span></span>
+    </div>
+    <div class="gs-stat-card">
+        <span class="gs-stat-label">Planets unlocked</span>
+        <span class="gs-stat-value">@Model.PlanetsUnlocked <span class="gs-stat-value-total">/ @Model.PlanetsTotal</span></span>
+    </div>
+    <div class="gs-stat-card">
+        <span class="gs-stat-label">Current rank</span>
+        <span class="gs-stat-value gs-stat-value--rank">@Model.Rank</span>
+    </div>
+</section>
+
+<section class="gs-progress-section">
+    <div class="gs-progress-block">
+        <div class="gs-progress-block-header">
+            <span>Starchart progress</span>
+            <span>@Model.PlanetsUnlocked / @Model.PlanetsTotal planets</span>
+        </div>
+        <div class="gs-progress-bar">
+            <div class="gs-progress-bar-fill" style="width: @(planetPercent)%;"></div>
+        </div>
+    </div>
+
+    <div class="gs-progress-block">
+        <div class="gs-progress-block-header">
+            <span>Challenges progress</span>
+            <span>@Model.ChallengesCompleted / @Model.ChallengesTotal challenges</span>
+        </div>
+        <div class="gs-progress-bar">
+            <div class="gs-progress-bar-fill gs-progress-bar-fill--accent2" style="width: @(challengePercent)%;"></div>
+        </div>
+    </div>
+</section>

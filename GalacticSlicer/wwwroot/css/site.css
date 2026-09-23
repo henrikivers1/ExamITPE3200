@@ -632,10 +632,191 @@ a.gs-star-node-link:hover {
   color: var(--gs-text-muted);
 }
 
+/* ---------- challenge topics ---------- */
+
+.gs-topic-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  max-width: var(--gs-max-width);
+  margin: 2rem auto 4rem;
+}
+
+.gs-topic-card {
+  display: block;
+  background: var(--gs-bg-card);
+  border: 1px solid var(--gs-border);
+  border-radius: var(--gs-radius-lg);
+  padding: 1.5rem;
+  text-decoration: none;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.gs-topic-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--gs-accent);
+}
+
+.gs-topic-icon {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--gs-accent-soft);
+  color: var(--gs-accent);
+  margin-bottom: 1rem;
+}
+
+.gs-topic-title {
+  font-size: 1.05rem;
+  margin-bottom: 0.6rem;
+  color: var(--gs-text);
+}
+
+.gs-topic-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--gs-text-muted);
+}
+
+.gs-topic-tag {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--gs-bg-elevated);
+  border: 1px solid var(--gs-border);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gs-text);
+}
+
+/* ---------- progress page ---------- */
+
+.gs-profile-header {
+  max-width: var(--gs-max-width);
+  margin: 3rem auto 2rem;
+  padding: 0 1.5rem;
+  text-align: center;
+}
+
+.gs-profile-header h1 {
+  margin: 0.5rem 0 0.25rem;
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+}
+
+.gs-profile-meta {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.gs-rank-badge {
+  display: inline-block;
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  background: var(--gs-accent-soft);
+  color: var(--gs-accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.gs-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.1rem;
+  max-width: var(--gs-max-width);
+  margin: 0 auto 2.5rem;
+}
+
+.gs-stat-card {
+  background: var(--gs-bg-card);
+  border: 1px solid var(--gs-border);
+  border-radius: var(--gs-radius);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.gs-stat-label {
+  font-size: 0.8rem;
+  color: var(--gs-text-muted);
+}
+
+.gs-stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--gs-text);
+}
+
+.gs-stat-value--rank {
+  font-size: 1.15rem;
+  color: var(--gs-accent);
+}
+
+.gs-stat-value-total {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--gs-text-muted);
+}
+
+.gs-progress-section {
+  max-width: 640px;
+  margin: 0 auto 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.gs-progress-block-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--gs-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.gs-progress-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--gs-bg-elevated);
+  border: 1px solid var(--gs-border);
+  overflow: hidden;
+}
+
+.gs-progress-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--gs-accent), var(--gs-accent-strong));
+}
+
+.gs-progress-bar-fill--accent2 {
+  background: linear-gradient(90deg, #7c5cff, #4d3fc9);
+}
+
 /* ---------- responsive ---------- */
 
 @media (max-width: 860px) {
   .gs-features {
+    grid-template-columns: 1fr;
+  }
+
+  .gs-topic-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .gs-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .gs-topic-grid,
+  .gs-stats-grid {
     grid-template-columns: 1fr;
   }
 }

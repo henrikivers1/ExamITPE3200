@@ -3,17 +3,32 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ExamITPE3200.Controllers
 {
-    
-
     public class ChallengeController : Controller
     {
         private readonly GalacticSlicerDbContext _context;
-        private readonly ILogger<ChallengeController> _logger;
 
-        public ChallengeController(GalacticSlicerDbContext context, ILogger<ChallengeController> logger)
+        public ChallengeController(GalacticSlicerDbContext context)
         {
             _context = context;
-            _logger = logger;
+        }
+
+        // Public-facing "practice by topic" landing page.
+        // Topic names/counts are hardcoded placeholders for now - once challenges
+        // in the database have a real Topic/Category field, this should be
+        // replaced with a database query grouped by topic.
+        public IActionResult Topics()
+        {
+            var topics = new List<ChallengeTopicViewModel>
+            {
+                new() { Name = "Cryptography Basics", IconKey = "crypto", Difficulty = "Beginner", ChallengeCount = 4 },
+                new() { Name = "Network Security", IconKey = "network", Difficulty = "Beginner", ChallengeCount = 5 },
+                new() { Name = "Web Application Security", IconKey = "web", Difficulty = "Intermediate", ChallengeCount = 6 },
+                new() { Name = "Social Engineering & Phishing", IconKey = "phishing", Difficulty = "Intermediate", ChallengeCount = 3 },
+                new() { Name = "Malware Analysis", IconKey = "malware", Difficulty = "Advanced", ChallengeCount = 4 },
+                new() { Name = "Access Control & Authentication", IconKey = "access", Difficulty = "Advanced", ChallengeCount = 3 },
+            };
+
+            return View(topics);
         }
 
         public IActionResult Index()
@@ -45,17 +60,8 @@ namespace ExamITPE3200.Controllers
         {
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Challenges.Add(challenge);
-                    _context.SaveChanges();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "An error occurred while creating the challenge.");
-                    ModelState.AddModelError(string.Empty, $"An error occurred while creating the challenge: {ex.Message}");
-                    return View(challenge);
-                }
+                _context.Challenges.Add(challenge);
+                _context.SaveChanges();
 
                 return RedirectToAction(nameof(Index));
             }
@@ -85,17 +91,8 @@ namespace ExamITPE3200.Controllers
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Challenges.Update(challenge);
-                    _context.SaveChanges();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "An error occurred while updating the challenge.");
-                    ModelState.AddModelError(string.Empty, $"An error occurred while updating the challenge: {ex.Message}");
-                    return View(challenge);
-                }
+                _context.Challenges.Update(challenge);
+                _context.SaveChanges();
 
                 return RedirectToAction(nameof(Index));
             }
@@ -126,17 +123,8 @@ namespace ExamITPE3200.Controllers
                 return NotFound();
             }
 
-            try
-            {
-                _context.Challenges.Remove(challenge);
-                _context.SaveChanges();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while deleting the challenge.");
-                ModelState.AddModelError(string.Empty, $"An error occurred while deleting the challenge: {ex.Message}");
-                return View("Delete", challenge);
-            }
+            _context.Challenges.Remove(challenge);
+            _context.SaveChanges();
 
             return RedirectToAction(nameof(Index));
         }
