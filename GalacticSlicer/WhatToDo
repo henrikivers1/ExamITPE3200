@@ -9,18 +9,22 @@ DONE
 TASK 2
 Create Challenge model
 Can be done immediately
+DONE
 
 TASK 3
 Set up database with Entity Framework Core
 Needs TASK 2 first
+DONE
 
 TASK 4
 Create DbContext
 Needs TASK 2 and TASK 3 first
+DONE
 
 TASK 5
 Register database in Program.cs
 Needs TASK 4 first
+DONE
 
 TASK 10
 Add server-side validation
