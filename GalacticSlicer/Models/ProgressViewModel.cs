@@ -1,4 +1,4 @@
-namespace ExamITPE3200.Models;
+namespace GalacticSlicer.Models;
 public class ProgressViewModel
 {
     public required string Username { get; set; }

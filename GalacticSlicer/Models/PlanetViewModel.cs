@@ -1,4 +1,4 @@
-namespace ExamITPE3200.Models;
+namespace GalacticSlicer.Models;
 public class PlanetViewModel
 {
     public required string Name { get; set; }

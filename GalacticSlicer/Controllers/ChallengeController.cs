@@ -1,7 +1,7 @@
 using ExamITPE3200.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ExamITPE3200.Controllers
+namespace GalacticSlicer.Controllers
 {
     public class ChallengeController : Controller
     {
