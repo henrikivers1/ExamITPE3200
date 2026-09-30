@@ -1,9 +1,8 @@
-Galactic Slicer
+# Galactic Slicer
 
 Galactic Slicer is a web application made for the ITPE3200 Web Applications course at OsloMet.
 
-The goal of the project is to make cybersecurity learning more interactive through a gamified web application. Users can go through different planets, complete challenges, 
-earn credits and track progress.
+The goal of the project is to make cybersecurity learning more interactive through a gamified web application. Users can go through different planets, complete challenges, earn credits and track progress.
 
 This version is a basic MVP for the mandatory assignment and is meant to be developed further for the final exam project.
 
@@ -64,45 +63,116 @@ We use Data Annotations such as:
 
 The Create and Edit actions also check:
 
-```csharp
-ModelState.IsValid
+`ModelState.IsValid`
 
+before changes are saved to the database.
 
+Validation messages are shown in the Create and Edit views.
 
+## Error handling
 
-Til README trenger jeg at dere bare skriver kort om hva dere har gjort.
+Error handling is added to the database operations in `ChallengeController`.
 
-Henrik:
-Skriv 3–6 korte punkter eller et lite avsnitt om:
-- ChallengeController
-- CRUD-funksjonaliteten
-- Create / Read / Edit / Delete
-- Forms
-- Hvordan Challenges hentes fra databasen og vises dynamisk
-- Eventuelt hvilke Canvas-demoer eller andre kilder du brukte
+Create, Edit and Delete use `try/catch` blocks.
 
-Eksempel:
-"I worked mainly on the Challenge CRUD functionality. This included creating the ChallengeController and the Create, Edit, Details and Delete views. Entity Framework Core is used to retrieve and update Challenge data in the SQLite database."
+If an error happens while saving data, the user is returned to the view and an error message is added to `ModelState`.
 
-Filip:
-Skriv 3–6 korte punkter eller et lite avsnitt om:
-- Frontend/design
-- Navigation
-- Home page
-- Challenge/Practice pages
-- Planet/Galaxy page
-- Progress page
-- Login/Signup
-- CSS / Bootstrap / JavaScript du har brukt
-- Eventuelt hvilke kilder eller inspirasjon du brukte
+## Logging
 
-Eksempel:
-"I worked mainly on the frontend and navigation. I created and styled several pages, including Home, Galaxy, Progress and the Challenge pages. CSS, Bootstrap and JavaScript were used for the layout, styling and quiz interaction."
+Serilog is used for server-side logging.
 
-Hvis dere har brukt:
-- Canvas-demoer
-- nettsider/tutorials
-- kodeeksempler
-- AI
+Logging is configured in `Program.cs`.
 
-så skriv kort hva dere brukte det til, så legger vi det inn under Sources / Use of AI.
+Errors in Create, Edit and Delete are logged using:
+
+`_logger.LogError(...)`
+
+The log files are stored in the `logs` folder.
+
+The `logs` folder is ignored by Git.
+
+## How to run the project
+
+Requirements:
+
+- .NET SDK 10.0
+- Node.js v24.19.0
+
+Go to the project folder:
+
+`cd GalacticSlicer`
+
+Restore the dependencies:
+
+`dotnet restore`
+
+Build the project:
+
+`dotnet build`
+
+Run the application:
+
+`dotnet run`
+
+Then open the localhost address shown in the terminal.
+
+## Sources and inspiration
+
+The main sources used for my part of the project were course material and demos from ITPE3200 on Canvas.
+
+Examples used as reference:
+
+- MVC course examples
+- Entity Framework and DAL material
+- MyShop / Expanded CRUD demo
+- Logging, Error Handling and Input Validation material
+
+The examples were used as reference and adapted to fit the Galactic Slicer project.
+
+## Use of AI
+
+AI was used as a support tool during development.
+
+I mainly used AI to:
+
+- discuss how different parts could be implemented
+- understand errors and error messages
+- troubleshoot problems
+- understand concepts from the course
+- discuss how course examples could be adapted to Galactic Slicer
+
+The final code was reviewed and adjusted to fit the project and the assignment requirements.
+
+## Git ignore
+
+The project ignores generated and temporary files such as:
+
+- `bin/`
+- `obj/`
+- `node_modules/`
+- `logs/`
+- `*.db-shm`
+- `*.db-wal`
+
+## Group work
+
+### Jonas
+
+My main responsibilities were:
+
+- Challenge model
+- Entity Framework setup
+- SQLite database setup
+- DbContext
+- Database registration in Program.cs
+- Server-side validation
+- Error handling
+- Logging
+
+### Henrik
+
+TODO: Add a short description of the CRUD, forms and database-related work.
+
+### Filip
+
+TODO: Add a short description of the frontend, navigation and design work.
