@@ -6,10 +6,14 @@ namespace ExamITPE3200.Controllers
     public class ChallengeController : Controller
     {
         private readonly GalacticSlicerDbContext _context;
+        private readonly ILogger<ChallengeController> _logger;
 
-        public ChallengeController(GalacticSlicerDbContext context)
+        public ChallengeController(
+            GalacticSlicerDbContext context,
+            ILogger<ChallengeController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public IActionResult Topics()
@@ -27,8 +31,7 @@ namespace ExamITPE3200.Controllers
             return View(topics);
         }
 
-        // Placeholder - one topic with multiplle choice questions
-       
+        // Placeholder - one topic with multiple choice questions
         public IActionResult Practice()
         {
             return View();
@@ -43,7 +46,8 @@ namespace ExamITPE3200.Controllers
 
         public IActionResult Details(int id)
         {
-            var challenge = _context.Challenges.FirstOrDefault(c => c.ChallengeId == id);
+            var challenge = _context.Challenges
+                .FirstOrDefault(c => c.ChallengeId == id);
 
             if (challenge == null)
             {
@@ -57,20 +61,37 @@ namespace ExamITPE3200.Controllers
         {
             return View();
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Challenge challenge)
         {
             if (ModelState.IsValid)
             {
-                _context.Challenges.Add(challenge);
-                _context.SaveChanges();
+                try
+                {
+                    _context.Challenges.Add(challenge);
+                    _context.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "An error occurred while creating the challenge.");
+
+                    ModelState.AddModelError(
+                        string.Empty,
+                        $"An error occurred while creating the challenge: {ex.Message}");
+
+                    return View(challenge);
+                }
 
                 return RedirectToAction(nameof(Index));
             }
 
             return View(challenge);
         }
+
         public IActionResult Edit(int id)
         {
             var challenge = _context.Challenges.Find(id);
@@ -94,8 +115,23 @@ namespace ExamITPE3200.Controllers
 
             if (ModelState.IsValid)
             {
-                _context.Challenges.Update(challenge);
-                _context.SaveChanges();
+                try
+                {
+                    _context.Challenges.Update(challenge);
+                    _context.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "An error occurred while updating the challenge.");
+
+                    ModelState.AddModelError(
+                        string.Empty,
+                        $"An error occurred while updating the challenge: {ex.Message}");
+
+                    return View(challenge);
+                }
 
                 return RedirectToAction(nameof(Index));
             }
@@ -126,8 +162,23 @@ namespace ExamITPE3200.Controllers
                 return NotFound();
             }
 
-            _context.Challenges.Remove(challenge);
-            _context.SaveChanges();
+            try
+            {
+                _context.Challenges.Remove(challenge);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "An error occurred while deleting the challenge.");
+
+                ModelState.AddModelError(
+                    string.Empty,
+                    $"An error occurred while deleting the challenge: {ex.Message}");
+
+                return View("Delete", challenge);
+            }
 
             return RedirectToAction(nameof(Index));
         }
