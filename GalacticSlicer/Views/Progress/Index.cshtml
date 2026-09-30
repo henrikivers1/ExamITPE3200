@@ -1,4 +1,4 @@
-@model ExamITPE3200.Models.ProgressViewModel
+@model GalacticSlicer.Models.ProgressViewModel
 @{
     ViewData["Title"] = "Progress";
     var planetPercent = Model.PlanetsTotal == 0 ? 0 : (int)Math.Round(100.0 * Model.PlanetsUnlocked / Model.PlanetsTotal);
