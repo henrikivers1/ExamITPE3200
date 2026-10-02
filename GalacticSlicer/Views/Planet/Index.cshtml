@@ -1,4 +1,4 @@
-@model List<ExamITPE3200.Models.PlanetViewModel>
+@model List<GalacticSlicer.Models.PlanetViewModel>
 @{
     ViewData["Title"] = "Galaxy";
     var unlockedCount = Model.Count(p => p.IsUnlocked);
@@ -20,7 +20,7 @@
             <li class="gs-star-node @(planet.IsUnlocked ? "gs-star-node--unlocked" : "gs-star-node--locked")">
                 @if (planet.IsUnlocked)
                 {
-                    <a class="gs-star-node-link" asp-area="" asp-controller="Challenge" asp-action="Index">
+                    <a class="gs-star-node-link" asp-area="" asp-controller="Challenge" asp-action="Topics">
                         <span class="gs-planet gs-planet--@planet.CssClass" aria-hidden="true"></span>
                         <span class="gs-star-node-info">
                             <span class="gs-star-node-step">@planet.StepLabel</span>

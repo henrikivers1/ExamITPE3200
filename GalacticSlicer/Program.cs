@@ -1,4 +1,4 @@
-using ExamITPE3200.Models;
+using GalacticSlicer.Models;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 

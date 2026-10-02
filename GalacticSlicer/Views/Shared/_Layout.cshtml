@@ -16,8 +16,7 @@
     @{
         var activeController = ViewContext.RouteData.Values["controller"]?.ToString();
 
-        // PLACEHOLDER auth state - replace with a real check once accounts/
-        // sessions exist (e.g. User.Identity?.IsAuthenticated == true).
+        // PLACEHOLDER auth state 
         // Toggle this to true locally to preview the logged-in navbar state.
         var isLoggedIn = false;
         var currentUsername = "Slicer_01";
@@ -51,7 +50,7 @@
                     </li>
                     <li>
                         <a class="gs-nav-link @(activeController == "Challenge" ? "is-active" : "")"
-                           asp-area="" asp-controller="Challenge" asp-action="Topics">Challenges</a>
+                           asp-area="" asp-controller="Challenge" asp-action="Index">Challenges</a>
                     </li>
                     <li>
                         <a class="gs-nav-link @(activeController == "Progress" ? "is-active" : "")"
@@ -94,8 +93,8 @@
                 <span>Learn. Practice. A safer galaxy.</span>
             </div>
             <div class="gs-footer-links">
-                <a href="#">About</a>
-                <a href="#">Contact</a>
+                <a asp-area="" asp-controller="Home" asp-action="About">About</a>
+                <a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a>
                 <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
             </div>
         </div>

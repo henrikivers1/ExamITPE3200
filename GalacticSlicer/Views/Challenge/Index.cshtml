@@ -1,16 +1,19 @@
-@model IEnumerable<ExamITPE3200.Models.Challenge>
+@model IEnumerable<GalacticSlicer.Models.Challenge>
 
 @{
-    ViewData["Title"] = "Challenges";
+    ViewData["Title"] = "Manage Challenges";
 }
 
-<h1>Challenges</h1>
+<h1>@ViewData["Title"]</h1>
 
-<p>
+<div class="gs-button-row">
     <a asp-action="Create" class="btn btn-primary">
         Create New Challenge
     </a>
-</p>
+    <a asp-action="Topics" class="btn btn-success">
+        Practice Challenges
+    </a>
+</div>
 
 @foreach (var challenge in Model)
 {
