@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 // Creates a unique log file name using the current date and time.
-// Example: logs/log-20260923_103500.txt
+// Example: logs/log-2026-09-30.txt
 var logFileName = $"logs/log-{DateTime.Now:yyyy-MM-dd}.txt";
 
 
@@ -14,6 +14,7 @@ var logFileName = $"logs/log-{DateTime.Now:yyyy-MM-dd}.txt";
 // WriteTo.File means that log messages will be saved in the file above.
 // CreateLogger creates the logger with this configuration.
 Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
     .WriteTo.File(logFileName)
     .CreateLogger();
 
