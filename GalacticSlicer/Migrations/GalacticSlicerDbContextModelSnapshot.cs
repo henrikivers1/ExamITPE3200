@@ -16,7 +16,7 @@ namespace GalacticSlicer.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.12");
 
-            modelBuilder.Entity("ExamITPE3200.Models.Challenge", b =>
+            modelBuilder.Entity("GalacticSlicer.Models.Challenge", b =>
                 {
                     b.Property<int>("ChallengeId")
                         .ValueGeneratedOnAdd()
