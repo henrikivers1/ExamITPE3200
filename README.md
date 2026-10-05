@@ -118,7 +118,7 @@ Then open the localhost address shown in the terminal.
 
 ## Sources and inspiration
 
-The main sources used for my part of the project were course material and demos from ITPE3200 on Canvas.
+The main sources used for Jonas part of the project were course material and demos from ITPE3200 on Canvas.
 
 Examples used as reference:
 
@@ -133,15 +133,17 @@ The examples were used as reference and adapted to fit the Galactic Slicer proje
 
 AI was used as a support tool during development.
 
-I mainly used AI to:
+We used AI to:
 
 - discuss how different parts could be implemented
 - understand errors and error messages
 - troubleshoot problems
 - understand concepts from the course
 - discuss how course examples could be adapted to Galactic Slicer
+- get suggestions for HTML and CSS structure and styling
+- improve and adjust frontend code where needed
 
-The final code was reviewed and adjusted to fit the project and the assignment requirements.
+The final code was reviewed and adjusted by the group to fit the project and the assignment requirements.
 
 ## Git ignore
 
@@ -153,6 +155,15 @@ The project ignores generated and temporary files such as:
 - `logs/`
 - `*.db-shm`
 - `*.db-wal`
+
+
+## Dynamic content
+
+Challenge data is stored in the SQLite database and displayed dynamically through the Challenge views. Users can create, view, edit and delete challenges through the CRUD functionality.
+
+## Current MVP limitations
+
+Some parts of the application are still placeholders in this MVP version. Login and Sign Up do not yet include full authentication, and some progress and practice functionality will be expanded further in the final exam project.
 
 ## Group work
 
@@ -171,8 +182,23 @@ My main responsibilities were:
 
 ### Henrik
 
-TODO: Add a short description of the CRUD, forms and database-related work.
+My main responsibilities were:
+
+- ChallengeController
+- CRUD functionality
+- CRUD views
+- Create and Edit forms
+- Displaying Challenge data from the database
+- Connecting CRUD operations to Entity Framework Core
 
 ### Filip
 
-TODO: Add a short description of the frontend, navigation and design work.
+My main responsibilities were:
+
+- Frontend design
+- Navigation
+- Home page
+- Challenge and Practice pages
+- Galaxy and Progress pages
+- Login and Sign Up pages
+- CSS, Bootstrap and JavaScript
