@@ -1263,7 +1263,7 @@ a.gs-star-node-link:hover .gs-star-node-name {
   }
 }
 
-/* starchart: 3 columns x 2 rows on tablets, 2 x 3 on phones - still zigzagging */
+/* starchart: 3 columns x 2 rows on tablets, 2 x 3 on phones - zigzagging */
 @media (max-width: 900px) {
   .gs-starchart-path {
     --gs-cols: 3;
@@ -1363,6 +1363,7 @@ a.gs-star-node-link:hover .gs-star-node-name {
   background: transparent;
 }
 
+/*  Stars that twinkle in different patterns */
 .gs-sky-stars--small {
   box-shadow:
     63.8vw 3.0vh rgba(255, 255, 255, 0.65),
@@ -1478,7 +1479,6 @@ a.gs-star-node-link:hover .gs-star-node-name {
   animation: gs-twinkle 7s ease-in-out infinite;
 }
 
-/*  Stars that twinkle in different patterns */
 .gs-sky-stars--large {
   width: 2px;
   height: 2px;
