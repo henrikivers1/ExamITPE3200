@@ -1,163 +1,448 @@
-TODO: OBLIG 2 – GALACTIC SLICER
+# TODO: GALACTIC SLICER – SUBAPP 1 (EXAM PROJECT)
 
-JONAS
+## JONAS – BACKEND, DATABASE & GAME ECONOMY
 
-TASK 1
-Set up ASP.NET Core 10 MVC project
-DONE
+**TASK 1**
+Create new database models
+- Character (name, description, price, image)
+- PlayerProgress (Credits, rank, active character)
+- UserCharacter (characters owned by each user)
+- CompletedChallenge (completed missions)
 
-TASK 2
-Create Challenge model
 Can be done immediately
-DONE
 
-TASK 3
-Set up database with Entity Framework Core
+**TASK 2**
+Update DbContext and database
+- Add new DbSets
+- Configure relationships between models
+- Create Entity Framework Core migrations
+- Update SQLite database
+
+Needs TASK 1 first
+
+**TASK 3**
+Implement player progression
+- Connect player progress to ASP.NET Identity
+- Store Credits for each user
+- Store rank and active character
+- Save completed challenges
+- Ensure progress persists after logout
+
 Needs TASK 2 first
-DONE
 
-TASK 4
-Create DbContext
-Needs TASK 2 and TASK 3 first
-DONE
+**TASK 4**
+Create Credits system
+- Give Credits for completing challenges
+- Check if answers are correct
+- Prevent players from earning Credits multiple times from the same challenge
+- Update player balance in the database
 
-TASK 5
-Register database in Program.cs
-Needs TASK 4 first
-DONE
+Needs TASK 3 first
 
-TASK 10
-Add server-side validation
-Can be done after TASK 2
+**TASK 5**
+Create CharacterService
+- Check if the player has enough Credits
+- Prevent buying the same character twice
+- Deduct Credits when purchasing
+- Add purchased characters to the player's collection
+- Allow players to equip owned characters
+- Ensure purchases are saved securely
 
-TASK 14
-Add error handling
-Best done after CRUD is working
+Needs TASK 3 first
 
-TASK 15
-Add server-side logging
-Best done after Controller/CRUD exists
+**TASK 6**
+Implement planet progression
+- Define requirements for unlocking planets
+- Use rank or completed missions to unlock planets
+- Prevent players from accessing locked planets
+- Store necessary progression data
 
+Needs TASK 3 first
 
-HENRIK
+**TASK 7**
+Add unit testing
+- Test Credits rewards
+- Test character purchases
+- Test insufficient Credits
+- Test duplicate purchases
+- Test completed challenges
+- Test planet unlocking
 
-TASK 6
-Create ChallengeController
-Needs Jonas to finish TASK 2–5 first
-NOTE: Ask Jonas if the model/database setup is finished before continuing
+Can start after TASK 4–6
 
-TASK 7
-Create CRUD functionality
-- Create
-- Read
-- Update
-- Delete
-Needs TASK 6 first
+**TASK 8**
+Expand logging and error handling
+- Log important game events
+- Log failed purchases and database errors
+- Handle unexpected exceptions
+- Use existing Serilog setup
+- Avoid exposing sensitive information in logs
 
-TASK 8
-Create CRUD views
-- Index
-- Create
-- Edit
-- Details
-- Delete
-Needs TASK 7 first
+Can be worked on alongside TASK 4–6
 
-TASK 9
-Create forms
-Needs TASK 8 first
+---
 
-TASK 11
-Add dynamic content from database
-Needs database + CRUD to be working
+## HENRIK – MVC CONTROLLERS & GAME FUNCTIONALITY
 
+**TASK 9**
+Review existing MVC functionality
+- Check ChallengeController
+- Check existing CRUD functionality
+- Identify what needs to be extended
+- Plan new controller actions
 
-FILIP
-
-TASK 12
-Create basic navigation
-- Home
-- Challenges
-- Log in/Sign up
-- Galaxy
-- Progress
 Can be done immediately
-DONE
 
-TASK 13
-Add basic design
-- Bootstrap / CSS
-- Galactic Slicer theme
-- Make pages easy to navigate
-Can be done immediately
-DONE
+**TASK 10**
+Create CharacterController
+- Shop() – Display available characters
+- Buy() – Purchase a character
+- Equip() – Select an owned character
+- Use Razor Views
+- Require authentication for purchases
 
-TASK 16
-Make code neat and structured
-- Clear names
-- English comments where needed
-- Finish Frontend
-Can be worked on throughout the project
+Can be started after TASK 9
 
-TASK 17
-Create README
-- Project description
-- .NET version
-- Node.js version
-- How to start the application
+NOTE: Integration with CharacterService requires Jonas to finish TASK 5.
+
+**TASK 11**
+Connect CharacterController to CharacterService
+- Call backend purchase methods
+- Handle successful and failed purchases
+- Redirect users after purchasing
+- Display appropriate messages
+
+Needs Jonas to finish TASK 5 and Henrik to finish TASK 10
+
+**TASK 12**
+Extend ChallengeController
+- Allow players to submit answers
+- Check results through backend game logic
+- Register completed challenges
+- Trigger Credits rewards
+- Show mission results
+
+Needs Jonas to finish TASK 4
+
+**TASK 13**
+Improve PlanetController
+- Retrieve challenges from the database
+- Display missions belonging to each planet
+- Show completed and available missions
+- Handle invalid planet requests
+
 Can be started immediately
-Finish it when the project setup is complete
 
-TASK 19
-Prepare submission
-- Remove /bin
-- Remove /obj
-- Remove /node_modules if present
-- Zip project
-Needs everyone else to be finished first
-NOTE: Ask Jonas and Henrik if their parts are complete before making the final ZIP
+**TASK 14**
+Connect planet unlocking
+- Check if players meet planet requirements
+- Prevent access to locked planets
+- Show available and locked missions
+- Connect planet progress to Razor Views
 
+Needs Jonas to finish TASK 6 and Henrik to finish TASK 13
 
-ALL
+**TASK 15**
+Create and connect ViewModels
+- CharacterShopViewModel
+- PlayerDashboardViewModel
+- PlanetViewModel
+- Include only the data required by each page
+- Connect controllers to Filip's Razor Views
 
-TASK 18
-Test everything
-- App starts
-- CRUD works
-- Validation works
-- Database works
-- Navigation works
+Can be started alongside TASK 10 and TASK 13
+
+NOTE: Coordinate ViewModel properties with Jonas and Filip before implementation.
+
+**TASK 16**
+Improve controller validation and error handling
+- Validate submitted forms
+- Handle invalid character IDs
+- Prevent unauthorized actions
+- Protect POST requests against CSRF
+- Display user-friendly errors
+
+Can be worked on throughout controller development
+
+---
+
+## FILIP – FRONTEND, HTML, CSS & DESIGN
+
+**TASK 17**
+Improve overall design
+- Update HTML, CSS and Bootstrap
+- Create a consistent Galactic Slicer theme
+- Improve colors, typography and spacing
+- Redesign navbar and buttons
+- Create reusable UI components
+- Improve responsive design
+
+Can be done immediately
+
+**TASK 18**
+Redesign Home page
+- Create a more immersive landing page
+- Display active character
+- Add navigation to missions and planets
+- Improve layout and animations
+- Create a more game-like experience
+
+Can be started immediately
+
+NOTE: Dynamic player information requires Jonas' player progression system.
+
+**TASK 19**
+Create Character Shop page
+- Create Shop.cshtml
+- Display character cards
+- Show character images and descriptions
+- Display prices in Credits
+- Add Buy, Equip and Equipped buttons
+- Show insufficient Credits messages
+
+Can be started immediately using example data
+
+NOTE: Final integration requires Henrik to finish TASK 10–11.
+
+**TASK 20**
+Redesign Galaxy Map
+- Improve planet cards and layout
+- Add hover effects and animations
+- Visually distinguish locked and unlocked planets
+- Display planet information
+- Improve navigation between planets
+
+Can be started immediately
+
+NOTE: Unlocking functionality requires Henrik to finish TASK 14.
+
+**TASK 21**
+Redesign Practice and Challenges
+- Improve question layout
+- Add progress indicators
+- Improve answer buttons and forms
+- Display correct and incorrect answers clearly
+- Add visual feedback for completed missions
+- Show Credits earned
+
+Can be started immediately
+
+NOTE: Dynamic rewards require Henrik to finish TASK 12.
+
+**TASK 22**
+Create player Dashboard
+- Display available Credits
+- Display current rank
+- Show equipped character
+- Show completed challenges
+- Display overall game progression
+
+Can be started immediately using example data
+
+NOTE: Dynamic data requires Jonas to finish TASK 3 and Henrik to finish TASK 15.
+
+**TASK 23**
+Add animations and visual effects
+- Animated star backgrounds
+- Hover effects on cards
+- Smooth transitions
+- Glowing buttons
+- Character selection effects
+- Credits reward animations
+- Loading and feedback states
+
+Can be worked on throughout frontend development
+
+NOTE: Keep animations lightweight and support reduced-motion preferences.
+
+**TASK 24**
+Improve accessibility and usability
+- Ensure sufficient color contrast
+- Support keyboard navigation
+- Improve mobile responsiveness
+- Use clear buttons and labels
+- Ensure error messages are understandable
+- Test different screen sizes
+
+Best done after the main frontend redesign
+
+---
+
+## ALL – INTEGRATION, TESTING & DOCUMENTATION
+
+**TASK 25**
+Integrate Character Shop
+- Connect CharacterController to CharacterService
+- Connect Razor Views to real database data
+- Verify purchases update Credits
+- Verify purchased characters are saved
+- Verify equipped characters persist after logout
+
+Jonas + Henrik + Filip
+
+Needs TASK 5, TASK 11 and TASK 19 first
+
+**TASK 26**
+Integrate missions and Credits
+- Complete challenges through the frontend
+- Validate answers on the server
+- Award Credits correctly
+- Update player progress
+- Display earned rewards
+
+Jonas + Henrik + Filip
+
+Needs TASK 4, TASK 12 and TASK 21 first
+
+**TASK 27**
+Integrate planet progression
+- Connect planet unlocking rules to MVC
+- Display locked/unlocked planets
+- Verify players cannot access locked content
+- Display completed missions correctly
+
+Jonas + Henrik + Filip
+
+Needs TASK 6, TASK 14 and TASK 20 first
+
+**TASK 28**
+Test complete game functionality
+- Registration and login work
+- Player progress is saved
+- Challenges work
+- Credits are awarded correctly
+- Character purchases work
+- Characters can be equipped
+- Planet unlocking works
+- CRUD still works
+- Validation and error handling work
 - No crashes during normal use
-Needs all main tasks to be finished first
 
+Needs TASK 25–27 first
 
-WHO CAN START RIGHT AWAY
+**TASK 29**
+Improve code quality
+- Use clear naming conventions
+- Remove unused code
+- Avoid duplicated logic
+- Organize models, services, controllers and views
+- Check logging and exception handling
+- Review security and authorization
 
-Jonas:
-- TASK 2
-- TASK 10
+Can be worked on throughout development
 
-Filip:
-- TASK 12
-- TASK 13
-- TASK 16
-- TASK 17
+**TASK 30**
+Update README
+- Project description
+- Technologies and .NET version
+- Database setup
+- How to start the application
+- Main game features
+- Project structure
+- Team members and contributions
 
-Henrik:
-- Can prepare folders/files
-- Should wait for Jonas to finish TASK 2–5 before building CRUD against the database
+Can be started immediately
 
+Finish when Subapp 1 is complete
 
-IMPORTANT DEPENDENCIES
+**TASK 31**
+Document development process
+- Describe individual contributions
+- Explain technical decisions
+- Document problems and solutions
+- Describe database architecture
+- Explain security and validation
+- Document Git collaboration
+- Document generative AI usage
+- Record testing and results
 
-Jonas finishes TASK 2–5
-→ Henrik can continue with TASK 6–11
+Can be started immediately
 
-Henrik finishes CRUD
-→ Jonas can finish error handling/logging properly
+NOTE: Keep development notes throughout the project for the final exam report.
 
-Everyone finishes
-→ ALL do TASK 18 testing
+---
 
-After testing
-→ Filip does TASK 19 submission prep
+## WHO CAN START RIGHT AWAY
+
+**Jonas:**
+- TASK 1 – Datamodeller
+- TASK 2 – Database (after TASK 1)
+- TASK 3 – Player progression (after TASK 2)
+- TASK 8 – Logging/error handling as features are developed
+
+**Henrik:**
+- TASK 9 – Review MVC functionality
+- TASK 10 – CharacterController structure
+- TASK 13 – PlanetController
+- TASK 15 – Plan ViewModels
+- TASK 16 – Controller validation
+
+**Filip:**
+- TASK 17 – Overall design
+- TASK 18 – Home page
+- TASK 19 – Character Shop UI
+- TASK 20 – Galaxy Map
+- TASK 21 – Practice redesign
+- TASK 22 – Dashboard UI
+- TASK 23 – Animations
+
+**Everyone:**
+- TASK 29 – Code quality
+- TASK 30 – README
+- TASK 31 – Development documentation
+
+---
+
+## IMPORTANT DEPENDENCIES
+
+Jonas finishes TASK 1–3  
+→ Player data, Credits and owned characters can be stored.
+
+Jonas finishes TASK 5  
+→ Henrik can integrate character purchasing in TASK 11.
+
+Henrik finishes TASK 10–11  
+→ Filip and Henrik can connect the Character Shop.
+
+Jonas finishes TASK 4  
+→ Henrik can complete TASK 12 (mission rewards).
+
+Jonas finishes TASK 6  
+→ Henrik can complete TASK 14 (planet unlocking).
+
+Henrik finishes controllers and ViewModels  
+→ Filip can connect the final Razor Views.
+
+Everyone finishes the main functionality  
+→ ALL complete TASK 25–28 (integration and testing).
+
+After Subapp 1 is tested and stable  
+→ Begin Subapp 2 (React + REST API).
+
+---
+
+## IMPORTANT DESIGN DECISIONS
+
+**Credits:**
+- Earned by completing challenges
+- Used to purchase characters
+- Stored individually for each player
+
+**Characters:**
+- Kael Voss is the default character
+- Additional characters can be purchased
+- Players can equip any character they own
+- Characters are cosmetic only
+
+**Planets:**
+- Unlocked through rank or mission progression
+- Do not require spending Credits
+- Locked planets cannot be accessed through direct URLs
+
+**Security:**
+- Server validates all rewards and purchases
+- Users cannot modify their Credits directly
+- Purchases and balance updates must be atomic
+- All player data belongs to the authenticated user
+
+**NOTE:** This plan covers only Subapplication 1 (ASP.NET Core MVC). The requirements for Subapp 2 and the final report should be checked against the official exam assignment before final submission.
