@@ -1,5 +1,5 @@
 
-namespace ExamITPE3200.Models;
+namespace GalacticSlicer.Models;
 using System.ComponentModel.DataAnnotations;
 
 
