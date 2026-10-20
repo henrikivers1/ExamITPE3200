@@ -362,6 +362,13 @@ NOTE: Keep development notes throughout the project for the final exam report.
 
 ---
 
+Oppgave	Ansvarlig	Hvorfor
+TASK 32 – Authentication	Jonas + Henrik	Sikre at registrering, innlogging og utlogging fungerer med ASP.NET Core Identity.
+TASK 33 – Authorization	Jonas + Henrik	Kun administratorer skal kunne opprette, redigere og slette Challenges.
+TASK 34 – Database seeding	Jonas	Legge inn standardkarakterer, planeter og oppdrag automatisk ved oppstart eller initialisering.
+TASK 35 – UI-testing	Filip	Teste navigasjon, skjemaer og brukeropplevelse på mobil og PC.
+TASK 36 – Deployment / oppstart	Alle	Kontrollere at prosjektet kan startes fra en ny maskin og at databasen fungerer.
+
 ## WHO CAN START RIGHT AWAY
 
 **Jonas:**
