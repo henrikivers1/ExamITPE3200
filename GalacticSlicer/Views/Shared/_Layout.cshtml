@@ -22,6 +22,21 @@
         var currentUsername = "Slicer_01";
         var currentCredits = 120;
     }
+    @* Background sky: extra stars on every page, small drifting planets everywhere except the Galaxy page *@
+    <div class="gs-sky" aria-hidden="true">
+        <span class="gs-sky-stars gs-sky-stars--small"></span>
+        <span class="gs-sky-stars gs-sky-stars--large"></span>
+        @if (activeController != "Planet")
+        {
+            <span class="gs-planet gs-planet--tatooine gs-sky-planet"></span>
+            <span class="gs-planet gs-planet--naboo gs-sky-planet"></span>
+            <span class="gs-planet gs-planet--coruscant gs-sky-planet"></span>
+            <span class="gs-planet gs-planet--kamino gs-sky-planet"></span>
+            <span class="gs-planet gs-planet--hoth gs-sky-planet"></span>
+            <span class="gs-planet gs-planet--endor gs-sky-planet"></span>
+        }
+    </div>
+
     <header class="gs-header">
         <nav class="gs-navbar">
             <a class="gs-brand" asp-area="" asp-controller="Home" asp-action="Index">
