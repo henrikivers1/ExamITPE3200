@@ -36,14 +36,20 @@ namespace GalacticSlicer.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchString, string? planetName, int? minReward)
         {
-            var challenges = await _challengeRepository.GetAll();
+            var challenges = await _challengeRepository.Search(searchString, planetName, minReward);
             if (challenges == null)
             {
-                _logger.LogError("[ChallengeController] Challenge list not found while executing GetAll()");
+                _logger.LogError("[ChallengeController] Challenge list not found while executing Search()");
                 return NotFound("Challenge list not found");
             }
+
+            // Send the current filter values back so the form keeps them after submitting
+            ViewData["SearchString"] = searchString;
+            ViewData["PlanetName"] = planetName;
+            ViewData["MinReward"] = minReward;
+
             return View(challenges);
         }
 

@@ -91,4 +91,31 @@ public class ChallengeRepository : IChallengeRepository
             return false;
         }
     }
+    public async Task<IEnumerable<Challenge>?> Search(string? searchString, string? planetName, int? minReward)
+{
+    try
+    {
+        // Start with all challenges, but don't run the query yet
+        IQueryable<Challenge> query = _db.Challenges;
+
+        // Add one filter per parameter the user actually filled in
+        if (!string.IsNullOrWhiteSpace(searchString))
+            query = query.Where(c => c.Title.Contains(searchString) || c.Question.Contains(searchString));
+
+        if (!string.IsNullOrWhiteSpace(planetName))
+            query = query.Where(c => c.PlanetName == planetName);
+
+        if (minReward.HasValue)
+            query = query.Where(c => c.CreditReward >= minReward.Value);
+
+        // Only now is the SQL sent to the database
+        return await query.OrderBy(c => c.Title).ToListAsync();
+    }
+    catch (Exception e)
+    {
+        _logger.LogError("[ChallengeRepository] Search failed for search {Search}, planet {Planet}, minReward {MinReward}, error message: {e}",
+            searchString, planetName, minReward, e.Message);
+        return null;
+    }
+}
 }
