@@ -1,0 +1,94 @@
+using GalacticSlicer.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace GalacticSlicer.DAL;
+
+public class ChallengeRepository : IChallengeRepository
+{
+    private readonly GalacticSlicerDbContext _db;
+    private readonly ILogger<ChallengeRepository> _logger;
+
+    public ChallengeRepository(GalacticSlicerDbContext db, ILogger<ChallengeRepository> logger)
+    {
+        _db = db;
+        _logger = logger;
+    }
+
+    public async Task<IEnumerable<Challenge>?> GetAll()
+    {
+        try
+        {
+            return await _db.Challenges.ToListAsync();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("[ChallengeRepository] challenges ToListAsync() failed when GetAll(), error message: {e}", e.Message);
+            return null;
+        }
+    }
+
+    public async Task<Challenge?> GetChallengeById(int id)
+    {
+        try
+        {
+            return await _db.Challenges.FindAsync(id);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("[ChallengeRepository] challenge FindAsync(id) failed for ChallengeId {ChallengeId:0000}, error message: {e}", id, e.Message);
+            return null;
+        }
+    }
+
+    public async Task<bool> Create(Challenge challenge)
+    {
+        try
+        {
+            _db.Challenges.Add(challenge);
+            await _db.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("[ChallengeRepository] challenge creation failed for challenge {@challenge}, error message: {e}", challenge, e.Message);
+            return false;
+        }
+    }
+
+    public async Task<bool> Update(Challenge challenge)
+    {
+        try
+        {
+            _db.Challenges.Update(challenge);
+            await _db.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("[ChallengeRepository] challenge update failed for ChallengeId {ChallengeId:0000}, error message: {e}", challenge.ChallengeId, e.Message);
+            return false;
+        }
+    }
+
+    public async Task<bool> Delete(int id)
+    {
+        try
+        {
+            var challenge = await _db.Challenges.FindAsync(id);
+            if (challenge == null)
+            {
+                _logger.LogError("[ChallengeRepository] challenge not found for ChallengeId {ChallengeId:0000}", id);
+                return false;
+            }
+
+            _db.Challenges.Remove(challenge);
+            await _db.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("[ChallengeRepository] challenge deletion failed for ChallengeId {ChallengeId:0000}, error message: {e}", id, e.Message);
+            return false;
+        }
+    }
+}

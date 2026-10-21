@@ -1,6 +1,7 @@
 using GalacticSlicer.Models;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using GalacticSlicer.DAL;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,8 @@ builder.Services.AddDbContext<GalacticSlicerDbContext>(options =>
     options.UseSqlite(
         builder.Configuration["ConnectionStrings:GalacticSlicerDbContextConnection"] ?? throw new InvalidOperationException("Connection string 'GalacticSlicerDbContextConnection' not found."));
 });
+
+builder.Services.AddScoped<IChallengeRepository, ChallengeRepository>();
 
 
 // Add services to the container.

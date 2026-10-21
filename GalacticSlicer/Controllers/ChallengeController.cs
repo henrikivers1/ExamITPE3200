@@ -1,3 +1,4 @@
+using GalacticSlicer.DAL;
 using GalacticSlicer.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -5,14 +6,12 @@ namespace GalacticSlicer.Controllers
 {
     public class ChallengeController : Controller
     {
-        private readonly GalacticSlicerDbContext _context;
+        private readonly IChallengeRepository _challengeRepository;
         private readonly ILogger<ChallengeController> _logger;
 
-        public ChallengeController(
-            GalacticSlicerDbContext context,
-            ILogger<ChallengeController> logger)
+        public ChallengeController(IChallengeRepository challengeRepository, ILogger<ChallengeController> logger)
         {
-            _context = context;
+            _challengeRepository = challengeRepository;
             _logger = logger;
         }
 
@@ -37,26 +36,29 @@ namespace GalacticSlicer.Controllers
             return View();
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var challenges = _context.Challenges.ToList();
-
+            var challenges = await _challengeRepository.GetAll();
+            if (challenges == null)
+            {
+                _logger.LogError("[ChallengeController] Challenge list not found while executing GetAll()");
+                return NotFound("Challenge list not found");
+            }
             return View(challenges);
         }
 
-        public IActionResult Details(int id)
+        public async Task<IActionResult> Details(int id)
         {
-            var challenge = _context.Challenges
-                .FirstOrDefault(c => c.ChallengeId == id);
-
+            var challenge = await _challengeRepository.GetChallengeById(id);
             if (challenge == null)
             {
-                return NotFound();
+                _logger.LogError("[ChallengeController] Challenge not found for ChallengeId {ChallengeId:0000}", id);
+                return NotFound("Challenge not found");
             }
-
             return View(challenge);
         }
 
+        [HttpGet]
         public IActionResult Create()
         {
             return View();
@@ -64,122 +66,76 @@ namespace GalacticSlicer.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Challenge challenge)
+        public async Task<IActionResult> Create(Challenge challenge)
         {
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Challenges.Add(challenge);
-                    _context.SaveChanges();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(
-                        ex,
-                        "An error occurred while creating the challenge.");
+                bool ok = await _challengeRepository.Create(challenge);
+                if (ok)
+                    return RedirectToAction(nameof(Index));
 
-                    ModelState.AddModelError(
-                        string.Empty,
-                        $"An error occurred while creating the challenge: {ex.Message}");
-
-                    return View(challenge);
-                }
-
-                return RedirectToAction(nameof(Index));
+                ModelState.AddModelError(string.Empty, "Could not save the challenge. Please try again.");
             }
-
+            _logger.LogWarning("[ChallengeController] Challenge creation failed {@challenge}", challenge);
             return View(challenge);
         }
 
-        public IActionResult Edit(int id)
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
         {
-            var challenge = _context.Challenges.Find(id);
-
+            var challenge = await _challengeRepository.GetChallengeById(id);
             if (challenge == null)
             {
-                return NotFound();
+                _logger.LogError("[ChallengeController] Challenge not found when editing ChallengeId {ChallengeId:0000}", id);
+                return NotFound("Challenge not found");
             }
-
             return View(challenge);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, Challenge challenge)
+        public async Task<IActionResult> Edit(int id, Challenge challenge)
         {
             if (id != challenge.ChallengeId)
             {
-                return NotFound();
+                _logger.LogWarning("[ChallengeController] Edit id mismatch: route {RouteId}, form {FormId}", id, challenge.ChallengeId);
+                return BadRequest("Challenge id mismatch");
             }
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Challenges.Update(challenge);
-                    _context.SaveChanges();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(
-                        ex,
-                        "An error occurred while updating the challenge.");
+                bool ok = await _challengeRepository.Update(challenge);
+                if (ok)
+                    return RedirectToAction(nameof(Index));
 
-                    ModelState.AddModelError(
-                        string.Empty,
-                        $"An error occurred while updating the challenge: {ex.Message}");
-
-                    return View(challenge);
-                }
-
-                return RedirectToAction(nameof(Index));
+                ModelState.AddModelError(string.Empty, "Could not update the challenge. Please try again.");
             }
-
+            _logger.LogWarning("[ChallengeController] Challenge update failed {@challenge}", challenge);
             return View(challenge);
         }
 
-        public IActionResult Delete(int id)
+        [HttpGet]
+        public async Task<IActionResult> Delete(int id)
         {
-            var challenge = _context.Challenges.Find(id);
-
+            var challenge = await _challengeRepository.GetChallengeById(id);
             if (challenge == null)
             {
-                return NotFound();
+                _logger.LogError("[ChallengeController] Challenge not found when deleting ChallengeId {ChallengeId:0000}", id);
+                return NotFound("Challenge not found");
             }
-
             return View(challenge);
         }
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var challenge = _context.Challenges.Find(id);
-
-            if (challenge == null)
+            bool ok = await _challengeRepository.Delete(id);
+            if (!ok)
             {
-                return NotFound();
+                _logger.LogError("[ChallengeController] Challenge deletion failed for ChallengeId {ChallengeId:0000}", id);
+                return BadRequest("Challenge deletion failed");
             }
-
-            try
-            {
-                _context.Challenges.Remove(challenge);
-                _context.SaveChanges();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "An error occurred while deleting the challenge.");
-
-                ModelState.AddModelError(
-                    string.Empty,
-                    $"An error occurred while deleting the challenge: {ex.Message}");
-
-                return View("Delete", challenge);
-            }
-
             return RedirectToAction(nameof(Index));
         }
     }
