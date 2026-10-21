@@ -6,4 +6,5 @@ public class PlanetViewModel
     public required string StepLabel { get; set; }
     public required int ChallengeCount { get; set; }
     public bool IsUnlocked { get; set; }
+    public int PlanetId { get; set; }
 }

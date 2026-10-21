@@ -43,6 +43,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 builder.Services.AddScoped<IChallengeRepository, ChallengeRepository>();
 builder.Services.AddScoped<ICharacterRepository, CharacterRepository>();
+builder.Services.AddScoped<IPlanetRepository, PlanetRepository>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -64,8 +65,9 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
-app.UseAuthorization();
-app.UseAuthentication();
+app.UseAuthentication();   
+app.UseAuthorization();    
+
 app.MapStaticAssets();
 
 app.MapControllerRoute(

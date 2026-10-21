@@ -1,3 +1,4 @@
+using GalacticSlicer.DAL;
 using GalacticSlicer.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -5,20 +6,36 @@ namespace GalacticSlicer.Controllers;
 
 public class PlanetController : Controller
 {
-    // Hardcoded placeholder route for now - only Tatooine is unlocked.
-    // Will later come from signed users progress.
-    public IActionResult Index()
-    {
-        var planets = new List<PlanetViewModel>
-        {
-            new() { Name = "Tatooine", CssClass = "tatooine", StepLabel = "Chapter 1", ChallengeCount = 4, IsUnlocked = true },
-            new() { Name = "Naboo", CssClass = "naboo", StepLabel = "Chapter 2", ChallengeCount = 3, IsUnlocked = false },
-            new() { Name = "Coruscant", CssClass = "coruscant", StepLabel = "Chapter 3", ChallengeCount = 5, IsUnlocked = false },
-            new() { Name = "Kamino", CssClass = "kamino", StepLabel = "Chapter 4", ChallengeCount = 3, IsUnlocked = false },
-            new() { Name = "Hoth", CssClass = "hoth", StepLabel = "Chapter 5", ChallengeCount = 4, IsUnlocked = false },
-            new() { Name = "Endor", CssClass = "endor", StepLabel = "Chapter 6", ChallengeCount = 6, IsUnlocked = false },
-        };
+    private readonly IPlanetRepository _planetRepository;
+    private readonly ILogger<PlanetController> _logger;
 
-        return View(planets);
+    public PlanetController(IPlanetRepository planetRepository, ILogger<PlanetController> logger)
+    {
+        _planetRepository = planetRepository;
+        _logger = logger;
+    }
+
+    // GET: /Planet - the Galaxy page
+    public async Task<IActionResult> Index()
+    {
+        var planets = await _planetRepository.GetAll();
+        if (planets == null)
+        {
+            _logger.LogError("[PlanetController] Planet list not found while executing GetAll()");
+            return NotFound("Planet list not found");
+        }
+
+        // Turn database entities into exactly what the Galaxy page needs
+        var viewModels = planets.Select(p => new PlanetViewModel
+        {
+            PlanetId = p.PlanetId,
+            Name = p.Name,
+            CssClass = p.CssClass,
+            StepLabel = $"Chapter {p.Order}",
+            ChallengeCount = p.Challenges?.Count ?? 0,       // TODO 10b: real count once challenges belong to planets
+            IsUnlocked = p.Order == 1 // TODO Task 14: real unlocking from Jonas's service
+        }).ToList();
+
+        return View(viewModels);
     }
 }

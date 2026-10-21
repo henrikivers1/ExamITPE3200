@@ -30,10 +30,9 @@ namespace GalacticSlicer.Migrations
                     b.Property<int>("CreditReward")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("PlanetName")
-                        .IsRequired()
+                    b.Property<int>("PlanetId")
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Question")
                         .IsRequired()
@@ -46,6 +45,8 @@ namespace GalacticSlicer.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("ChallengeId");
+
+                    b.HasIndex("PlanetId");
 
                     b.ToTable("Challenges");
                 });
@@ -74,6 +75,34 @@ namespace GalacticSlicer.Migrations
                     b.HasKey("CharacterId");
 
                     b.ToTable("Characters");
+                });
+
+            modelBuilder.Entity("GalacticSlicer.Models.Planet", b =>
+                {
+                    b.Property<int>("PlanetId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CssClass")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("PlanetId");
+
+                    b.ToTable("Planets");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -272,6 +301,17 @@ namespace GalacticSlicer.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("GalacticSlicer.Models.Challenge", b =>
+                {
+                    b.HasOne("GalacticSlicer.Models.Planet", "Planet")
+                        .WithMany("Challenges")
+                        .HasForeignKey("PlanetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Planet");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -321,6 +361,11 @@ namespace GalacticSlicer.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("GalacticSlicer.Models.Planet", b =>
+                {
+                    b.Navigation("Challenges");
                 });
 #pragma warning restore 612, 618
         }

@@ -37,9 +37,12 @@
     </div>
 
     <div class="mb-3">
-        <label asp-for="PlanetName" class="form-label"></label>
-        <input asp-for="PlanetName" class="form-control" />
-        <span asp-validation-for="PlanetName" class="text-danger"></span>
+        <label asp-for="PlanetId" class="form-label"></label>
+        @* The planet list comes from the database (ViewBag.Planets is set in the controller) *@
+        <select asp-for="PlanetId" asp-items="ViewBag.Planets" class="form-select">
+            <option value="">-- Select planet --</option>
+        </select>
+        <span asp-validation-for="PlanetId" class="text-danger"></span>
     </div>
 
     <button type="submit" class="btn btn-primary">

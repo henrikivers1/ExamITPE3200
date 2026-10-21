@@ -8,7 +8,20 @@ public static class DBInit
     {
         using var serviceScope = app.ApplicationServices.CreateScope();
         var context = serviceScope.ServiceProvider.GetRequiredService<GalacticSlicerDbContext>();
-
+        if (!context.Planets.Any())
+        {
+            var planets = new List<Planet>
+    {
+        new Planet { Name = "Tatooine",  Order = 1, CssClass = "tatooine",  Description = "A desert world where every slicer starts." },
+        new Planet { Name = "Naboo",     Order = 2, CssClass = "naboo",     Description = "Peaceful on the surface, phishing underneath." },
+        new Planet { Name = "Coruscant", Order = 3, CssClass = "coruscant", Description = "A city planet full of web applications." },
+        new Planet { Name = "Kamino",    Order = 4, CssClass = "kamino",    Description = "Clone labs guarded by strict access control." },
+        new Planet { Name = "Hoth",      Order = 5, CssClass = "hoth",      Description = "Frozen networks hide dangerous malware." },
+        new Planet { Name = "Endor",     Order = 6, CssClass = "endor",     Description = "The final test for a legendary slicer." },
+    };
+            context.Planets.AddRange(planets);
+            context.SaveChanges();
+        }
         // Only add characters if the table is empty, so we never create duplicates
         if (!context.Characters.Any())
         {

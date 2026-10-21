@@ -1,19 +1,30 @@
 using GalacticSlicer.DAL;
 using GalacticSlicer.Models;
+using GalacticSlicer.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace GalacticSlicer.Controllers
 {
     public class ChallengeController : Controller
     {
         private readonly IChallengeRepository _challengeRepository;
+        private readonly IPlanetRepository _planetRepository;
         private readonly ILogger<ChallengeController> _logger;
 
-        public ChallengeController(IChallengeRepository challengeRepository, ILogger<ChallengeController> logger)
+        public ChallengeController(IChallengeRepository challengeRepository, IPlanetRepository planetRepository, ILogger<ChallengeController> logger)
         {
             _challengeRepository = challengeRepository;
+            _planetRepository = planetRepository;
             _logger = logger;
+        }
+
+        // Fills the planet dropdown used by the Create and Edit forms
+        private async Task LoadPlanetDropdown(int? selectedPlanetId = null)
+        {
+            var planets = await _planetRepository.GetAll() ?? new List<Planet>();
+            ViewBag.Planets = new SelectList(planets, "PlanetId", "Name", selectedPlanetId);
         }
 
         public IActionResult Topics()
@@ -69,8 +80,9 @@ namespace GalacticSlicer.Controllers
 
         [HttpGet]
         [Authorize]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            await LoadPlanetDropdown();
             return View();
         }
 
@@ -88,6 +100,9 @@ namespace GalacticSlicer.Controllers
                 ModelState.AddModelError(string.Empty, "Could not save the challenge. Please try again.");
             }
             _logger.LogWarning("[ChallengeController] Challenge creation failed {@challenge}", challenge);
+
+            // The form is shown again, so the dropdown needs its planets again
+            await LoadPlanetDropdown(challenge.PlanetId);
             return View(challenge);
         }
 
@@ -101,6 +116,8 @@ namespace GalacticSlicer.Controllers
                 _logger.LogError("[ChallengeController] Challenge not found when editing ChallengeId {ChallengeId:0000}", id);
                 return NotFound("Challenge not found");
             }
+
+            await LoadPlanetDropdown(challenge.PlanetId);
             return View(challenge);
         }
 
@@ -124,6 +141,8 @@ namespace GalacticSlicer.Controllers
                 ModelState.AddModelError(string.Empty, "Could not update the challenge. Please try again.");
             }
             _logger.LogWarning("[ChallengeController] Challenge update failed {@challenge}", challenge);
+
+            await LoadPlanetDropdown(challenge.PlanetId);
             return View(challenge);
         }
 
