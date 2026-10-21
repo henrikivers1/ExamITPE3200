@@ -1,0 +1,73 @@
+@model GalacticSlicer.ViewModels.CharacterShopViewModel
+ 
+@{
+    ViewData["Title"] = "Character Shop";
+}
+ 
+<h1>@ViewData["Title"]</h1>
+<p class="text-muted">Your Credits: <strong>@Model.PlayerCredits</strong></p>
+ 
+@* Messages from Buy/Equip (set with TempData in the controller, shown once after the redirect) *@
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+ 
+@* Conditional rendering: show a message instead of an empty grid *@
+@if (!Model.Characters.Any())
+{
+    <p class="text-muted">No characters in the shop yet.</p>
+}
+ 
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    @foreach (var character in Model.Characters)
+    {
+        <div class="col">
+            <div class="card h-100">
+ 
+                @* Conditional rendering: only show an image if the character has one *@
+                @if (!string.IsNullOrEmpty(character.ImageUrl))
+                {
+                    <img src="@character.ImageUrl" class="card-img-top" alt="@character.Name" />
+                }
+ 
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h5 class="card-title">@character.Name</h5>
+                        <h5 class="text-nowrap">
+                            @(character.Price == 0 ? "Free" : $"{character.Price} Credits")
+                        </h5>
+                    </div>
+                    <p class="card-text">@character.Description</p>
+                </div>
+ 
+                @* Conditional rendering: logged-in players get Buy/Equip, everyone else a login link.
+                   Buy and Equip are POST forms (not links) because they change data;
+                   the form tag helper adds the antiforgery token automatically. *@
+                <div class="card-footer d-flex gap-2">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <form asp-action="Buy" method="post">
+                            <input type="hidden" name="characterId" value="@character.CharacterId" />
+                            <button type="submit" class="btn btn-primary btn-sm">Buy</button>
+                        </form>
+                        <form asp-action="Equip" method="post">
+                            <input type="hidden" name="characterId" value="@character.CharacterId" />
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">Equip</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Character/Shop"
+                           class="btn btn-outline-primary btn-sm">Log in to buy</a>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+ 

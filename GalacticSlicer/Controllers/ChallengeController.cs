@@ -1,5 +1,6 @@
 using GalacticSlicer.DAL;
 using GalacticSlicer.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GalacticSlicer.Controllers
@@ -36,6 +37,7 @@ namespace GalacticSlicer.Controllers
             return View();
         }
 
+        // GET: /Challenge - anyone can browse and search
         public async Task<IActionResult> Index(string? searchString, string? planetName, int? minReward)
         {
             var challenges = await _challengeRepository.Search(searchString, planetName, minReward);
@@ -53,6 +55,7 @@ namespace GalacticSlicer.Controllers
             return View(challenges);
         }
 
+        // GET: /Challenge/Details/5 - anyone can view
         public async Task<IActionResult> Details(int id)
         {
             var challenge = await _challengeRepository.GetChallengeById(id);
@@ -65,12 +68,14 @@ namespace GalacticSlicer.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public IActionResult Create()
         {
             return View();
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Challenge challenge)
         {
@@ -87,6 +92,7 @@ namespace GalacticSlicer.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> Edit(int id)
         {
             var challenge = await _challengeRepository.GetChallengeById(id);
@@ -99,6 +105,7 @@ namespace GalacticSlicer.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Challenge challenge)
         {
@@ -121,6 +128,7 @@ namespace GalacticSlicer.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
             var challenge = await _challengeRepository.GetChallengeById(id);
@@ -133,6 +141,7 @@ namespace GalacticSlicer.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {

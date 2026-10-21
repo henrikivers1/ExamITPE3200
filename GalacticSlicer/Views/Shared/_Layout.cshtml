@@ -1,5 +1,9 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,20 +11,21 @@
     <script type="importmap"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/GalacticSlicer.styles.css" asp-append-version="true" />
 </head>
+
 <body>
     @{
         var activeController = ViewContext.RouteData.Values["controller"]?.ToString();
 
-        // PLACEHOLDER auth state 
-        // Toggle this to true locally to preview the logged-in navbar state.
-        var isLoggedIn = false;
-        var currentUsername = "Slicer_01";
-        var currentCredits = 120;
+        // Real auth state from ASP.NET Identity
+        var isLoggedIn = SignInManager.IsSignedIn(User);
+        var currentUsername = User.Identity?.Name ?? "";
+        var currentCredits = 0; // TODO Task 11: real Credits from the player
     }
     @* Background sky: extra stars on every page, small drifting planets everywhere except the Galaxy page *@
     <div class="gs-sky" aria-hidden="true">
@@ -41,7 +46,8 @@
         <nav class="gs-navbar">
             <a class="gs-brand" asp-area="" asp-controller="Home" asp-action="Index">
                 <span class="gs-brand-icon" aria-hidden="true">
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                         stroke-linecap="round">
                         <circle cx="12" cy="12" r="5.2" />
                         <ellipse cx="12" cy="12" rx="10.4" ry="3.4" transform="rotate(-24 12 12)" />
                     </svg>
@@ -49,87 +55,95 @@
                 <span>Galactic Slicer</span>
             </a>
 
-            <button class="gs-nav-toggle" type="button" data-gs-nav-toggle aria-controls="primaryNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="gs-nav-toggle" type="button" data-gs-nav-toggle aria-controls="primaryNav"
+                    aria-expanded="false" aria-label="Toggle navigation">
                 <span></span><span></span><span></span>
             </button>
 
             <div class="gs-nav-collapse" id="primaryNav">
                 <ul class="gs-nav-links">
                     <li>
-                        <a class="gs-nav-link @(activeController == "Home" ? "is-active" : "")"
-                           asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        <a class="gs-nav-link @(activeController == "Home" ? "is-active" : "")" asp-area=""
+                           asp-controller="Home" asp-action="Index">Home</a>
                     </li>
                     <li>
-                        <a class="gs-nav-link @(activeController == "Planet" ? "is-active" : "")"
-                           asp-area="" asp-controller="Planet" asp-action="Index">Galaxy</a>
+                        <a class="gs-nav-link @(activeController == "Planet" ? "is-active" : "")" asp-area=""
+                           asp-controller="Planet" asp-action="Index">Galaxy</a>
                     </li>
                     <li>
-                        <a class="gs-nav-link @(activeController == "Challenge" ? "is-active" : "")"
-                           asp-area="" asp-controller="Challenge" asp-action="Index">Challenges</a>
+                        <a class="gs-nav-link @(activeController == "Challenge" ? "is-active" : "")" asp-area=""
+                           asp-controller="Challenge" asp-action="Index">Challenges</a>
                     </li>
                     <li>
-                        <a class="gs-nav-link @(activeController == "Progress" ? "is-active" : "")"
-                           asp-area="" asp-controller="Progress" asp-action="Index">Progress</a>
+                        <a class="gs-nav-link @(activeController == "Progress" ? "is-active" : "")" asp-area=""
+                           asp-controller="Progress" asp-action="Index">Progress</a>
                     </li>
                 </ul>
                 <div class="gs-nav-auth">
                     @if (isLoggedIn)
                     {
                         <div class="gs-nav-user">
-                            <span class="gs-user-avatar" aria-hidden="true">@currentUsername.Substring(0, 1).ToUpper()</span>
-                            <span class="gs-user-name">@currentUsername</span>
-                            <span class="gs-user-credits">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                    <circle cx="12" cy="12" r="9" />
-                                    <path d="M12 7v10M9.5 9.5h4a1.8 1.8 0 0 1 0 3.6h-3a1.8 1.8 0 0 0 0 3.6h4.5" />
-                                </svg>
-                                @currentCredits
-                            </span>
-                        </div>
-                    }
+                            <span class="gs-user-avatar" aria-hidden="true">@currentUsername.Substring(0,
+                                                            1).ToUpper()</span>
+                                <span class="gs-user-name">@currentUsername</span>
+                                <span class="gs-user-credits">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2" aria-hidden="true">
+                                        <circle cx="12" cy="12" r="9" />
+                                        <path d="M12 7v10M9.5 9.5h4a1.8 1.8 0 0 1 0 3.6h-3a1.8 1.8 0 0 0 0 3.6h4.5" />
+                                    </svg>
+                                    @currentCredits
+                                </span>
+                            </div>
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                <button type="submit" class="gs-btn gs-btn--ghost gs-btn--sm">Log out</button>
+                            </form>
+                        }
                     else
-                    {
-                        <a class="gs-btn gs-btn--ghost" asp-area="" asp-controller="Account" asp-action="Login">Log in</a>
-                        <a class="gs-btn gs-btn--primary gs-btn--sm" asp-area="" asp-controller="Account" asp-action="SignUp">Sign up</a>
-                    }
+                        {
+                            <a class="gs-btn gs-btn--ghost" asp-area="" asp-controller="Account" asp-action="Login">Log in</a>
+                            <a class="gs-btn gs-btn--primary gs-btn--sm" asp-area="" asp-controller="Account"
+                               asp-action="SignUp">Sign up</a>
+                        }
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <main class="gs-main">
+            @RenderBody()
+        </main>
+
+        <footer class="gs-footer">
+            <div class="gs-footer-inner">
+                <div class="gs-footer-brand">
+                    <span class="gs-footer-title">Galactic Slicer</span>
+                    <span>Learn. Practice. A safer galaxy.</span>
+                </div>
+                <div class="gs-footer-links">
+                    <a asp-area="" asp-controller="Home" asp-action="About">About</a>
+                    <a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a>
+                    <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                 </div>
             </div>
-        </nav>
-    </header>
+        </footer>
 
-    <main class="gs-main">
-        @RenderBody()
-    </main>
-
-    <footer class="gs-footer">
-        <div class="gs-footer-inner">
-            <div class="gs-footer-brand">
-                <span class="gs-footer-title">Galactic Slicer</span>
-                <span>Learn. Practice. A safer galaxy.</span>
-            </div>
-            <div class="gs-footer-links">
-                <a asp-area="" asp-controller="Home" asp-action="About">About</a>
-                <a asp-area="" asp-controller="Home" asp-action="Contact">Contact</a>
-                <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-            </div>
-        </div>
-    </footer>
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            var toggle = document.querySelector("[data-gs-nav-toggle]");
-            var collapse = document.getElementById("primaryNav");
-            if (toggle && collapse) {
-                toggle.addEventListener("click", function () {
-                    var isOpen = collapse.classList.toggle("is-open");
-                    toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        <script src="~/lib/jquery/dist/jquery.min.js"></script>
+        <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="~/js/site.js" asp-append-version="true"></script>
+        <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    var toggle = document.querySelector("[data-gs-nav-toggle]");
+                    var collapse = document.getElementById("primaryNav");
+                    if (toggle && collapse) {
+                        toggle.addEventListener("click", function () {
+                            var isOpen = collapse.classList.toggle("is-open");
+                            toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+                        });
+                    }
                 });
-            }
-        });
-    </script>
-    @await RenderSectionAsync("Scripts", required: false)
-</body>
+        </script>
+        @await RenderSectionAsync("Scripts", required: false)
+    </body>
+
 </html>

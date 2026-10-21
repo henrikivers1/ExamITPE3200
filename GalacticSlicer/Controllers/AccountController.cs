@@ -1,20 +1,89 @@
+using GalacticSlicer.ViewModels;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GalacticSlicer.Controllers;
 
-// Controller only render the view as per 23.09, logic for database will be added later 
-
 public class AccountController : Controller
 {
-    [HttpGet]
-    public IActionResult Login()
+    private readonly UserManager<IdentityUser> _userManager;
+    private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly ILogger<AccountController> _logger;
+
+    public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, ILogger<AccountController> logger)
     {
-        return View();
+        _userManager = userManager;
+        _signInManager = signInManager;
+        _logger = logger;
     }
 
+    // GET: /Account/SignUp
     [HttpGet]
-    public IActionResult SignUp()
+    public IActionResult SignUp() => View(new SignUpViewModel());
+
+    // POST: /Account/SignUp
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SignUp(SignUpViewModel model)
     {
-        return View();
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var user = new IdentityUser { UserName = model.Username };
+        var result = await _userManager.CreateAsync(user, model.Password);
+
+        if (result.Succeeded)
+        {
+            _logger.LogInformation("[AccountController] New user registered: {Username}", model.Username);
+            await _signInManager.SignInAsync(user, isPersistent: false);
+            return RedirectToAction("Index", "Home");
+        }
+
+        // Identity explains what was wrong (username taken, password too weak, ...)
+        foreach (var error in result.Errors)
+            ModelState.AddModelError(string.Empty, error.Description);
+
+        _logger.LogWarning("[AccountController] Sign up failed for {Username}", model.Username);
+        return View(model);
+    }
+
+    // GET: /Account/Login
+    [HttpGet]
+    public IActionResult Login(string? returnUrl = null) => View(new LoginViewModel { ReturnUrl = returnUrl });
+
+    // POST: /Account/Login
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Login(LoginViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var result = await _signInManager.PasswordSignInAsync(
+            model.Username, model.Password, model.RememberMe, lockoutOnFailure: false);
+
+        if (result.Succeeded)
+        {
+            _logger.LogInformation("[AccountController] User logged in: {Username}", model.Username);
+
+            // Only redirect to local URLs, never to another website
+            if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
+                return Redirect(model.ReturnUrl);
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        _logger.LogWarning("[AccountController] Failed login attempt for {Username}", model.Username);
+        ModelState.AddModelError(string.Empty, "Invalid username or password.");
+        return View(model);
+    }
+
+    // POST: /Account/Logout
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Logout()
+    {
+        await _signInManager.SignOutAsync();
+        return RedirectToAction("Index", "Home");
     }
 }

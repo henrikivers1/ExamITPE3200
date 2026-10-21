@@ -1,3 +1,5 @@
+@model GalacticSlicer.ViewModels.LoginViewModel
+
 @{
     ViewData["Title"] = "Log in";
 }
@@ -7,25 +9,44 @@
         <h1 class="gs-auth-title">Log in</h1>
         <p class="gs-auth-subtitle">Welcome back, slicer.</p>
 
-        <form method="post" class="gs-form">
+        @* asp-action + method="post" makes the form tag helper add the antiforgery token *@
+        <form asp-action="Login" method="post" class="gs-form">
+            @* Shows form-level errors like "Invalid username or password." *@
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            @* Remember which page the user came from, so we can send them back after login *@
+            <input type="hidden" asp-for="ReturnUrl" />
+
             <div class="gs-form-group">
-                <label class="gs-label" for="username">Username</label>
-                <input class="gs-input" type="text" id="username" name="Username" placeholder="Enter your username" autocomplete="username" />
+                <label class="gs-label" asp-for="Username"></label>
+                <input class="gs-input" asp-for="Username" placeholder="Enter your username" autocomplete="username" />
+                <span asp-validation-for="Username" class="text-danger"></span>
             </div>
 
             <div class="gs-form-group">
-                <label class="gs-label" for="password">Password</label>
-                <input class="gs-input" type="password" id="password" name="Password" placeholder="Enter your password" autocomplete="current-password" />
+                <label class="gs-label" asp-for="Password"></label>
+                <input class="gs-input" asp-for="Password" placeholder="Enter your password" autocomplete="current-password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
             </div>
 
+            <div class="gs-form-group">
+                <label>
+                    <input asp-for="RememberMe" />
+                    @Html.DisplayNameFor(m => m.RememberMe)
+                </label>
+            </div>
 
-<!-- Må bare gjøre at knappen ikke sender noen steder enda. Når dette skal fikses bytt til submit og ikke button -->
-            <button type="button" class="gs-btn gs-btn--primary gs-btn--lg gs-form-submit">Log in</button>
+            <button type="submit" class="gs-btn gs-btn--primary gs-btn--lg gs-form-submit">Log in</button>
         </form>
 
         <p class="gs-form-footer">
             Don't have an account?
-            <a asp-area="" asp-controller="Account" asp-action="SignUp">Sign up</a>
+            <a asp-controller="Account" asp-action="SignUp" asp-route-returnUrl="@Model.ReturnUrl">Sign up</a>
         </p>
     </div>
 </section>
+
+@* Client-side validation (jQuery Validate): errors show before the form is even sent *@
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
