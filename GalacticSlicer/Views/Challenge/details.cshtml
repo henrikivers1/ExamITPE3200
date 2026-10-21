@@ -28,7 +28,7 @@
 
         <p>
             <strong>Planet:</strong>
-            @Model.PlanetName
+            @Model.Planet?.Name
         </p>
 
         <a asp-action="Edit" asp-route-id="@Model.ChallengeId" class="btn btn-warning">

@@ -1,6 +1,8 @@
 using GalacticSlicer.Models;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using GalacticSlicer.DAL;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,12 +29,30 @@ builder.Services.AddDbContext<GalacticSlicerDbContext>(options =>
     options.UseSqlite(
         builder.Configuration["ConnectionStrings:GalacticSlicerDbContextConnection"] ?? throw new InvalidOperationException("Connection string 'GalacticSlicerDbContextConnection' not found."));
 });
+builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = false; // no email confirmation needed
+})
+.AddEntityFrameworkStores<GalacticSlicerDbContext>();
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";       // where [Authorize] sends users who aren't logged in
+    options.LogoutPath = "/Account/Logout";
+    options.AccessDeniedPath = "/Account/Login";
+});
+builder.Services.AddScoped<IChallengeRepository, ChallengeRepository>();
+builder.Services.AddScoped<ICharacterRepository, CharacterRepository>();
+builder.Services.AddScoped<IPlanetRepository, PlanetRepository>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+if (app.Environment.IsDevelopment())
+{
+    DBInit.Seed(app);
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -45,7 +65,8 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
-app.UseAuthorization();
+app.UseAuthentication();   
+app.UseAuthorization();    
 
 app.MapStaticAssets();
 

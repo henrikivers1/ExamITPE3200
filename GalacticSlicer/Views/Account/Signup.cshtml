@@ -1,3 +1,5 @@
+@model GalacticSlicer.ViewModels.SignUpViewModel
+
 @{
     ViewData["Title"] = "Sign up";
 }
@@ -7,25 +9,38 @@
         <h1 class="gs-auth-title">Sign up</h1>
         <p class="gs-auth-subtitle">Join the fight for a safer galaxy.</p>
 
-        <form method="post" class="gs-form">
+        <form asp-action="SignUp" method="post" class="gs-form">
+            @* Shows Identity errors like "Username is already taken" or password rules *@
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
             <div class="gs-form-group">
-                <label class="gs-label" for="username">Username</label>
-                <input class="gs-input" type="text" id="username" name="Username" placeholder="Choose a username" autocomplete="username" />
+                <label class="gs-label" asp-for="Username"></label>
+                <input class="gs-input" asp-for="Username" placeholder="Choose a username" autocomplete="username" />
+                <span asp-validation-for="Username" class="text-danger"></span>
             </div>
 
             <div class="gs-form-group">
-                <label class="gs-label" for="password">Password</label>
-                <input class="gs-input" type="password" id="password" name="Password" placeholder="Choose a password" autocomplete="new-password" />
+                <label class="gs-label" asp-for="Password"></label>
+                <input class="gs-input" asp-for="Password" placeholder="Choose a password" autocomplete="new-password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
             </div>
 
+            <div class="gs-form-group">
+                <label class="gs-label" asp-for="ConfirmPassword"></label>
+                <input class="gs-input" asp-for="ConfirmPassword" placeholder="Repeat your password" autocomplete="new-password" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
 
-<!-- Må bare gjøre at knappen ikke sender noen steder enda. Når dette skal fikses bytt til submit og ikke button -->
-            <button type="button" class="gs-btn gs-btn--primary gs-btn--lg gs-form-submit">Sign up</button>
+            <button type="submit" class="gs-btn gs-btn--primary gs-btn--lg gs-form-submit">Sign up</button>
         </form>
 
         <p class="gs-form-footer">
             Already have an account?
-            <a asp-area="" asp-controller="Account" asp-action="Login">Log in</a>
+            <a asp-controller="Account" asp-action="Login">Log in</a>
         </p>
     </div>
 </section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

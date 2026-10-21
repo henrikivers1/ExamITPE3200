@@ -15,6 +15,28 @@
     </a>
 </div>
 
+@* Search form: method="get" because searching changes no data *@
+<form asp-action="Index" method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <input name="searchString" value="@ViewData["SearchString"]" class="form-control" placeholder="Search title or question" />
+    </div>
+    <div class="col-md-3">
+        <input name="planetName" value="@ViewData["PlanetName"]" class="form-control" placeholder="Planet" />
+    </div>
+    <div class="col-md-2">
+        <input name="minReward" type="number" min="0" value="@ViewData["MinReward"]" class="form-control" placeholder="Min credits" />
+    </div>
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-primary">Search</button>
+        <a asp-action="Index" class="btn btn-secondary">Clear</a>
+    </div>
+</form>
+
+@if (!Model.Any())
+{
+    <p class="text-muted">No challenges match your search.</p>
+}
+
 @foreach (var challenge in Model)
 {
     <div class="card mb-3">
@@ -24,7 +46,7 @@
 
             <p>
                 <strong>Planet:</strong>
-                @challenge.PlanetName
+                @challenge.Planet?.Name
             </p>
 
             <p>
