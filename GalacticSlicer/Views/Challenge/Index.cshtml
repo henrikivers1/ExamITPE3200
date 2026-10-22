@@ -4,19 +4,21 @@
     ViewData["Title"] = "Manage Challenges";
 }
 
-<h1>@ViewData["Title"]</h1>
+@{
+    // true when the user has filled in at least one search field
+    var isSearching = !string.IsNullOrEmpty(ViewData["SearchString"]?.ToString())
+        || !string.IsNullOrEmpty(ViewData["PlanetName"]?.ToString())
+        || !string.IsNullOrEmpty(ViewData["MinReward"]?.ToString());
+}
 
-<div class="gs-button-row">
-    <a asp-action="Create" class="btn btn-primary">
-        Create New Challenge
-    </a>
-    <a asp-action="Topics" class="btn btn-success">
-        Practice Challenges
-    </a>
-</div>
+@* same intro block as the Galaxy page: centered title with breathing room above *@
+<section class="gs-page-intro">
+    <h1>@ViewData["Title"]</h1>
+    <p>Search, create and practice challenges from every planet in the galaxy.</p>
+</section>
 
 @* Search form: method="get" because searching changes no data *@
-<form asp-action="Index" method="get" class="row g-2 mb-3">
+<form asp-action="Index" method="get" class="gs-search row g-2 justify-content-center mt-4">
     <div class="col-md-4">
         <input name="searchString" value="@ViewData["SearchString"]" class="form-control" placeholder="Search title or question" />
     </div>
@@ -24,54 +26,70 @@
         <input name="planetName" value="@ViewData["PlanetName"]" class="form-control" placeholder="Planet" />
     </div>
     <div class="col-md-2">
-        <input name="minReward" type="number" min="0" value="@ViewData["MinReward"]" class="form-control" placeholder="Min credits" />
+        <input name="minReward" type="number" min="0" value="@ViewData["MinReward"]" class="form-control" placeholder="My credits" />
     </div>
-    <div class="col-md-3">
+    <div class="col-md-auto d-flex gap-2">
         <button type="submit" class="btn btn-primary">Search</button>
         <a asp-action="Index" class="btn btn-secondary">Clear</a>
     </div>
 </form>
 
-@if (!Model.Any())
+@if (isSearching && !Model.Any())
 {
-    <p class="text-muted">No challenges match your search.</p>
+    <p class="text-muted text-center mt-4 mb-0">No challenges match your search.</p>
 }
 
-@foreach (var challenge in Model)
-{
-    <div class="card mb-3">
-        <div class="card-body">
+<div class="gs-button-row gs-button-row--large justify-content-center gap-4 my-5">
+    <a asp-action="Create" class="btn btn-primary">
+        Create New Challenge
+    </a>
+    <a asp-action="Topics" class="btn gs-btn-practice">
+        Practice Challenges
+    </a>
+</div>
 
-            <h4>@challenge.Title</h4>
+@* challenge list in a narrower centered column so cards don't stretch edge to edge *@
+<section class="row justify-content-center pb-5">
+    <div class="col-lg-9">
+        @foreach (var challenge in Model)
+        {
+            <div class="card mb-4">
+                <div class="card-body p-4">
 
-            <p>
-                <strong>Planet:</strong>
-                @challenge.Planet?.Name
-            </p>
+                    <h4 class="mb-3">@challenge.Title</h4>
 
-            <p>
-                <strong>Reward:</strong>
-                @challenge.CreditReward Credits
-            </p>
+                    <p class="mb-1">
+                        <strong>Planet:</strong>
+                        @challenge.Planet?.Name
+                    </p>
 
-            <a asp-action="Details"
-               asp-route-id="@challenge.ChallengeId"
-               class="btn btn-info">
-                Details
-            </a>
+                    <p class="mb-0">
+                        <strong>Reward:</strong>
+                        @challenge.CreditReward Credits
+                    </p>
 
-            <a asp-action="Edit"
-               asp-route-id="@challenge.ChallengeId"
-               class="btn btn-warning">
-                Edit
-            </a>
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <a asp-action="Details"
+                           asp-route-id="@challenge.ChallengeId"
+                           class="btn btn-info">
+                            Details
+                        </a>
 
-            <a asp-action="Delete"
-               asp-route-id="@challenge.ChallengeId"
-               class="btn btn-danger">
-                Delete
-            </a>
+                        <a asp-action="Edit"
+                           asp-route-id="@challenge.ChallengeId"
+                           class="btn btn-warning">
+                            Edit
+                        </a>
 
-        </div>
+                        <a asp-action="Delete"
+                           asp-route-id="@challenge.ChallengeId"
+                           class="btn btn-danger">
+                            Delete
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        }
     </div>
-}
+</section>
