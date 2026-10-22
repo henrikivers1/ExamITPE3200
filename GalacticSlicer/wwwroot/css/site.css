@@ -10,9 +10,9 @@
   --gs-border-strong: rgba(255, 255, 255, 0.16);
   --gs-text: #f3f5fa;
   --gs-text-muted: #96a2ba;
-  --gs-accent: #4da8ff;
-  --gs-accent-strong: #2f7fe6;
-  --gs-accent-soft: rgba(77, 168, 255, 0.14);
+  --gs-accent: #d6aa4c;
+  --gs-accent-strong: #b8892f;
+  --gs-accent-soft: rgba(214, 170, 76, 0.14);
   --gs-radius-sm: 8px;
   --gs-radius: 12px;
   --gs-radius-lg: 18px;
@@ -105,7 +105,7 @@ a {
 }
 
 a:hover {
-  color: #7cc0ff;
+  color: #e8c77e;
 }
 
 :focus-visible {
@@ -181,6 +181,32 @@ a:hover {
 .gs-btn--lg {
   padding: 0.85rem 1.6rem;
   font-size: 1rem;
+}
+
+/* Bootstrap buttons used on some pages, recoloured to match the theme accent */
+.btn-primary {
+  --bs-btn-color: #03101d;
+  --bs-btn-bg: var(--gs-accent);
+  --bs-btn-border-color: var(--gs-accent);
+  --bs-btn-hover-color: #03101d;
+  --bs-btn-hover-bg: #e0b95e;
+  --bs-btn-hover-border-color: #e0b95e;
+  --bs-btn-active-color: #03101d;
+  --bs-btn-active-bg: var(--gs-accent-strong);
+  --bs-btn-active-border-color: var(--gs-accent-strong);
+  --bs-btn-focus-shadow-rgb: 214, 170, 76;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--gs-accent);
+  --bs-btn-border-color: var(--gs-accent);
+  --bs-btn-hover-color: #03101d;
+  --bs-btn-hover-bg: var(--gs-accent);
+  --bs-btn-hover-border-color: var(--gs-accent);
+  --bs-btn-active-color: #03101d;
+  --bs-btn-active-bg: var(--gs-accent-strong);
+  --bs-btn-active-border-color: var(--gs-accent-strong);
+  --bs-btn-focus-shadow-rgb: 214, 170, 76;
 }
 
 /* ---------- header / navbar ---------- */
