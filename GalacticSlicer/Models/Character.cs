@@ -4,24 +4,23 @@ namespace GalacticSlicer.Models;
 
 public class Character
 {
-    public int Id {get; set;}
+    public int CharacterId { get; set; }
 
-    [Required]
-    [StringLength(50, MinimumLength = 3)]
-    public string Name {get; set;} = string.Empty;
+    [Required(ErrorMessage = "Please enter a name.")]
+    [StringLength(50, MinimumLength = 2, ErrorMessage = "Name must be between 2 and 50 characters.")]
+    public string Name { get; set; } = string.Empty;
 
-    [StringLength(100, MinimumLength = 3)]
-    public string? Description {get; set;}
+    [StringLength(300, ErrorMessage = "Description can be at most 300 characters.")]
+    public string? Description { get; set; }
 
-    [Range(0, int.MaxValue)]
-    public int Price {get; set;}
+    [Range(0, 100000, ErrorMessage = "Price must be between 0 and 100000 Credits.")]
+    public int Price { get; set; }
 
-    public string? ImageUrl {get; set;}
-
+    public string? ImageUrl { get; set; }
 }
 
 /*
- * Id          - Unique ID for each character.
+ * CharacterId - Unique ID for each character.
  * Name        - Character name, e.g. Kael Voss.
  * Description - Short description of the character.
  * Price       - Number of Credits required to purchase the character.
