@@ -1,0 +1,294 @@
+@model GalacticSlicer.Models.Planet
+@{
+    ViewData["Title"] = Model.Name + " mission";
+    var passPercent = (int)(ViewData["PassPercent"] ?? 80);
+
+    // PLACEHOLDER rewards and rank: replace with real values once player progress is stored
+    var creditReward = 500;
+    var xpReward = 150;
+    var xpBefore = 300;
+    var xpForNextRank = 500;
+    var currentRank = "Slicer";
+    var nextRank = "Rogue Slicer";
+}
+
+@* the planet itself, huge and dimmed, filling the background behind the mission *@
+<span class="gs-planet gs-planet--@Model.CssClass mission-planet" aria-hidden="true"></span>
+
+@* page heading: chapter badge, mission name and the planet's description *@
+<section class="gs-page-intro">
+    <span class="gs-rank-badge">Chapter @Model.Order</span>
+    <h1 class="mt-3">@Model.Name mission</h1>
+    @if (!string.IsNullOrEmpty(Model.Description))
+    {
+        <p>@Model.Description</p>
+    }
+</section>
+
+@* the mission card: only one of its four parts (briefing, questions, complete, failed) is visible at a time *@
+<section class="gs-quiz-wrapper">
+    <div class="gs-quiz-card mission-card">
+
+        @* 1. briefing: shown before the mission starts *@
+        <div id="missionIntro" class="text-center">
+            <h2 class="mb-3">Mission briefing</h2>
+            <p>
+                Answer <strong id="missionQuestionCount"></strong> questions about @Model.Name.
+                You need <strong>@passPercent%</strong> correct to complete the mission.
+            </p>
+            @* what the player earns if they pass *@
+            <div class="mission-rewards">
+                <span class="mission-reward">+@creditReward credits</span>
+                <span class="mission-reward mission-reward--xp">+@xpReward XP</span>
+            </div>
+            @* logged in: the button starts the quiz (wired up in the script below) *@
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <button type="button" class="gs-btn gs-btn--primary gs-btn--lg mt-4" id="missionStartBtn">
+                    Start mission
+                </button>
+            }
+            else
+            {
+                @* not logged in: send to login, then straight back to this mission *@
+                <a class="gs-btn gs-btn--primary gs-btn--lg mt-4" asp-controller="Account" asp-action="Login"
+                   asp-route-returnUrl="@Url.Action("Mission", "Planet", new { id = Model.PlanetId })">
+                    Start mission
+                </a>
+                <p class="mt-3 mb-0">You need to be logged in to start a mission.</p>
+            }
+        </div>
+
+        @* 2. the questions *@
+        <div id="quizQuestionArea" hidden>
+            @* "Question X of Y" and a bar showing how far through the mission the player is *@
+            <div class="gs-quiz-progress-row">
+                <span id="quizProgressLabel"></span>
+                <div class="gs-progress-bar gs-quiz-progress-bar">
+                    <div class="gs-progress-bar-fill" id="quizProgressFill" style="width: 0%;"></div>
+                </div>
+            </div>
+            @* question text and answer buttons are filled in by renderQuestion() *@
+            <h2 class="gs-quiz-question" id="quizQuestionText"></h2>
+            <div class="gs-quiz-options" id="quizOptions"></div>
+            @* appears once an answer is picked *@
+            <button type="button" class="gs-btn gs-btn--primary gs-quiz-next" id="quizNextBtn" hidden>
+                Next question
+            </button>
+        </div>
+
+        @* 3a. passed *@
+        <div id="missionComplete" class="gs-quiz-complete" hidden>
+            <h2>Mission complete!</h2>
+            <p class="mission-score" id="missionCompleteScore"></p>
+            <div class="mission-rewards">
+                <span class="mission-reward">+@creditReward credits</span>
+                <span class="mission-reward mission-reward--xp">+@xpReward XP</span>
+            </div>
+
+            @* rank and XP bar: starts at the old XP, then fillXpBar() animates in the reward *@
+            <div class="mission-rank">
+                <div class="gs-progress-block-header">
+                    <span>Rank: <strong id="missionRankName">@currentRank</strong></span>
+                    <span id="missionXpLabel">@xpBefore / @xpForNextRank XP</span>
+                </div>
+                <div class="gs-progress-bar">
+                    <div class="gs-progress-bar-fill mission-xp-fill" id="missionXpFill" style="width: @(xpBefore * 100 / xpForNextRank)%;"></div>
+                </div>
+                <p class="mission-rank-up" id="missionRankUp" hidden>Rank up! You are now an @nextRank.</p>
+            </div>
+
+            <div class="gs-quiz-complete-actions">
+                <a class="gs-btn gs-btn--primary" asp-controller="Planet" asp-action="Index">Back to the galaxy</a>
+            </div>
+        </div>
+
+        @* 3b. failed *@
+        <div id="missionFailed" class="gs-quiz-complete" hidden>
+            <h2>Mission failed</h2>
+            <p class="mission-score" id="missionFailedScore"></p>
+            <p>You need @passPercent% correct to complete the mission. Study up and try again!</p>
+            <div class="gs-quiz-complete-actions">
+                <button type="button" class="gs-btn gs-btn--primary" id="missionRetryBtn">Try again</button>
+                <a class="gs-btn gs-btn--outline" asp-controller="Planet" asp-action="Index">Back to the galaxy</a>
+            </div>
+        </div>
+    </div>
+
+    @* always-visible way out, below the card *@
+    <div class="gs-quiz-nav">
+        <a class="gs-btn gs-btn--ghost" asp-controller="Planet" asp-action="Index">&larr; Back to the galaxy</a>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        // PLACEHOLDER QUESTIONS: replace with this planet's challenges from the database
+        const quizQuestions = [
+            {
+                question: "Placeholder question 1: which answer is correct?",
+                options: ["Wrong answer", "Correct answer", "Wrong answer", "Wrong answer"],
+                correctIndex: 1
+            },
+            {
+                question: "Placeholder question 2: which answer is correct?",
+                options: ["Correct answer", "Wrong answer", "Wrong answer", "Wrong answer"],
+                correctIndex: 0
+            },
+            {
+                question: "Placeholder question 3: which answer is correct?",
+                options: ["Wrong answer", "Wrong answer", "Wrong answer", "Correct answer"],
+                correctIndex: 3
+            },
+            {
+                question: "Placeholder question 4: which answer is correct?",
+                options: ["Wrong answer", "Wrong answer", "Correct answer", "Wrong answer"],
+                correctIndex: 2
+            },
+            {
+                question: "Placeholder question 5: which answer is correct?",
+                options: ["Wrong answer", "Correct answer", "Wrong answer", "Wrong answer"],
+                correctIndex: 1
+            }
+        ];
+
+        // values from the server (C# variables at the top of this file)
+        const passPercent = @passPercent;
+        const xpBefore = @xpBefore;
+        const xpReward = @xpReward;
+        const xpForNextRank = @xpForNextRank;
+        const nextRank = "@nextRank";
+
+        // quiz state: which question we're on, how many are right, and whether this one is answered
+        let currentIndex = 0;
+        let correctCount = 0;
+        let answered = false;
+
+        // page elements the script shows, hides and fills in
+        const intro = document.getElementById("missionIntro");
+        const questionArea = document.getElementById("quizQuestionArea");
+        const completeArea = document.getElementById("missionComplete");
+        const failedArea = document.getElementById("missionFailed");
+        const questionText = document.getElementById("quizQuestionText");
+        const optionsContainer = document.getElementById("quizOptions");
+        const nextBtn = document.getElementById("quizNextBtn");
+        const progressLabel = document.getElementById("quizProgressLabel");
+        const progressFill = document.getElementById("quizProgressFill");
+
+        // show the real number of questions in the briefing text
+        document.getElementById("missionQuestionCount").textContent = quizQuestions.length;
+
+        // resets the score and shows the first question (used by both Start and Try again)
+        function startMission() {
+            currentIndex = 0;
+            correctCount = 0;
+            intro.hidden = true;
+            completeArea.hidden = true;
+            failedArea.hidden = true;
+            questionArea.hidden = false;
+            renderQuestion();
+        }
+
+        // draws the current question, its answer buttons and the progress bar
+        function renderQuestion() {
+            answered = false;
+            const q = quizQuestions[currentIndex];
+
+            progressLabel.textContent = "Question " + (currentIndex + 1) + " of " + quizQuestions.length;
+            progressFill.style.width = Math.round((currentIndex / quizQuestions.length) * 100) + "%";
+
+            questionText.textContent = q.question;
+            optionsContainer.innerHTML = "";
+            nextBtn.hidden = true;
+
+            q.options.forEach(function (optionText, index) {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "gs-quiz-option";
+                btn.textContent = optionText;
+                btn.addEventListener("click", function () {
+                    selectAnswer(index);
+                });
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        // locks the answers, marks right (green) and wrong (red), and counts the score
+        function selectAnswer(selectedIndex) {
+            if (answered) {
+                return;
+            }
+            answered = true;
+
+            const q = quizQuestions[currentIndex];
+            optionsContainer.querySelectorAll(".gs-quiz-option").forEach(function (btn, index) {
+                btn.disabled = true;
+                if (index === q.correctIndex) {
+                    btn.classList.add("gs-quiz-option--correct");
+                } else if (index === selectedIndex) {
+                    btn.classList.add("gs-quiz-option--incorrect");
+                }
+            });
+
+            if (selectedIndex === q.correctIndex) {
+                correctCount++;
+            }
+
+            nextBtn.hidden = false;
+            nextBtn.textContent = currentIndex === quizQuestions.length - 1 ? "Finish mission" : "Next question";
+        }
+
+        // works out the score and shows the complete or failed screen based on the pass mark
+        function finishMission() {
+            questionArea.hidden = true;
+
+            const percent = Math.round((correctCount / quizQuestions.length) * 100);
+            const scoreLine = "You got " + correctCount + " out of " + quizQuestions.length + " correct (" + percent + "%).";
+
+            if (percent >= passPercent) {
+                document.getElementById("missionCompleteScore").textContent = scoreLine;
+                completeArea.hidden = false;
+                fillXpBar();
+            } else {
+                document.getElementById("missionFailedScore").textContent = scoreLine;
+                failedArea.hidden = false;
+            }
+        }
+
+        // PLACEHOLDER: animates the XP bar from the old value to the new one, ranking up if it overflows
+        function fillXpBar() {
+            const xpAfter = xpBefore + xpReward;
+            const xpFill = document.getElementById("missionXpFill");
+            const xpLabel = document.getElementById("missionXpLabel");
+
+            setTimeout(function () {
+                if (xpAfter >= xpForNextRank) {
+                    xpFill.style.width = "100%";
+                    xpLabel.textContent = xpForNextRank + " / " + xpForNextRank + " XP";
+                    document.getElementById("missionRankName").textContent = nextRank;
+                    document.getElementById("missionRankUp").hidden = false;
+                } else {
+                    xpFill.style.width = Math.round((xpAfter / xpForNextRank) * 100) + "%";
+                    xpLabel.textContent = xpAfter + " / " + xpForNextRank + " XP";
+                }
+            }, 400);
+        }
+
+        // Buttons
+        const startBtn = document.getElementById("missionStartBtn");
+        if (startBtn) {
+            startBtn.addEventListener("click", startMission);
+        }
+        document.getElementById("missionRetryBtn").addEventListener("click", startMission);
+
+        // go to the next question, or finish after the last one
+        nextBtn.addEventListener("click", function () {
+            currentIndex++;
+            if (currentIndex >= quizQuestions.length) {
+                finishMission();
+            } else {
+                renderQuestion();
+            }
+        });
+    </script>
+}

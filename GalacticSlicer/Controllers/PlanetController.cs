@@ -38,4 +38,26 @@ public class PlanetController : Controller
 
         return View(viewModels);
     }
+
+    // GET: /Planet/Mission/1 - the mission (exam) for one planet
+    public async Task<IActionResult> Mission(int id)
+    {
+        var planet = await _planetRepository.GetPlanetById(id);
+        if (planet == null)
+        {
+            _logger.LogError("[PlanetController] Planet not found for PlanetId {PlanetId:0000}", id);
+            return NotFound("Planet not found");
+        }
+
+        // Locked planets can't be played: same rule as the Galaxy page
+        if (planet.Order != 1) // TODO Task 14: real unlocking from Jonas's service
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Share of correct answers needed to beat the mission
+        ViewData["PassPercent"] = 80;
+
+        return View(planet);
+    }
 }

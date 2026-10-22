@@ -1,0 +1,82 @@
+/* Styles for the planet mission page only (scoped CSS: applies to Mission.cshtml) */
+
+/* the clicked planet, huge and dimmed, sitting behind the whole page */
+.mission-planet {
+  --gs-planet-size: min(115vmin, 1200px);
+  position: fixed;
+  left: 50%;
+  top: 55%;
+  z-index: -1;
+  translate: -50% -50%;
+  opacity: 0.45;
+  box-shadow: 0 0 160px var(--gs-planet-glow, rgba(255, 255, 255, 0.15));
+  pointer-events: none;
+  animation: mission-planet-turn 40s ease-in-out infinite;
+}
+
+/* the planet shading is tuned for small planets, so scale it up to match */
+.mission-planet::before {
+  box-shadow: inset -120px -120px 200px rgba(0, 0, 0, 0.55), inset 30px 30px 80px rgba(255, 255, 255, 0.12);
+}
+
+/* slow tilt and swell so the background planet feels alive without distracting */
+@keyframes mission-planet-turn {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(4deg) scale(1.03); }
+}
+
+/* see-through card so the planet still shows behind the questions */
+.mission-card {
+  background: rgba(15, 22, 40, 0.82);
+  backdrop-filter: blur(8px);
+}
+
+/* row holding the reward pills, centered and wrapping on small screens */
+.mission-rewards {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+/* one reward pill, gold by default for credits */
+.mission-reward {
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  background: var(--gs-accent-soft);
+  color: var(--gs-accent);
+  font-weight: 700;
+}
+
+/* violet variant for the XP pill, matching the XP bar */
+.mission-reward--xp {
+  background: rgba(124, 92, 255, 0.16);
+  color: #a993ff;
+}
+
+/* the "You got X out of Y" line, brighter than normal paragraph text */
+.mission-score {
+  color: var(--gs-text);
+  font-weight: 600;
+}
+
+/* block with the rank name, XP count and XP bar on the completed screen */
+.mission-rank {
+  margin-top: 1.75rem;
+  text-align: left;
+}
+
+/* violet XP bar fill that animates smoothly when XP is added */
+.mission-xp-fill {
+  background: linear-gradient(90deg, #7c5cff, #4d3fc9);
+  transition: width 1.2s ease;
+}
+
+/* "Rank up!" message shown under the XP bar when the bar fills up */
+.mission-rank-up {
+  margin: 0.75rem 0 0;
+  text-align: center;
+  color: #a993ff;
+  font-weight: 700;
+}
