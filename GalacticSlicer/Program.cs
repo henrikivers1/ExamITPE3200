@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using GalacticSlicer.DAL;
 using Microsoft.AspNetCore.Identity;
+using GalacticSlicer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +48,7 @@ builder.Services.AddScoped<IPlanetRepository, PlanetRepository>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<PlayerProgressService>();
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
