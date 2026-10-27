@@ -9,4 +9,8 @@ public class CharacterShopViewModel
 
     // Placeholder until players and Credits exist (Jonas, Task 5)
     public int PlayerCredits { get; set; }
+
+    public List<int> OwnedCharacterIds { get; set; } = new();
+
+    public int? ActiveCharacterId { get; set; }
 }

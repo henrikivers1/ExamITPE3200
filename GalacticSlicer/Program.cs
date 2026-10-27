@@ -51,6 +51,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<RankService>();
 builder.Services.AddScoped<PlayerProgressService>();
 builder.Services.AddScoped<ChallengeCompletionService>();
+builder.Services.AddScoped<CharacterService>();
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

@@ -49,22 +49,45 @@
                    Buy and Equip are POST forms (not links) because they change data;
                    the form tag helper adds the antiforgery token automatically. *@
                 <div class="card-footer d-flex gap-2">
+                    
                     @if (User.Identity?.IsAuthenticated == true)
                     {
-                        <form asp-action="Buy" method="post">
-                            <input type="hidden" name="characterId" value="@character.CharacterId" />
-                            <button type="submit" class="btn btn-primary btn-sm">Buy</button>
-                        </form>
-                        <form asp-action="Equip" method="post">
-                            <input type="hidden" name="characterId" value="@character.CharacterId" />
-                            <button type="submit" class="btn btn-outline-secondary btn-sm">Equip</button>
-                        </form>
+                        bool isOwned = Model.OwnedCharacterIds.Contains(character.CharacterId);
+                        bool isEquipped = Model.ActiveCharacterId == character.CharacterId;
+
+                        if (isEquipped)
+                        {
+                            <span class="badge bg-success">Equipped</span>
+                        }
+                        else if (isOwned)
+                        {
+                            <span class="badge bg-secondary">Owned</span>
+
+                            <form asp-action="Equip" method="post">
+                                <input type="hidden" name="characterId" value="@character.CharacterId" />
+                                <button type="submit" class="btn btn-outline-primary btn-sm">
+                                    Equip
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-action="Buy" method="post">
+                                <input type="hidden" name="characterId" value="@character.CharacterId" />
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    Buy
+                                </button>
+                            </form>
+                        }
                     }
                     else
                     {
                         <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Character/Shop"
-                           class="btn btn-outline-primary btn-sm">Log in to buy</a>
+                           class="btn btn-outline-primary btn-sm">
+                            Log in to buy
+                        </a>
                     }
+
                 </div>
             </div>
         </div>

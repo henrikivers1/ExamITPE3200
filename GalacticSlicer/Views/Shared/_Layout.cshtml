@@ -95,13 +95,17 @@
                         <a class="gs-nav-link @(activeController == "Progress" ? "is-active" : "")" asp-area=""
                            asp-controller="Progress" asp-action="Index">Progress</a>
                     </li>
+                    <li>
+                        <a class="gs-nav-link @(activeController == "Character" ? "is-active" : "")" asp-area=""
+                           asp-controller="Character" asp-action="Shop">Shop</a>
+                    </li>
                 </ul>
                 <div class="gs-nav-auth">
                     @if (isLoggedIn)
                     {
                         <div class="gs-nav-user">
                             <span class="gs-user-avatar" aria-hidden="true">@currentUsername.Substring(0,
-                                                                                            1).ToUpper()</span>
+                                                                                                                            1).ToUpper()</span>
                                 <span class="gs-user-name">@currentUsername</span>
                                 <span class="gs-user-credits">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
