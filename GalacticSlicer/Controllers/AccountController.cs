@@ -1,6 +1,7 @@
 using GalacticSlicer.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using GalacticSlicer.Services;
 
 namespace GalacticSlicer.Controllers;
 
@@ -9,6 +10,7 @@ public class AccountController : Controller
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly ILogger<AccountController> _logger;
+    private readonly PlayerProgressService _progressService;
 
     public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, ILogger<AccountController> logger)
     {

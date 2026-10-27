@@ -1,60 +1,84 @@
+
 using GalacticSlicer.DAL;
+using GalacticSlicer.Models;
+using GalacticSlicer.Services;
 using GalacticSlicer.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace GalacticSlicer.Controllers;
 
-[Authorize] // the dashboard is personal, so only for logged-in players
+[Authorize]
 public class ProgressController : Controller
 {
     private readonly IChallengeRepository _challengeRepository;
     private readonly IPlanetRepository _planetRepository;
     private readonly ILogger<ProgressController> _logger;
+    private readonly PlayerProgressService _progressService;
+    private readonly UserManager<IdentityUser> _userManager;
+    private readonly GalacticSlicerDbContext _context;
 
-    public ProgressController(IChallengeRepository challengeRepository, IPlanetRepository planetRepository, ILogger<ProgressController> logger)
+    public ProgressController(
+        IChallengeRepository challengeRepository,
+        IPlanetRepository planetRepository,
+        ILogger<ProgressController> logger,
+        PlayerProgressService progressService,
+        UserManager<IdentityUser> userManager,
+        GalacticSlicerDbContext context)
     {
         _challengeRepository = challengeRepository;
         _planetRepository = planetRepository;
         _logger = logger;
+        _progressService = progressService;
+        _userManager = userManager;
+        _context = context;
     }
 
     public async Task<IActionResult> Index()
     {
+        var userId = _userManager.GetUserId(User);
+
+        if (userId == null)
+        {
+            return Challenge();
+        }
+
+        // Get or create progress for the logged-in player
+        var progress = await _progressService
+            .GetOrCreateProgressAsync(userId);
+
+        // Get challenges and planets using existing repositories
         var challenges = await _challengeRepository.GetAll();
         var planets = await _planetRepository.GetAll();
+
         if (challenges == null || planets == null)
         {
-            _logger.LogError("[ProgressController] Could not load challenges or planets for the dashboard");
+            _logger.LogError(
+                "[ProgressController] Could not load dashboard data");
+
             return NotFound("Progress data not found");
         }
 
-        // TODO Task 14: real unlocked planets from Jonas's unlocking service
+        // Count the logged-in player's completed challenges
+        var completedCount = await _context.CompletedChallenges
+            .CountAsync(c => c.UserId == userId);
+
+        // Temporary unlocking rule until Task 6
         var planetsUnlocked = planets.Count(p => p.Order == 1);
 
         var model = new PlayerDashboardViewModel
         {
             Username = User.Identity?.Name ?? "Unknown slicer",
-            Credits = 0,             // TODO Task 11/12: real Credits from the player
-            ChallengesCompleted = 0, // TODO Task 12: real count from completed challenges
+            Credits = progress.Credits,
+            ChallengesCompleted = completedCount,
             ChallengesTotal = challenges.Count(),
             PlanetsUnlocked = planetsUnlocked,
             PlanetsTotal = planets.Count(),
-            Rank = GetRank(planetsUnlocked),
+            Rank = progress.Rank
         };
 
         return View(model);
-    }
-
-    private static string GetRank(int planetsUnlocked)
-    {
-        return planetsUnlocked switch
-        {
-            0 => "Initiate",
-            1 or 2 => "Slicer",
-            3 or 4 => "Rogue Slicer",
-            5 => "Shadow Operative",
-            _ => "Holonet Ghost",
-        };
     }
 }
