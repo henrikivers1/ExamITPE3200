@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace GalacticSlicer.Models;
 
@@ -45,13 +46,27 @@ public class GalacticSlicerDbContext : IdentityDbContext
             .HasOne(p => p.ActiveCharacter)
             .WithMany()
             .HasForeignKey(p => p.ActiveCharacterId)
-            .OnDelete(DeleteBehavior.SetNull);   
+            .OnDelete(DeleteBehavior.SetNull);
+
+    // Connect player progress to ASP.NET Identity
+        modelBuilder.Entity<PlayerProgress>()
+            .HasOne<IdentityUser>()
+            .WithMany()
+            .HasForeignKey(p => p.UserId)
+            .OnDelete(DeleteBehavior.Cascade);   
     
       // Owned character relationship
         modelBuilder.Entity<UserCharacter>()
             .HasOne(uc => uc.Character)
             .WithMany()
             .HasForeignKey(uc => uc.CharacterId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+    // Connect owned characters to ASP.NET Identity
+        modelBuilder.Entity<UserCharacter>()
+            .HasOne<IdentityUser>()
+            .WithMany()
+            .HasForeignKey(uc => uc.UserId)
             .OnDelete(DeleteBehavior.Cascade);
         
     // Completed challenge relationship
@@ -59,6 +74,12 @@ public class GalacticSlicerDbContext : IdentityDbContext
             .HasOne(cc => cc.Challenge)
             .WithMany()
             .HasForeignKey(cc => cc.ChallengeId)
+            .OnDelete(DeleteBehavior.Restrict);
+    // Connect completed challenges to ASP.NET Identity
+        modelBuilder.Entity<CompletedChallenge>()
+            .HasOne<IdentityUser>()
+            .WithMany()
+            .HasForeignKey(cc => cc.UserId)
             .OnDelete(DeleteBehavior.Cascade);
     
     }

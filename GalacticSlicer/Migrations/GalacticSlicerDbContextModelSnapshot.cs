@@ -77,6 +77,32 @@ namespace GalacticSlicer.Migrations
                     b.ToTable("Characters");
                 });
 
+            modelBuilder.Entity("GalacticSlicer.Models.CompletedChallenge", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ChallengeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CompletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChallengeId");
+
+                    b.HasIndex("UserId", "ChallengeId")
+                        .IsUnique();
+
+                    b.ToTable("CompletedChallenges");
+                });
+
             modelBuilder.Entity("GalacticSlicer.Models.Planet", b =>
                 {
                     b.Property<int>("PlanetId")
@@ -103,6 +129,62 @@ namespace GalacticSlicer.Migrations
                     b.HasKey("PlanetId");
 
                     b.ToTable("Planets");
+                });
+
+            modelBuilder.Entity("GalacticSlicer.Models.PlayerProgress", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ActiveCharacterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Credits")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Rank")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActiveCharacterId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("PlayerProgresses");
+                });
+
+            modelBuilder.Entity("GalacticSlicer.Models.UserCharacter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CharacterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("PurchasedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId");
+
+                    b.HasIndex("UserId", "CharacterId")
+                        .IsUnique();
+
+                    b.ToTable("UserCharacters");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -310,6 +392,56 @@ namespace GalacticSlicer.Migrations
                         .IsRequired();
 
                     b.Navigation("Planet");
+                });
+
+            modelBuilder.Entity("GalacticSlicer.Models.CompletedChallenge", b =>
+                {
+                    b.HasOne("GalacticSlicer.Models.Challenge", "Challenge")
+                        .WithMany()
+                        .HasForeignKey("ChallengeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Challenge");
+                });
+
+            modelBuilder.Entity("GalacticSlicer.Models.PlayerProgress", b =>
+                {
+                    b.HasOne("GalacticSlicer.Models.Character", "ActiveCharacter")
+                        .WithMany()
+                        .HasForeignKey("ActiveCharacterId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ActiveCharacter");
+                });
+
+            modelBuilder.Entity("GalacticSlicer.Models.UserCharacter", b =>
+                {
+                    b.HasOne("GalacticSlicer.Models.Character", "Character")
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Character");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
