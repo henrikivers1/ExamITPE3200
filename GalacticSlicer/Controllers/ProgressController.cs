@@ -76,7 +76,28 @@ public class ProgressController : Controller
             ChallengesTotal = challenges.Count(),
             PlanetsUnlocked = planetsUnlocked,
             PlanetsTotal = planets.Count(),
-            Rank = progress.Rank
+            Rank = progress.Rank,
+            ExperiencePoints = progress.ExperiencePoints,
+            XpForCurrentRank = progress.ExperiencePoints switch
+            {
+                >= 12000 => 12000,
+                >= 8000 => 8000,
+                >= 5000 => 5000,
+                >= 3000 => 3000,
+                >= 1500 => 1500,
+                >= 500 => 500,
+                _ => 0
+            },
+            XpForNextRank = progress.ExperiencePoints switch
+            {
+                >= 12000 => 12000,
+                >= 8000 => 12000,
+                >= 5000 => 8000,
+                >= 3000 => 5000,
+                >= 1500 => 3000,
+                >= 500 => 1500,
+                _ => 500
+            },
         };
 
         return View(model);

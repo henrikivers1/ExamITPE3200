@@ -1,4 +1,8 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using GalacticSlicer.Models
+@using Microsoft.EntityFrameworkCore
+@inject GalacticSlicerDbContext DbContext
+@inject UserManager<IdentityUser> UserManager
 @inject SignInManager<IdentityUser> SignInManager
 
 <!DOCTYPE html>
@@ -25,7 +29,20 @@
         // Real auth state from ASP.NET Identity
         var isLoggedIn = SignInManager.IsSignedIn(User);
         var currentUsername = User.Identity?.Name ?? "";
-        var currentCredits = 0; // TODO Task 11: real Credits from the player
+        var currentCredits = 0;
+
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            var userId = UserManager.GetUserId(User);
+
+            if (userId != null)
+            {
+                var progress = await DbContext.PlayerProgresses
+                    .FirstOrDefaultAsync(p => p.UserId == userId);
+
+                currentCredits = progress?.Credits ?? 0;
+            }
+        }
     }
     @* Background sky: extra stars on every page, small drifting planets everywhere except the Galaxy page *@
     <div class="gs-sky" aria-hidden="true">
@@ -84,7 +101,7 @@
                     {
                         <div class="gs-nav-user">
                             <span class="gs-user-avatar" aria-hidden="true">@currentUsername.Substring(0,
-                                                            1).ToUpper()</span>
+                                                                                            1).ToUpper()</span>
                                 <span class="gs-user-name">@currentUsername</span>
                                 <span class="gs-user-credits">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"

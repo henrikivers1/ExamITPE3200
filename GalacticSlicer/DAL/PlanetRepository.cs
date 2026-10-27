@@ -32,11 +32,17 @@ public class PlanetRepository : IPlanetRepository
     {
         try
         {
-            return await _db.Planets.FindAsync(id);
+            return await _db.Planets
+                .Include(p => p.Challenges)
+                .FirstOrDefaultAsync(p => p.PlanetId == id);
         }
         catch (Exception e)
         {
-            _logger.LogError("[PlanetRepository] planet FindAsync(id) failed for PlanetId {PlanetId:0000}, error message: {e}", id, e.Message);
+            _logger.LogError(
+                e,
+                "[PlanetRepository] Failed to load planet {PlanetId}",
+                id);
+
             return null;
         }
     }

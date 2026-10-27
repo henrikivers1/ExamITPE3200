@@ -30,6 +30,26 @@ namespace GalacticSlicer.Migrations
                     b.Property<int>("CreditReward")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("OptionA")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OptionB")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OptionC")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OptionD")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("PlanetId")
                         .HasMaxLength(100)
                         .HasColumnType("INTEGER");
@@ -141,6 +161,9 @@ namespace GalacticSlicer.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Credits")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ExperiencePoints")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Rank")

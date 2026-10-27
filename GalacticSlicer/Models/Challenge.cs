@@ -23,7 +23,6 @@ public class Challenge
     public int CreditReward { get; set; }
 
     [Required]
-    [StringLength(100)]
     // Foreign key: which planet this challenge belongs to
     [Display(Name = "Planet")]
     [Range(1, int.MaxValue, ErrorMessage = "Please choose a planet.")]
@@ -31,5 +30,22 @@ public class Challenge
 
     // Navigation property: lets us write challenge.Planet.Name
     public Planet? Planet { get; set; }
+
+
+    [Required]
+    [StringLength(200)]
+    public string OptionA { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(200)]
+    public string OptionB { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(200)]
+    public string OptionC { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(200)]
+    public string OptionD { get; set; } = string.Empty;
 
 }

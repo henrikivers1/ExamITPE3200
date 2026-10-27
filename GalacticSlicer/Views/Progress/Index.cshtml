@@ -17,36 +17,50 @@
     </div>
     <div class="gs-stat-card">
         <span class="gs-stat-label">Challenges completed</span>
-        <span class="gs-stat-value">@Model.ChallengesCompleted <span class="gs-stat-value-total">/ @Model.ChallengesTotal</span></span>
-    </div>
-    <div class="gs-stat-card">
-        <span class="gs-stat-label">Planets unlocked</span>
-        <span class="gs-stat-value">@Model.PlanetsUnlocked <span class="gs-stat-value-total">/ @Model.PlanetsTotal</span></span>
-    </div>
-    <div class="gs-stat-card">
-        <span class="gs-stat-label">Current rank</span>
-        <span class="gs-stat-value gs-stat-value--rank">@Model.Rank</span>
-    </div>
-</section>
+        <span class="gs-stat-value">@Model.ChallengesCompleted <span class="gs-stat-value-total">/
+            @Model.ChallengesTotal</span></span>
+        </div>
+        <div class="gs-stat-card">
+            <span class="gs-stat-label">Planets unlocked</span>
+            <span class="gs-stat-value">@Model.PlanetsUnlocked <span class="gs-stat-value-total">/
+                @Model.PlanetsTotal</span></span>
+            </div>
+            <div class="gs-stat-card">
+                <span class="gs-stat-label">Current rank</span>
+                <span class="gs-stat-value gs-stat-value--rank">@Model.Rank</span>
+            </div>
+        </section>
 
-<section class="gs-progress-section">
-    <div class="gs-progress-block">
-        <div class="gs-progress-block-header">
-            <span>Starchart progress</span>
-            <span>@Model.PlanetsUnlocked / @Model.PlanetsTotal planets</span>
-        </div>
-        <div class="gs-progress-bar">
-            <div class="gs-progress-bar-fill" style="width: @(Model.PlanetPercent)%;"></div>
-        </div>
-    </div>
 
-    <div class="gs-progress-block">
-        <div class="gs-progress-block-header">
-            <span>Challenges progress</span>
-            <span>@Model.ChallengesCompleted / @Model.ChallengesTotal challenges</span>
-        </div>
-        <div class="gs-progress-bar">
-            <div class="gs-progress-bar-fill gs-progress-bar-fill--accent2" style="width: @(Model.ChallengePercent)%;"></div>
-        </div>
-    </div>
-</section>
+        <section class="gs-progress-section">
+            <div class="gs-progress-block">
+                <div class="gs-progress-block-header">
+                    <span>Starchart progress</span>
+                    <span>@Model.PlanetsUnlocked / @Model.PlanetsTotal planets</span>
+                </div>
+                <div class="gs-progress-bar">
+                    <div class="gs-progress-bar-fill" style="width: @(Model.PlanetPercent)%;"></div>
+                </div>
+            </div>
+
+            <div class="gs-progress-block">
+                <div class="gs-progress-block-header">
+                    <span>Challenges progress</span>
+                    <span>@Model.ChallengesCompleted / @Model.ChallengesTotal challenges</span>
+                </div>
+                <div class="gs-progress-bar">
+                    <div class="gs-progress-bar-fill gs-progress-bar-fill--accent2" style="width: @(Model.ChallengePercent)%;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="gs-progress-block">
+                <div class="gs-progress-block-header">
+                    <span>Experience progress – @Model.Rank</span>
+                    <span>@Model.ExperiencePoints / @Model.XpForNextRank XP</span>
+                </div>
+                <div class="gs-progress-bar">
+                    <div class="gs-progress-bar-fill" style="width: @(Model.XpPercent)%;"></div>
+                </div>
+            </div>
+        </section>

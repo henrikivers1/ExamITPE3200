@@ -48,7 +48,9 @@ builder.Services.AddScoped<IPlanetRepository, PlanetRepository>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<RankService>();
 builder.Services.AddScoped<PlayerProgressService>();
+builder.Services.AddScoped<ChallengeCompletionService>();
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

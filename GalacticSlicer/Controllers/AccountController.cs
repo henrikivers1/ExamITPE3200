@@ -12,11 +12,12 @@ public class AccountController : Controller
     private readonly ILogger<AccountController> _logger;
     private readonly PlayerProgressService _progressService;
 
-    public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, ILogger<AccountController> logger)
+    public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, ILogger<AccountController> logger, PlayerProgressService progressService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _logger = logger;
+        _progressService = progressService;
     }
 
     // GET: /Account/SignUp
@@ -36,8 +37,14 @@ public class AccountController : Controller
 
         if (result.Succeeded)
         {
-            _logger.LogInformation("[AccountController] New user registered: {Username}", model.Username);
+            await _progressService.GetOrCreateProgressAsync(user.Id);
+
+            _logger.LogInformation(
+                "[AccountController] New user registered: {Username}",
+                model.Username);
+
             await _signInManager.SignInAsync(user, isPersistent: false);
+
             return RedirectToAction("Index", "Home");
         }
 
