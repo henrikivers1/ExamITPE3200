@@ -1,3 +1,4 @@
+
 using GalacticSlicer.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,7 +9,9 @@ public class PlanetRepository : IPlanetRepository
     private readonly GalacticSlicerDbContext _db;
     private readonly ILogger<PlanetRepository> _logger;
 
-    public PlanetRepository(GalacticSlicerDbContext db, ILogger<PlanetRepository> logger)
+    public PlanetRepository(
+        GalacticSlicerDbContext db,
+        ILogger<PlanetRepository> logger)
     {
         _db = db;
         _logger = logger;
@@ -19,12 +22,19 @@ public class PlanetRepository : IPlanetRepository
         try
         {
             // Sorted by chapter so the Galaxy page shows them in story order
-            return await _db.Planets.Include(p => p.Challenges).OrderBy(p => p.Order).ToListAsync();
+            return await _db.Planets
+                .Include(p => p.Challenges)
+                .OrderBy(p => p.Order)
+                .ToListAsync();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("[PlanetRepository] planets ToListAsync() failed when GetAll(), error message: {e}", e.Message);
-            return null;
+            // Log the full exception, including its stack trace
+            _logger.LogError(
+                ex,
+                "Failed to retrieve all planets");
+
+            throw;
         }
     }
 
@@ -32,12 +42,18 @@ public class PlanetRepository : IPlanetRepository
     {
         try
         {
-            return await _db.Planets.FindAsync(id);
+            return await _db.Planets
+                .Include(p => p.Challenges)
+                .FirstOrDefaultAsync(p => p.PlanetId == id);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("[PlanetRepository] planet FindAsync(id) failed for PlanetId {PlanetId:0000}, error message: {e}", id, e.Message);
-            return null;
+            _logger.LogError(
+                ex,
+                "Failed to retrieve Planet {PlanetId}",
+                id);
+
+            throw;
         }
     }
 
@@ -47,12 +63,22 @@ public class PlanetRepository : IPlanetRepository
         {
             _db.Planets.Add(planet);
             await _db.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Planet {PlanetId} created successfully",
+                planet.PlanetId);
+
             return true;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("[PlanetRepository] planet creation failed for planet {@planet}, error message: {e}", planet, e.Message);
-            return false;
+            // Log the planet ID instead of the entire object
+            _logger.LogError(
+                ex,
+                "Failed to create Planet {PlanetId}",
+                planet.PlanetId);
+
+            throw;
         }
     }
 
@@ -62,12 +88,21 @@ public class PlanetRepository : IPlanetRepository
         {
             _db.Planets.Update(planet);
             await _db.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Planet {PlanetId} updated successfully",
+                planet.PlanetId);
+
             return true;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("[PlanetRepository] planet update failed for PlanetId {PlanetId:0000}, error message: {e}", planet.PlanetId, e.Message);
-            return false;
+            _logger.LogError(
+                ex,
+                "Failed to update Planet {PlanetId}",
+                planet.PlanetId);
+
+            throw;
         }
     }
 
@@ -76,20 +111,35 @@ public class PlanetRepository : IPlanetRepository
         try
         {
             var planet = await _db.Planets.FindAsync(id);
+
             if (planet == null)
             {
-                _logger.LogError("[PlanetRepository] planet not found for PlanetId {PlanetId:0000}", id);
+                // A missing planet is an expected outcome, not a database error
+                _logger.LogWarning(
+                    "Planet {PlanetId} not found during deletion",
+                    id);
+
                 return false;
             }
 
+            // Delete the planet
             _db.Planets.Remove(planet);
             await _db.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Planet {PlanetId} deleted successfully",
+                id);
+
             return true;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("[PlanetRepository] planet deletion failed for PlanetId {PlanetId:0000}, error message: {e}", id, e.Message);
-            return false;
+            _logger.LogError(
+                ex,
+                "Failed to delete Planet {PlanetId}",
+                id);
+
+            throw;
         }
     }
 }

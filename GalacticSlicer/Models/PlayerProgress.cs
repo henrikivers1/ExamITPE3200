@@ -12,11 +12,14 @@ public class PlayerProgress
     [Range(0, int.MaxValue)]
     public int Credits { get; set; } = 0;
 
-    public string Rank { get; set; } = "Rookie";
+    public string Rank { get; set; } = "Outsider";
 
     public int? ActiveCharacterId { get; set; }
 
     public Character? ActiveCharacter { get; set; }
+
+    [Range(0, int.MaxValue)]
+    public int ExperiencePoints { get; set; } = 0;
 }
 
 /*
@@ -26,4 +29,5 @@ public class PlayerProgress
  * Rank              - Current player rank, starting at Rookie.
  * ActiveCharacterId - ID of the character currently equipped.
  * ActiveCharacter   - Navigation property to the selected Character.
+ * ExpiriencePoints  - For your Rank
  */
