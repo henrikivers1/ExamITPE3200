@@ -4,6 +4,7 @@ using GalacticSlicer.Services;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GalacticSlicer.Tests;
 
@@ -63,7 +64,10 @@ public class CharacterServiceTests
 
             await context.SaveChangesAsync();
 
-            var service = new CharacterService(context);
+            // Use a logger that does not write output during testing
+            var service = new CharacterService(
+                context,
+                NullLogger<CharacterService>.Instance);
 
             // Act
             bool result = await service.BuyCharacterAsync(user.Id, 1);
@@ -109,7 +113,10 @@ public class CharacterServiceTests
 
             await context.SaveChangesAsync();
 
-            var service = new CharacterService(context);
+            // Use a logger that does not write output during testing
+            var service = new CharacterService(
+                context,
+                NullLogger<CharacterService>.Instance);
 
             // Act
             await service.BuyCharacterAsync(user.Id, 1);
@@ -155,7 +162,10 @@ public class CharacterServiceTests
 
             await context.SaveChangesAsync();
 
-            var service = new CharacterService(context);
+            // Use a logger that does not write output during testing
+            var service = new CharacterService(
+                context,
+                NullLogger<CharacterService>.Instance);
 
             // Act
             bool result = await service.BuyCharacterAsync(user.Id, 1);
@@ -203,7 +213,10 @@ public class CharacterServiceTests
 
             await context.SaveChangesAsync();
 
-            var service = new CharacterService(context);
+            // Use a logger that does not write output during testing
+            var service = new CharacterService(
+                context,
+                NullLogger<CharacterService>.Instance);
 
             // Act
             bool firstPurchase = await service.BuyCharacterAsync(user.Id, 1);
