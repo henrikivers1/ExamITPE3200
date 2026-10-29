@@ -12,7 +12,7 @@ public class PlayerProgress
     [Range(0, int.MaxValue)]
     public int Credits { get; set; } = 0;
 
-    public string Rank { get; set; } = "Rookie";
+    public string Rank { get; set; } = "Outsider";
 
     public int? ActiveCharacterId { get; set; }
 

@@ -1,3 +1,4 @@
+
 using GalacticSlicer.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,7 +9,9 @@ public class CharacterRepository : ICharacterRepository
     private readonly GalacticSlicerDbContext _db;
     private readonly ILogger<CharacterRepository> _logger;
 
-    public CharacterRepository(GalacticSlicerDbContext db, ILogger<CharacterRepository> logger)
+    public CharacterRepository(
+        GalacticSlicerDbContext db,
+        ILogger<CharacterRepository> logger)
     {
         _db = db;
         _logger = logger;
@@ -18,12 +21,18 @@ public class CharacterRepository : ICharacterRepository
     {
         try
         {
-            return await _db.Characters.OrderBy(c => c.Price).ToListAsync();
+            return await _db.Characters
+                .OrderBy(c => c.Price)
+                .ToListAsync();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("[CharacterRepository] characters ToListAsync() failed when GetAll(), error message: {e}", e.Message);
-            return null;
+            // Log the full exception, including its stack trace
+            _logger.LogError(
+                ex,
+                "Failed to retrieve all characters");
+
+            throw;
         }
     }
 
@@ -33,10 +42,14 @@ public class CharacterRepository : ICharacterRepository
         {
             return await _db.Characters.FindAsync(id);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("[CharacterRepository] character FindAsync(id) failed for CharacterId {CharacterId:0000}, error message: {e}", id, e.Message);
-            return null;
+            _logger.LogError(
+                ex,
+                "Failed to retrieve Character {CharacterId}",
+                id);
+
+            throw;
         }
     }
 
@@ -46,12 +59,22 @@ public class CharacterRepository : ICharacterRepository
         {
             _db.Characters.Add(character);
             await _db.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Character {CharacterId} created successfully",
+                character.CharacterId);
+
             return true;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("[CharacterRepository] character creation failed for character {@character}, error message: {e}", character, e.Message);
-            return false;
+            // Log the character ID instead of the entire object
+            _logger.LogError(
+                ex,
+                "Failed to create Character {CharacterId}",
+                character.CharacterId);
+
+            throw;
         }
     }
 
@@ -61,12 +84,21 @@ public class CharacterRepository : ICharacterRepository
         {
             _db.Characters.Update(character);
             await _db.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Character {CharacterId} updated successfully",
+                character.CharacterId);
+
             return true;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("[CharacterRepository] character update failed for CharacterId {CharacterId:0000}, error message: {e}", character.CharacterId, e.Message);
-            return false;
+            _logger.LogError(
+                ex,
+                "Failed to update Character {CharacterId}",
+                character.CharacterId);
+
+            throw;
         }
     }
 
@@ -75,20 +107,35 @@ public class CharacterRepository : ICharacterRepository
         try
         {
             var character = await _db.Characters.FindAsync(id);
+
             if (character == null)
             {
-                _logger.LogError("[CharacterRepository] character not found for CharacterId {CharacterId:0000}", id);
+                // A missing character is not an unexpected database error
+                _logger.LogWarning(
+                    "Character {CharacterId} not found during deletion",
+                    id);
+
                 return false;
             }
 
+            // Delete the character
             _db.Characters.Remove(character);
             await _db.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Character {CharacterId} deleted successfully",
+                id);
+
             return true;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("[CharacterRepository] character deletion failed for CharacterId {CharacterId:0000}, error message: {e}", id, e.Message);
-            return false;
+            _logger.LogError(
+                ex,
+                "Failed to delete Character {CharacterId}",
+                id);
+
+            throw;
         }
     }
 }

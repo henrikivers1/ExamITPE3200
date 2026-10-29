@@ -1,3 +1,4 @@
+
 using GalacticSlicer.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,7 +9,9 @@ public class ChallengeRepository : IChallengeRepository
     private readonly GalacticSlicerDbContext _db;
     private readonly ILogger<ChallengeRepository> _logger;
 
-    public ChallengeRepository(GalacticSlicerDbContext db, ILogger<ChallengeRepository> logger)
+    public ChallengeRepository(
+        GalacticSlicerDbContext db,
+        ILogger<ChallengeRepository> logger)
     {
         _db = db;
         _logger = logger;
@@ -18,12 +21,18 @@ public class ChallengeRepository : IChallengeRepository
     {
         try
         {
-            return await _db.Challenges.Include(c => c.Planet).ToListAsync();
+            return await _db.Challenges
+                .Include(c => c.Planet)
+                .ToListAsync();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("[ChallengeRepository] challenges ToListAsync() failed when GetAll(), error message: {e}", e.Message);
-            return null;
+            // Log the complete exception, including its stack trace
+            _logger.LogError(
+                ex,
+                "Failed to retrieve all challenges");
+
+            throw;
         }
     }
 
@@ -31,12 +40,18 @@ public class ChallengeRepository : IChallengeRepository
     {
         try
         {
-            return await _db.Challenges.Include(c => c.Planet).FirstOrDefaultAsync(c => c.ChallengeId == id);
+            return await _db.Challenges
+                .Include(c => c.Planet)
+                .FirstOrDefaultAsync(c => c.ChallengeId == id);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("[ChallengeRepository] challenge FindAsync(id) failed for ChallengeId {ChallengeId:0000}, error message: {e}", id, e.Message);
-            return null;
+            _logger.LogError(
+                ex,
+                "Failed to retrieve Challenge {ChallengeId}",
+                id);
+
+            throw;
         }
     }
 
@@ -46,12 +61,22 @@ public class ChallengeRepository : IChallengeRepository
         {
             _db.Challenges.Add(challenge);
             await _db.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Challenge {ChallengeId} created successfully",
+                challenge.ChallengeId);
+
             return true;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("[ChallengeRepository] challenge creation failed for challenge {@challenge}, error message: {e}", challenge, e.Message);
-            return false;
+            // Avoid logging the Challenge object or its correct answer
+            _logger.LogError(
+                ex,
+                "Failed to create Challenge {ChallengeId}",
+                challenge.ChallengeId);
+
+            throw;
         }
     }
 
@@ -61,12 +86,21 @@ public class ChallengeRepository : IChallengeRepository
         {
             _db.Challenges.Update(challenge);
             await _db.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Challenge {ChallengeId} updated successfully",
+                challenge.ChallengeId);
+
             return true;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("[ChallengeRepository] challenge update failed for ChallengeId {ChallengeId:0000}, error message: {e}", challenge.ChallengeId, e.Message);
-            return false;
+            _logger.LogError(
+                ex,
+                "Failed to update Challenge {ChallengeId}",
+                challenge.ChallengeId);
+
+            throw;
         }
     }
 
@@ -75,9 +109,14 @@ public class ChallengeRepository : IChallengeRepository
         try
         {
             var challenge = await _db.Challenges.FindAsync(id);
+
             if (challenge == null)
             {
-                _logger.LogError("[ChallengeRepository] challenge not found for ChallengeId {ChallengeId:0000}", id);
+                // A missing challenge is an expected outcome, not a database error
+                _logger.LogWarning(
+                    "Challenge {ChallengeId} not found during deletion",
+                    id);
+
                 return false;
             }
 
@@ -93,40 +132,69 @@ public class ChallengeRepository : IChallengeRepository
 
             // Save both changes together
             await _db.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Challenge {ChallengeId} deleted successfully",
+                id);
+
             return true;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("[ChallengeRepository] challenge deletion failed for ChallengeId {ChallengeId:0000}, error message: {e}", id, e.Message);
-            return false;
+            _logger.LogError(
+                ex,
+                "Failed to delete Challenge {ChallengeId}",
+                id);
+
+            throw;
         }
     }
-    public async Task<IEnumerable<Challenge>?> Search(string? searchString, string? planetName, int? minReward)
+
+    public async Task<IEnumerable<Challenge>?> Search(
+        string? searchString,
+        string? planetName,
+        int? minReward)
     {
         try
         {
             // Start with all challenges, but don't run the query yet
-            IQueryable<Challenge> query = _db.Challenges.Include(c => c.Planet);
+            IQueryable<Challenge> query = _db.Challenges
+                .Include(c => c.Planet);
 
             // Add one filter per parameter the user actually filled in
-
             if (!string.IsNullOrWhiteSpace(searchString))
-                query = query.Where(c => c.Title.Contains(searchString) || c.Question.Contains(searchString));
+            {
+                query = query.Where(c =>
+                    c.Title.Contains(searchString) ||
+                    c.Question.Contains(searchString));
+            }
 
             if (!string.IsNullOrWhiteSpace(planetName))
-                query = query.Where(c => c.Planet != null && c.Planet.Name == planetName);
+            {
+                query = query.Where(c =>
+                    c.Planet != null &&
+                    c.Planet.Name == planetName);
+            }
 
             if (minReward.HasValue)
-                query = query.Where(c => c.CreditReward >= minReward.Value);
+            {
+                query = query.Where(c =>
+                    c.CreditReward >= minReward.Value);
+            }
 
             // Only now is the SQL sent to the database
-            return await query.OrderBy(c => c.Title).ToListAsync();
+            return await query
+                .OrderBy(c => c.Title)
+                .ToListAsync();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            _logger.LogError("[ChallengeRepository] Search failed for search {Search}, planet {Planet}, minReward {MinReward}, error message: {e}",
-                searchString, planetName, minReward, e.Message);
-            return null;
+            // Do not log raw search input unnecessarily
+            _logger.LogError(
+                ex,
+                "Failed to search challenges");
+
+            throw;
         }
     }
 }
