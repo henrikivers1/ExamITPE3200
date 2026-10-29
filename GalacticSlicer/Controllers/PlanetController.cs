@@ -72,20 +72,25 @@ public class PlanetController : Controller
         {
             Planet = planet,
             PassPercent = 80,
+
+            // Total Credits available for completing the mission
+            TotalCreditReward = planet.Challenges?
+             .Sum(c => c.CreditReward) ?? 0,
+
             Questions = planet.Challenges?
-                .Select(c => new MissionQuestionViewModel
-                {
-                    ChallengeId = c.ChallengeId,
-                    Question = c.Question,
-                    Options = new List<string>
-                    {
+                 .Select(c => new MissionQuestionViewModel
+                 {
+                     ChallengeId = c.ChallengeId,
+                     Question = c.Question,
+                     Options = new List<string>
+                     {
                     c.OptionA,
                     c.OptionB,
                     c.OptionC,
                     c.OptionD
-                    }
-                })
-                .ToList() ?? new List<MissionQuestionViewModel>()
+                     }
+                 })
+                 .ToList() ?? new List<MissionQuestionViewModel>()
         };
 
         return View(model);

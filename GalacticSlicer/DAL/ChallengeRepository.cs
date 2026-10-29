@@ -81,7 +81,17 @@ public class ChallengeRepository : IChallengeRepository
                 return false;
             }
 
+            // Remove completion records linked to this challenge
+            var completions = await _db.CompletedChallenges
+                .Where(cc => cc.ChallengeId == id)
+                .ToListAsync();
+
+            _db.CompletedChallenges.RemoveRange(completions);
+
+            // Delete the challenge
             _db.Challenges.Remove(challenge);
+
+            // Save both changes together
             await _db.SaveChangesAsync();
             return true;
         }

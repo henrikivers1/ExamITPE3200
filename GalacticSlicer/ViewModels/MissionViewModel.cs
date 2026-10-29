@@ -7,4 +7,5 @@ public class MissionViewModel
     public Planet Planet { get; set; } = null!;
     public List<MissionQuestionViewModel> Questions { get; set; } = new();
     public int PassPercent { get; set; } = 80;
+    public int TotalCreditReward { get; set; }
 }
