@@ -1,4 +1,5 @@
 using GalacticSlicer.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace GalacticSlicer.DAL;
 
@@ -8,6 +9,10 @@ public static class DBInit
     {
         using var serviceScope = app.ApplicationServices.CreateScope();
         var context = serviceScope.ServiceProvider.GetRequiredService<GalacticSlicerDbContext>();
+
+        // The .db file is not in Git, so create it and apply any new migrations on startup
+        context.Database.Migrate();
+
         if (!context.Planets.Any())
         {
             var planets = new List<Planet>
