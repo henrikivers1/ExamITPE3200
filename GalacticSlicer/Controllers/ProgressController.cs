@@ -68,9 +68,15 @@ public class ProgressController : Controller
         // Temporary unlocking rule until Task 6
         var planetsUnlocked = planets.Count(p => p.Order == 1);
 
+        // The equipped character, for the badge next to the username
+        var activeCharacter = progress.ActiveCharacterId == null
+            ? null
+            : await _context.Characters.FindAsync(progress.ActiveCharacterId);
+
         var model = new PlayerDashboardViewModel
         {
             Username = User.Identity?.Name ?? "Unknown slicer",
+            ActiveCharacter = activeCharacter,
             Credits = progress.Credits,
             ChallengesCompleted = completedCount,
             ChallengesTotal = challenges.Count(),

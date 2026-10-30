@@ -6,7 +6,16 @@
 <section class="gs-profile-header">
     <div>
         <span class="gs-rank-badge">@Model.Rank</span>
-        <h1>@Model.Username</h1>
+        @* equipped character's badge (or an empty circle) next to the username *@
+        <div class="gs-profile-name">
+            <span class="gs-profile-badge" title="@(Model.ActiveCharacter?.Name ?? "No badge equipped")">
+                <partial name="_CharacterBadge" model="Model.ActiveCharacter" />
+            </span>
+            <h1>@Model.Username</h1>
+        </div>
+        <a class="gs-profile-badge-link" asp-controller="Character" asp-action="Shop">
+            @(Model.ActiveCharacter == null ? "Equip a badge in the Shop" : "Change badge")
+        </a>
     </div>
 </section>
 

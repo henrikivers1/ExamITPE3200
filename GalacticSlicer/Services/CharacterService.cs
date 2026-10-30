@@ -160,6 +160,43 @@ public class CharacterService
         }
     }
 
+    public async Task<bool> UnequipCharacterAsync(string userId)
+    {
+        try
+        {
+            // Find player progress
+            var progress = await _context.PlayerProgresses
+                .FirstOrDefaultAsync(p => p.UserId == userId);
+
+            if (progress == null)
+            {
+                _logger.LogWarning(
+                    "Unequip rejected: Player progress not found");
+
+                return false;
+            }
+
+            // No active character means no badge is shown
+            progress.ActiveCharacterId = null;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Character unequipped successfully");
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Unexpected error while unequipping character");
+
+            _context.ChangeTracker.Clear();
+
+            return false;
+        }
+    }
+
     public async Task<List<int>> GetOwnedCharacterIdsAsync(string userId)
     {
         try

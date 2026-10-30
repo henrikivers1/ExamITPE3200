@@ -1,0 +1,223 @@
+/* Styles for the Character Shop only (scoped CSS: applies to Shop.cshtml) */
+
+/* gold pill showing the player's Credits under the heading */
+.shop-balance {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  background: var(--gs-accent-soft);
+  border: 1px solid rgba(214, 170, 76, 0.35);
+  color: var(--gs-text);
+}
+
+/* small glowing gold coin used next to Credit amounts */
+.shop-coin {
+  color: var(--gs-accent);
+  font-size: 0.8em;
+  text-shadow: 0 0 8px rgba(214, 170, 76, 0.7);
+}
+
+/* "Log in to buy" hint for visitors */
+.shop-login-hint {
+  margin-top: 0.5rem;
+}
+
+/* success / error message after buying or equipping */
+.shop-alert {
+  max-width: 640px;
+  margin: 1.5rem auto 0;
+  padding: 0.85rem 1.1rem;
+  border-radius: var(--gs-radius-sm);
+  border: 1px solid;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* green variant for a successful purchase or equip */
+.shop-alert--success {
+  background: rgba(62, 207, 142, 0.12);
+  border-color: rgba(62, 207, 142, 0.45);
+  color: #8fe9be;
+}
+
+/* red variant for errors such as not enough Credits */
+.shop-alert--error {
+  background: rgba(239, 91, 91, 0.12);
+  border-color: rgba(239, 91, 91, 0.45);
+  color: #f59a9a;
+}
+
+/* responsive card grid: as many columns as fit (all five side by side on wide screens,
+   one column on phones); min(100%, ...) stops cards overflowing on very narrow screens */
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: clamp(1rem, 1.6vw, 1.5rem);
+  max-width: 1400px;
+  margin: 2.5rem auto 4rem;
+}
+
+/* one character card; --tier is the accent color set by the rarity classes below */
+.shop-card {
+  --tier: #8fa3c4;
+  display: flex;
+  flex-direction: column;
+  background: var(--gs-bg-card);
+  border: 1px solid var(--gs-border);
+  border-radius: var(--gs-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--gs-shadow);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* lift and glow in the tier color on hover */
+.shop-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--tier);
+  box-shadow: var(--gs-shadow), 0 0 28px -6px var(--tier);
+}
+
+/* rarity colors: starter grey-blue, uncommon teal, rare blue, epic violet, legendary gold */
+.shop-card--starter { --tier: #8fa3c4; }
+.shop-card--uncommon { --tier: #3ec9c0; }
+.shop-card--rare { --tier: #4d8dff; }
+.shop-card--epic { --tier: #8f73ff; }
+.shop-card--legendary { --tier: var(--gs-accent); }
+
+/* the equipped character gets a permanent gold outline */
+.shop-card--equipped {
+  border-color: var(--gs-accent);
+  box-shadow: var(--gs-shadow), 0 0 0 1px var(--gs-accent), 0 0 30px -8px var(--gs-accent);
+}
+
+/* portrait area: a small starfield lit from below in the tier color */
+.shop-portrait {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: clamp(160px, 15vw, 210px);
+  background:
+    radial-gradient(1px 1px at 18% 24%, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 72% 18%, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1.5px 1.5px at 84% 62%, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1px 1px at 30% 76%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(ellipse 70% 60% at 50% 100%, color-mix(in srgb, var(--tier) 35%, transparent), transparent 70%),
+    linear-gradient(180deg, #0a1020, #111a30);
+  border-bottom: 1px solid var(--gs-border);
+}
+
+/* the character image, when one exists */
+.shop-portrait-img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+/* wrapper around the space badge (Views/Shared/_CharacterBadge); sets its size and glows in the tier color */
+.shop-badge {
+  display: block;
+  width: clamp(96px, 9vw, 132px);
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--tier) 55%, transparent));
+  transition: transform 0.25s ease;
+}
+
+/* the badge tilts and grows slightly when the card is hovered */
+.shop-card:hover .shop-badge {
+  transform: scale(1.07) rotate(-4deg);
+}
+
+/* rarity label in the top-left corner of the portrait */
+.shop-tier {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tier);
+  background: rgba(5, 7, 13, 0.7);
+  border: 1px solid color-mix(in srgb, var(--tier) 50%, transparent);
+}
+
+/* "Owned" tag in the top-right corner of the portrait */
+.shop-status {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gs-text);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* gold "Equipped" variant of the corner tag */
+.shop-status--equipped {
+  color: #03101d;
+  background: var(--gs-accent);
+}
+
+/* name and description area, grows so all footers line up */
+.shop-card-body {
+  flex: 1;
+  padding: 1.25rem 1.25rem 0.5rem;
+}
+
+/* character name */
+.shop-card-title {
+  font-size: 1.15rem;
+  margin-bottom: 0.4rem;
+}
+
+/* character description */
+.shop-card-text {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* price on the left, action button on the right (button wraps below on narrow cards) */
+.shop-card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+/* gold price, or "Free" */
+.shop-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--gs-accent);
+}
+
+/* footer forms shouldn't add their own spacing */
+.shop-card-footer form {
+  margin: 0;
+}
+
+/* inactive "Need X more" button when the player can't afford it */
+.shop-btn-locked {
+  color: var(--gs-text-muted);
+  border-color: var(--gs-border-strong);
+  cursor: not-allowed;
+}
+
+/* no lift on the inactive button */
+.shop-btn-locked:hover {
+  transform: none;
+}

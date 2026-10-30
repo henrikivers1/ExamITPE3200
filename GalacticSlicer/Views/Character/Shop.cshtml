@@ -1,96 +1,141 @@
 @model GalacticSlicer.ViewModels.CharacterShopViewModel
- 
+@using GalacticSlicer.Helpers
 @{
     ViewData["Title"] = "Character Shop";
+    var isLoggedIn = User.Identity?.IsAuthenticated == true;
 }
- 
-<h1>@ViewData["Title"]</h1>
-<p class="text-muted">Your Credits: <strong>@Model.PlayerCredits</strong></p>
- 
+
+@* page heading, same intro block as the other pages *@
+<section class="gs-page-intro">
+    <h1>Character Shop</h1>
+    <p>Spend the Credits you earn on missions to unlock new slicers. Characters are cosmetic, so pick your favorite.</p>
+
+    @* the player's balance, or a hint to log in *@
+    @if (isLoggedIn)
+    {
+        <div class="shop-balance">
+            <span class="shop-coin" aria-hidden="true">&#9679;</span>
+            <span><strong>@Model.PlayerCredits</strong> Credits</span>
+        </div>
+    }
+    else
+    {
+        <p class="shop-login-hint">
+            <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Character/Shop">Log in</a>
+            to buy and equip characters.
+        </p>
+    }
+</section>
+
 @* Messages from Buy/Equip (set with TempData in the controller, shown once after the redirect) *@
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    <div class="shop-alert shop-alert--success" role="status">@TempData["SuccessMessage"]</div>
 }
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    <div class="shop-alert shop-alert--error" role="alert">@TempData["ErrorMessage"]</div>
 }
- 
+
 @* Conditional rendering: show a message instead of an empty grid *@
 @if (!Model.Characters.Any())
 {
-    <p class="text-muted">No characters in the shop yet.</p>
+    <p class="text-center text-muted">No characters in the shop yet.</p>
 }
- 
-<div class="row row-cols-1 row-cols-md-3 g-4">
+
+<section class="shop-grid">
     @foreach (var character in Model.Characters)
     {
-        <div class="col">
-            <div class="card h-100">
- 
-                @* Conditional rendering: only show an image if the character has one *@
+        var tier = CharacterTier.Get(character.Price);
+        var isOwned = Model.OwnedCharacterIds.Contains(character.CharacterId);
+        var isEquipped = Model.ActiveCharacterId == character.CharacterId;
+        var creditsMissing = character.Price - Model.PlayerCredits;
+
+        @* one character card: portrait on top, info in the middle, price and action at the bottom *@
+        <article class="shop-card shop-card--@tier.Key @(isEquipped ? "shop-card--equipped" : "")">
+
+            @* portrait: the real image if there is one, otherwise a space badge *@
+            <div class="shop-portrait">
                 @if (!string.IsNullOrEmpty(character.ImageUrl))
                 {
-                    <img src="@character.ImageUrl" class="card-img-top" alt="@character.Name" />
+                    <img class="shop-portrait-img" src="@character.ImageUrl" alt="@character.Name" />
                 }
- 
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <h5 class="card-title">@character.Name</h5>
-                        <h5 class="text-nowrap">
-                            @(character.Price == 0 ? "Free" : $"{character.Price} Credits")
-                        </h5>
-                    </div>
-                    <p class="card-text">@character.Description</p>
-                </div>
- 
-                @* Conditional rendering: logged-in players get Buy/Equip, everyone else a login link.
-                   Buy and Equip are POST forms (not links) because they change data;
-                   the form tag helper adds the antiforgery token automatically. *@
-                <div class="card-footer d-flex gap-2">
-                    
-                    @if (User.Identity?.IsAuthenticated == true)
+                else
+                {
+                    @* badge: the outer shape shows the tier, the emblem shows the character (Views/Shared/_CharacterBadge) *@
+                    <span class="shop-badge">
+                        <partial name="_CharacterBadge" model="character" />
+                    </span>
+                }
+
+                <span class="shop-tier">@tier.Label</span>
+
+                @* ownership tag in the corner *@
+                @if (isEquipped)
+                {
+                    <span class="shop-status shop-status--equipped">Equipped</span>
+                }
+                else if (isOwned)
+                {
+                    <span class="shop-status">Owned</span>
+                }
+            </div>
+
+            @* name and description *@
+            <div class="shop-card-body">
+                <h2 class="shop-card-title">@character.Name</h2>
+                <p class="shop-card-text">@character.Description</p>
+            </div>
+
+            @* price on the left, the right action on the right *@
+            <div class="shop-card-footer">
+                <span class="shop-price">
+                    @if (character.Price == 0)
                     {
-                        bool isOwned = Model.OwnedCharacterIds.Contains(character.CharacterId);
-                        bool isEquipped = Model.ActiveCharacterId == character.CharacterId;
-
-                        if (isEquipped)
-                        {
-                            <span class="badge bg-success">Equipped</span>
-                        }
-                        else if (isOwned)
-                        {
-                            <span class="badge bg-secondary">Owned</span>
-
-                            <form asp-action="Equip" method="post">
-                                <input type="hidden" name="characterId" value="@character.CharacterId" />
-                                <button type="submit" class="btn btn-outline-primary btn-sm">
-                                    Equip
-                                </button>
-                            </form>
-                        }
-                        else
-                        {
-                            <form asp-action="Buy" method="post">
-                                <input type="hidden" name="characterId" value="@character.CharacterId" />
-                                <button type="submit" class="btn btn-primary btn-sm">
-                                    Buy
-                                </button>
-                            </form>
-                        }
+                        <text>Free</text>
                     }
                     else
                     {
-                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Character/Shop"
-                           class="btn btn-outline-primary btn-sm">
-                            Log in to buy
-                        </a>
+                        <span class="shop-coin" aria-hidden="true">&#9679;</span>
+                        @character.Price
                     }
+                </span>
 
-                </div>
+                @* Conditional rendering: logged-in players get Buy/Equip/Unequip, everyone else a login link.
+                   Buy, Equip and Unequip are POST forms (not links) because they change data;
+                   the form tag helper adds the antiforgery token automatically. *@
+                @if (!isLoggedIn)
+                {
+                    <a class="gs-btn gs-btn--outline gs-btn--sm" asp-controller="Account" asp-action="Login"
+                       asp-route-returnUrl="/Character/Shop">Log in to buy</a>
+                }
+                else if (isEquipped)
+                {
+                    @* unequip: the navbar and Progress page then show an empty badge circle *@
+                    <form asp-action="Unequip" method="post">
+                        <button type="submit" class="gs-btn gs-btn--ghost gs-btn--sm">Unequip</button>
+                    </form>
+                }
+                else if (isOwned)
+                {
+                    <form asp-action="Equip" method="post">
+                        <input type="hidden" name="characterId" value="@character.CharacterId" />
+                        <button type="submit" class="gs-btn gs-btn--outline gs-btn--sm">Equip</button>
+                    </form>
+                }
+                else if (creditsMissing > 0)
+                {
+                    @* not enough Credits: the server checks this too, this just explains it up front *@
+                    <span class="gs-btn gs-btn--sm shop-btn-locked" aria-disabled="true">Need @creditsMissing more</span>
+                }
+                else
+                {
+                    <form asp-action="Buy" method="post">
+                        <input type="hidden" name="characterId" value="@character.CharacterId" />
+                        <button type="submit" class="gs-btn gs-btn--primary gs-btn--sm">Buy</button>
+                    </form>
+                }
             </div>
-        </div>
+        </article>
     }
-</div>
- 
+</section>

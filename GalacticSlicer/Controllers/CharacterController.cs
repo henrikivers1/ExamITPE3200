@@ -137,4 +137,33 @@ public class CharacterController : Controller
 
         return RedirectToAction(nameof(Shop));
     }
+
+
+    // POST: /Character/Unequip - removes the equipped character, so no badge is shown
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Unequip()
+    {
+        var userId = _userManager.GetUserId(User);
+
+        if (userId == null)
+            return Unauthorized();
+
+        bool unequipped = await _characterService
+            .UnequipCharacterAsync(userId);
+
+        if (!unequipped)
+        {
+            TempData["ErrorMessage"] =
+                "Could not unequip your character.";
+        }
+        else
+        {
+            TempData["SuccessMessage"] =
+                "Character unequipped.";
+        }
+
+        return RedirectToAction(nameof(Shop));
+    }
 }

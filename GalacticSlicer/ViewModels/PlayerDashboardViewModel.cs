@@ -1,3 +1,4 @@
+using GalacticSlicer.Models;
 
 namespace GalacticSlicer.ViewModels;
 
@@ -5,6 +6,9 @@ namespace GalacticSlicer.ViewModels;
 public class PlayerDashboardViewModel
 {
     public string Username { get; set; } = string.Empty;
+
+    // Equipped character, shown as a badge next to the username (null = nothing equipped)
+    public Character? ActiveCharacter { get; set; }
     public string Rank { get; set; } = string.Empty;
     public int Credits { get; set; }
 

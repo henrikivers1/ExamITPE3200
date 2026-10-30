@@ -30,6 +30,7 @@
         var isLoggedIn = SignInManager.IsSignedIn(User);
         var currentUsername = User.Identity?.Name ?? "";
         var currentCredits = 0;
+        Character? activeCharacter = null;
 
         if (User.Identity?.IsAuthenticated == true)
         {
@@ -37,10 +38,13 @@
 
             if (userId != null)
             {
+                // Include the equipped character so its badge can be shown next to the username
                 var progress = await DbContext.PlayerProgresses
+                    .Include(p => p.ActiveCharacter)
                     .FirstOrDefaultAsync(p => p.UserId == userId);
 
                 currentCredits = progress?.Credits ?? 0;
+                activeCharacter = progress?.ActiveCharacter;
             }
         }
     }
@@ -92,20 +96,22 @@
                            asp-controller="Challenge" asp-action="Index">Challenges</a>
                     </li>
                     <li>
-                        <a class="gs-nav-link @(activeController == "Progress" ? "is-active" : "")" asp-area=""
-                           asp-controller="Progress" asp-action="Index">Progress</a>
-                    </li>
-                    <li>
                         <a class="gs-nav-link @(activeController == "Character" ? "is-active" : "")" asp-area=""
                            asp-controller="Character" asp-action="Shop">Shop</a>
+                    </li>
+                    <li>
+                        <a class="gs-nav-link @(activeController == "Progress" ? "is-active" : "")" asp-area=""
+                           asp-controller="Progress" asp-action="Index">Progress</a>
                     </li>
                 </ul>
                 <div class="gs-nav-auth">
                     @if (isLoggedIn)
                     {
                         <div class="gs-nav-user">
-                            <span class="gs-user-avatar" aria-hidden="true">@currentUsername.Substring(0,
-                                                                                                                            1).ToUpper()</span>
+                            @* the equipped character's badge, or an empty circle if nothing is equipped *@
+                            <span class="gs-user-badge" title="@(activeCharacter?.Name ?? "No badge equipped")">
+                                <partial name="_CharacterBadge" model="activeCharacter" />
+                            </span>
                                 <span class="gs-user-name">@currentUsername</span>
                                 <span class="gs-user-credits">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"

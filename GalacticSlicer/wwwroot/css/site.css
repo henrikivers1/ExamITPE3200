@@ -317,19 +317,6 @@ a:hover {
   background: var(--gs-bg-elevated);
 }
 
-.gs-user-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--gs-accent), var(--gs-accent-strong));
-  color: #03101d;
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
 .gs-user-name {
   font-size: 0.9rem;
   font-weight: 600;
@@ -345,6 +332,83 @@ a:hover {
   color: var(--gs-accent);
   border-left: 1px solid var(--gs-border);
   padding-left: 0.6rem;
+}
+
+/* equipped character's badge, or an empty circle (negative margin keeps the pill the same height) */
+.gs-user-badge {
+  display: block;
+  width: 34px;
+  margin: -3px 0;
+}
+
+/* small glow in the tier color (set on the svg, since --tier is defined there) */
+.gs-user-badge .gs-badge {
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--tier) 60%, transparent));
+}
+
+/* thicker emblem lines so the emblem is still readable at navbar size */
+.gs-user-badge .gs-badge-icon {
+  stroke-width: 2.4;
+}
+
+/* ---------- character badge (Views/Shared/_CharacterBadge.cshtml) ---------- */
+
+/* the badge fills the element around it, which decides its size */
+.gs-badge {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* tier colors (same as the Shop cards): starter grey-blue, uncommon teal, rare blue, epic violet, legendary gold */
+.gs-badge--starter { --tier: #8fa3c4; }
+.gs-badge--uncommon { --tier: #3ec9c0; }
+.gs-badge--rare { --tier: #4d8dff; }
+.gs-badge--epic { --tier: #8f73ff; }
+.gs-badge--legendary { --tier: var(--gs-accent); }
+.gs-badge--empty { --tier: transparent; }
+
+/* empty badge slot when nothing is equipped: a faint dashed circle */
+.gs-badge-slot {
+  fill: rgba(255, 255, 255, 0.04);
+  stroke: var(--gs-text-muted);
+  stroke-width: 4;
+  stroke-dasharray: 8 6;
+  opacity: 0.7;
+}
+
+/* the badge's outer shape: tier-colored metal with a lighter edge */
+.gs-badge-base {
+  fill: color-mix(in srgb, var(--tier) 70%, #0d1426);
+  stroke: color-mix(in srgb, var(--tier) 60%, #ffffff);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+/* inner ring: a darker inset so the emblem stands out */
+.gs-badge-ring {
+  fill: color-mix(in srgb, var(--tier) 30%, #0a1020);
+  stroke: color-mix(in srgb, var(--tier) 80%, #ffffff);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+/* ribbon tails behind the epic and legendary badges */
+.gs-badge-ribbon {
+  fill: color-mix(in srgb, var(--tier) 45%, #0d1426);
+  stroke: color-mix(in srgb, var(--tier) 70%, #ffffff);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+/* the character's emblem in the middle of the badge, drawn as light outlines */
+.gs-badge-icon {
+  fill: none;
+  stroke: #f3f5fa;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* ---------- main / hero ---------- */
@@ -1023,6 +1087,37 @@ a.gs-star-node-link:hover .gs-star-node-name {
 .gs-profile-header h1 {
   margin: 0.5rem 0 0.25rem;
   font-size: clamp(1.75rem, 4vw, 2.25rem);
+}
+
+/* username with the equipped badge to its left */
+.gs-profile-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  margin-top: 0.75rem;
+}
+
+.gs-profile-name h1 {
+  margin: 0;
+}
+
+/* the badge on the Progress page, with a glow in its tier color */
+.gs-profile-badge {
+  display: block;
+  width: clamp(52px, 6vw, 68px);
+  flex-shrink: 0;
+}
+
+.gs-profile-badge .gs-badge {
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--tier) 55%, transparent));
+}
+
+/* small "Change badge" link under the username */
+.gs-profile-badge-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
 }
 
 .gs-profile-meta {
