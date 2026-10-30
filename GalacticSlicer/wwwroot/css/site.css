@@ -1299,6 +1299,67 @@ a.gs-star-node-link:hover .gs-star-node-name {
   justify-content: center;
 }
 
+/* explanation of the correct answer, shown after answering (Practice) and in the mission review */
+.gs-quiz-explanation {
+  margin: 1rem 0 0;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--gs-accent);
+  border-radius: var(--gs-radius-sm);
+  background: var(--gs-accent-soft);
+  color: var(--gs-text);
+  font-size: 0.92rem;
+}
+
+/* "Review your answers" heading under the mission result */
+.gs-quiz-review-title {
+  margin: 2rem 0 1rem;
+  font-size: 1.15rem;
+  text-align: center;
+}
+
+/* numbered list of every mission question with the answers and explanation */
+.gs-quiz-review {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin: 0;
+  padding-left: 1.4rem;
+}
+
+/* one reviewed question; the left border is green for right, red for wrong */
+.gs-quiz-review-item {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--gs-border);
+  border-left-width: 3px;
+  border-radius: var(--gs-radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.gs-quiz-review-item--correct {
+  border-left-color: #3ecf8e;
+}
+
+.gs-quiz-review-item--incorrect {
+  border-left-color: #ef5b5b;
+}
+
+/* the question text in the review */
+.gs-quiz-review-question {
+  margin: 0 0 0.5rem;
+  color: var(--gs-text);
+  font-weight: 600;
+}
+
+/* "Your answer" / "Correct answer" lines */
+.gs-quiz-review-answer {
+  margin: 0.15rem 0 0;
+  font-size: 0.92rem;
+}
+
+.gs-quiz-review-answer--correct {
+  color: #8fe9be;
+}
+
 .gs-quiz-complete {
   text-align: center;
 }

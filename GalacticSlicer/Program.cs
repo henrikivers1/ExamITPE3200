@@ -53,6 +53,7 @@ builder.Services.AddScoped<PlayerProgressService>();
 builder.Services.AddScoped<ChallengeCompletionService>();
 builder.Services.AddScoped<CharacterService>();
 builder.Services.AddScoped<PlanetProgressService>();
+builder.Services.AddScoped<QuestionService>();
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

@@ -1,92 +1,69 @@
+@model GalacticSlicer.ViewModels.PracticeViewModel
 @{
-    ViewData["Title"] = "Practice";
+    ViewData["Title"] = Model.Subject + " practice";
 }
 
 <section class="gs-page-intro">
-    <h1>Practice</h1>
-    <p>Answer each question. You'll move to the next one automatically once you've answered.</p>
+    <h1>@Model.Subject</h1>
+    <p>Answer each question to see if you got it right, and why. Practice as often as you like: you get new random questions every time.</p>
 </section>
 
 <section class="gs-quiz-wrapper">
     <div class="gs-quiz-card">
         <div class="gs-quiz-progress-row">
-            <span id="quizProgressLabel">Question 1 of 4</span>
+            <span id="quizProgressLabel"></span>
             <div class="gs-progress-bar gs-quiz-progress-bar">
                 <div class="gs-progress-bar-fill" id="quizProgressFill" style="width: 0%;"></div>
             </div>
         </div>
 
+        @* question text, answer buttons and explanation are filled in by renderQuestion() *@
         <div id="quizQuestionArea">
             <h2 class="gs-quiz-question" id="quizQuestionText"></h2>
             <div class="gs-quiz-options" id="quizOptions"></div>
+            @* shown after answering: why the correct answer is right *@
+            <p class="gs-quiz-explanation" id="quizExplanation" hidden></p>
             <button type="button" class="gs-btn gs-btn--primary gs-quiz-next" id="quizNextBtn" hidden>
                 Next question
             </button>
         </div>
 
         <div id="quizCompleteArea" class="gs-quiz-complete" hidden>
-            <h2>Field complete!</h2>
+            <h2>Practice complete!</h2>
             <p id="quizScoreText"></p>
             <div class="gs-quiz-complete-actions">
-                <a class="gs-btn gs-btn--primary" asp-area="" asp-controller="Challenge" asp-action="Topics">Back to challenges</a>
-                <a class="gs-btn gs-btn--outline" asp-area="" asp-controller="Home" asp-action="Index">Back to home</a>
+                @* reloads the page with 10 new random questions *@
+                <a class="gs-btn gs-btn--primary" asp-area="" asp-controller="Challenge" asp-action="Practice"
+                   asp-route-subject="@Model.Subject">Practice again</a>
+                <a class="gs-btn gs-btn--outline" asp-area="" asp-controller="Challenge" asp-action="Topics">Back to challenges</a>
             </div>
         </div>
     </div>
 
     <div class="gs-quiz-nav">
         <a class="gs-btn gs-btn--ghost" asp-area="" asp-controller="Challenge" asp-action="Topics">&larr; Back to challenges</a>
-        <a class="gs-btn gs-btn--ghost" asp-area="" asp-controller="Home" asp-action="Index">&larr; Back to home</a>
     </div>
 </section>
 
 @section Scripts {
     <script>
-        // PLACEHOLDER QUESTIONS 
-        const quizQuestions = [
+        // questions from the server (questions.json), options already shuffled
+        const quizQuestions = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+            Model.Questions,
+            new System.Text.Json.JsonSerializerOptions
             {
-                question: "What does HTTPS mainly provide compared to plain HTTP?",
-                options: [
-                    "Faster page loading",
-                    "Encrypted communication between browser and server",
-                    "Automatic virus scanning",
-                    "Unlimited bandwidth"
-                ],
-                correctIndex: 1
-            },
-            {
-                question: "Which of these passwords is generally considered strongest?",
-                options: ["password123", "qwerty", "Tr0ub4dor&3!xQ", "123456"],
-                correctIndex: 2
-            },
-            {
-                question: "What is 'phishing'?",
-                options: [
-                    "A method of encrypting files",
-                    "A type of firewall",
-                    "A social engineering attack that tricks users into revealing sensitive info",
-                    "A type of malware that mines cryptocurrency"
-                ],
-                correctIndex: 2
-            },
-            {
-                question: "What does two-factor authentication add to a login?",
-                options: [
-                    "A second, independent verification step",
-                    "A faster login process",
-                    "A second username",
-                    "Nothing, it is just marketing"
-                ],
-                correctIndex: 0
-            }
-        ];
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+            }));
 
+        // quiz state: which question we're on, how many are right, and whether this one is answered
         let currentIndex = 0;
         let correctCount = 0;
         let answered = false;
 
+        // page elements the script shows, hides and fills in
         const questionText = document.getElementById("quizQuestionText");
         const optionsContainer = document.getElementById("quizOptions");
+        const explanationText = document.getElementById("quizExplanation");
         const nextBtn = document.getElementById("quizNextBtn");
         const progressLabel = document.getElementById("quizProgressLabel");
         const progressFill = document.getElementById("quizProgressFill");
@@ -94,6 +71,7 @@
         const completeArea = document.getElementById("quizCompleteArea");
         const scoreText = document.getElementById("quizScoreText");
 
+        // draws the current question, its answer buttons and the progress bar
         function renderQuestion() {
             answered = false;
             const q = quizQuestions[currentIndex];
@@ -103,6 +81,7 @@
 
             questionText.textContent = q.question;
             optionsContainer.innerHTML = "";
+            explanationText.hidden = true;
             nextBtn.hidden = true;
 
             q.options.forEach(function (optionText, index) {
@@ -111,13 +90,14 @@
                 btn.className = "gs-quiz-option";
                 btn.textContent = optionText;
                 btn.addEventListener("click", function () {
-                    selectAnswer(index, btn);
+                    selectAnswer(index);
                 });
                 optionsContainer.appendChild(btn);
             });
         }
 
-        function selectAnswer(selectedIndex, selectedBtn) {
+        // locks the answers, marks right (green) and wrong (red), counts the score and shows the explanation
+        function selectAnswer(selectedIndex) {
             if (answered) {
                 return;
             }
@@ -139,10 +119,16 @@
                 correctCount++;
             }
 
+            if (q.explanation) {
+                explanationText.textContent = q.explanation;
+                explanationText.hidden = false;
+            }
+
             nextBtn.hidden = false;
             nextBtn.textContent = currentIndex === quizQuestions.length - 1 ? "See results" : "Next question";
         }
 
+        // go to the next question, or show the score after the last one
         nextBtn.addEventListener("click", function () {
             currentIndex++;
             if (currentIndex >= quizQuestions.length) {
@@ -152,6 +138,7 @@
             }
         });
 
+        // final score screen
         function showComplete() {
             progressFill.style.width = "100%";
             progressLabel.textContent = "Question " + quizQuestions.length + " of " + quizQuestions.length;

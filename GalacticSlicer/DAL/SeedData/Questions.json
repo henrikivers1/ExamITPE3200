@@ -1,0 +1,1304 @@
+[
+  {
+    "id": "linux-01",
+    "subject": "Linux Command Line",
+    "type": "single",
+    "question": "Which command can be used to count the number of lines, words, and bytes in a text file?",
+    "options": [
+      "count",
+      "head",
+      "wc",
+      "grep"
+    ],
+    "correctIndex": 2,
+    "explanation": "wc (word count) prints the number of lines, words and bytes in a file."
+  },
+  {
+    "id": "linux-02",
+    "subject": "Linux Command Line",
+    "type": "single",
+    "question": "Which command displays the current working directory?",
+    "options": [
+      "pwd",
+      "ls",
+      "cd",
+      "dir"
+    ],
+    "correctIndex": 0,
+    "explanation": "pwd stands for \"print working directory\"."
+  },
+  {
+    "id": "linux-03",
+    "subject": "Linux Command Line",
+    "type": "single",
+    "question": "Which command is commonly used to search for a specific word or pattern inside a text file?",
+    "options": [
+      "line",
+      "head",
+      "readfile",
+      "grep"
+    ],
+    "correctIndex": 3,
+    "explanation": "grep searches text for lines that match a word or pattern."
+  },
+  {
+    "id": "linux-04",
+    "subject": "Linux Command Line",
+    "type": "single",
+    "question": "A student wants to return directly to their home directory. Which command can they use?",
+    "options": [
+      "cd ~",
+      "chdir ..",
+      "pwd ~",
+      "chdir /home"
+    ],
+    "correctIndex": 0,
+    "explanation": "~ is a shortcut for your home directory, so cd ~ takes you straight there."
+  },
+  {
+    "id": "linux-05",
+    "subject": "Linux Command Line",
+    "type": "single",
+    "question": "Which shortcut in Nano moves the cursor to the beginning of the current line?",
+    "options": [
+      "Ctrl + A",
+      "Ctrl + B",
+      "Ctrl + E",
+      "Ctrl + S"
+    ],
+    "correctIndex": 0,
+    "explanation": "Ctrl + A jumps to the start of the line, Ctrl + E to the end."
+  },
+  {
+    "id": "linux-06",
+    "subject": "Linux Command Line",
+    "type": "single",
+    "question": "What does Ctrl + K do in Nano?",
+    "options": [
+      "Exits/Kills Nano",
+      "Saves the file",
+      "Cuts the current line or selected text",
+      "Searches for a keyword"
+    ],
+    "correctIndex": 2,
+    "explanation": "Ctrl + K cuts the current line (or the selected text) so it can be pasted with Ctrl + U."
+  },
+  {
+    "id": "crypto-01",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "A branch of cryptography in which the algorithms use the same key for different components of the cryptographic operations. Which branch of cryptography best suits this description?",
+    "options": [
+      "Asymmetric cryptography",
+      "Symmetric cryptography",
+      "Cryptographic hashing",
+      "Steganography"
+    ],
+    "correctIndex": 1,
+    "explanation": "Symmetric cryptography uses the same secret key for encryption and decryption."
+  },
+  {
+    "id": "crypto-02",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "Which cryptographic method lets anyone verify who signed a piece of data and that the data has not been changed, using the signer's private key?",
+    "options": [
+      "Digital certificate",
+      "Digital signature",
+      "Cryptographic hash",
+      "Key exchange"
+    ],
+    "correctIndex": 1,
+    "explanation": "A digital signature is computed with the signer's private key, so anyone with the public key can verify both the signer's identity and that the data wasn't altered."
+  },
+  {
+    "id": "crypto-03",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "A method of encryption in which elements of the plain text retain their sequential position but are replaced by elements of cipher text. Which method of encryption best suits this description?",
+    "options": [
+      "Transposition cipher",
+      "Substitution cipher",
+      "Hash function",
+      "Steganography"
+    ],
+    "correctIndex": 1,
+    "explanation": "In a substitution cipher each element is replaced by another, but the order stays the same (a transposition cipher does the opposite)."
+  },
+  {
+    "id": "crypto-04",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "Which of the following is a cryptographic hash function?",
+    "options": [
+      "SHA384",
+      "AES",
+      "RC4",
+      "SM4"
+    ],
+    "explanation": "SHA384 is a hash function. AES, RC4 and SM4 are ciphers used to encrypt data, not to produce hash values.",
+    "correctIndex": 0
+  },
+  {
+    "id": "crypto-05",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "Which of the following is the correct hash size produced by the hash function RIPEMD?",
+    "options": [
+      "384 bits",
+      "320 bits",
+      "224 bits",
+      "512 bits"
+    ],
+    "correctIndex": 1,
+    "explanation": "RIPEMD-320 produces a 320-bit hash. The bigger the hash size, the less likely collisions are."
+  },
+  {
+    "id": "crypto-06",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "What do we mean when a hash has the preimage resistance property?",
+    "options": [
+      "Given a hash value, it is infeasible to find any input that produces it (the \"one-way\" property)",
+      "It is infeasible to find a second input with the same hash as a given input",
+      "It is infeasible to find any two different inputs with the same hash value",
+      "The hash value changes completely whenever the input changes by even one bit"
+    ],
+    "correctIndex": 0,
+    "explanation": "Preimage resistance means you can't work backwards from a hash value to an input, which is why it's called the one-way property. The others describe second preimage resistance, collision resistance and the avalanche effect."
+  },
+  {
+    "id": "crypto-07",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "In the context of certificates, which of the following best defines a Registration Authority (RA)?",
+    "options": [
+      "A PKI entity that verifies identities for a CA but does not itself sign certificates or CRLs",
+      "A user named in the \"subject\" field of a certificate issued by a CA",
+      "An entity that issues certificates and vouches for the data they contain",
+      "A system that relies on another entity's public key from a digital certificate"
+    ],
+    "correctIndex": 0,
+    "explanation": "An RA checks and records identity information on behalf of a CA, but doesn't sign certificates itself. The other options describe a subject, a CA and a relying party."
+  },
+  {
+    "id": "crypto-08",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "Which of the following Certificates is a one that can be issued by a Certificate Authority?",
+    "options": [
+      "Organizational Valued",
+      "Organizational Verification",
+      "Organizational Verified",
+      "Organizational Validation"
+    ],
+    "correctIndex": 3,
+    "explanation": "Organization Validation (OV) certificates are issued after the CA has checked that the organization is real."
+  },
+  {
+    "id": "crypto-09",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "In the context of Certificates, which of the following methods do Relying Parties use to check if a certificate is invalidated or withdrawn by their issuer before the certificate expires?",
+    "options": [
+      "Certificate Revocation List (CRL)",
+      "Certificate Revocation Protocol (CRP)",
+      "Online Server Checking Protocol (OSCP)",
+      "Online Certificate Protocol (OCP)"
+    ],
+    "correctIndex": 0,
+    "explanation": "A CA publishes a Certificate Revocation List (CRL) of certificates withdrawn before they expire, for example because the private key was compromised."
+  },
+  {
+    "id": "auth-01",
+    "subject": "Access Control & Authentication",
+    "type": "single",
+    "question": "What is the password for the following SHA-1 hash value? 3995c7207d7e03fba9da68eb4911cb29e12c89da",
+    "options": [
+      "all4one123",
+      "allforone123",
+      "allforone",
+      "all4one"
+    ],
+    "correctIndex": 2,
+    "explanation": "Simple passwords stored as plain unsalted hashes are easy to crack with rainbow tables and online tools, so passwords need proper hashing."
+  },
+  {
+    "id": "auth-02",
+    "subject": "Access Control & Authentication",
+    "type": "single",
+    "question": "The Linux tool pwscore prints a password quality score between 0 and 100. What is the score of the password LJETsAq7RNr3?",
+    "options": [
+      "93",
+      "78",
+      "90",
+      "87"
+    ],
+    "correctIndex": 0,
+    "explanation": "pwscore gives this password 93. In general a score below 50 is moderate quality and above 50 is fairly strong."
+  },
+  {
+    "id": "linux-07",
+    "subject": "Linux Command Line",
+    "type": "single",
+    "question": "Which command creates a new directory named project?",
+    "options": [
+      "mkdir project",
+      "create project",
+      "dircreate project",
+      "newdir project"
+    ],
+    "correctIndex": 0,
+    "explanation": "mkdir (\"make directory\") creates a new directory."
+  },
+  {
+    "id": "linux-08",
+    "subject": "Linux Command Line",
+    "type": "single",
+    "question": "From the directory that contains Module-01, which command shows the content of the file spock.txt in Module-01/Linux/Dir-3/?",
+    "options": [
+      "cat Module-01/Linux/Dir-3/spock.txt",
+      "ls Module-01/Linux/Dir-3/spock.txt",
+      "cd Module-01/Linux/Dir-3/spock.txt",
+      "mkdir Module-01/Linux/Dir-3/spock.txt"
+    ],
+    "correctIndex": 0,
+    "explanation": "cat prints the content of a file. ls only lists the file's name, cd only works on directories and mkdir creates one."
+  },
+  {
+    "id": "crypto-10",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "Which Linux command can be used to decrypt the file secret.gpg using the passphrase sunshine42?",
+    "options": [
+      "gpg --batch --pinentry-mode loopback --passphrase sunshine42 --decrypt secret.gpg",
+      "gpg --encrypt --passphrase sunshine42 secret.gpg",
+      "gpg --verify sunshine42 secret.gpg",
+      "gpg --sign --passphrase sunshine42 secret.gpg"
+    ],
+    "correctIndex": 0,
+    "explanation": "gpg --decrypt decrypts a file. --passphrase supplies the passphrase, and with GnuPG 2 it needs --pinentry-mode loopback (and --batch) to skip the password prompt. --encrypt and --sign do the opposite, and --verify only checks a signature."
+  },
+  {
+    "id": "crypto-11",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "Which openssl command calculates the BLAKE2s256 hash value of the file hello.sh?",
+    "options": [
+      "openssl dgst -sha256 hello.sh",
+      "openssl dgst -blake2s256 hello.sh",
+      "openssl enc -blake2s256 -in hello.sh",
+      "openssl hash blake2s256 hello.sh"
+    ],
+    "correctIndex": 1,
+    "explanation": "openssl dgst calculates hash values, and the algorithm is chosen with an option such as -blake2s256. -sha256 would give a different hash, and enc is for encryption."
+  },
+  {
+    "id": "crypto-12",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "Which command extracts the secret message hidden in the image image.jpg using steghide and the passphrase moonlight?",
+    "options": [
+      "steghide embed -cf image.jpg -ef secret.txt -p moonlight",
+      "steghide info image.jpg -p moonlight",
+      "steghide decode -sf image.jpg -p moonlight",
+      "steghide extract -sf image.jpg -p moonlight"
+    ],
+    "correctIndex": 3,
+    "explanation": "steghide extract -sf <stego file> pulls a hidden message out of a file, and -p gives the passphrase. embed does the opposite and hides a message."
+  },
+  {
+    "id": "crypto-13",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "In Diffie-Hellman key exchange with prime modulus 1861, primitive root (base) 1319, Alice's private key 929 and Bob's private key 599. What is Alice's public key?",
+    "options": [
+      "86",
+      "541",
+      "491",
+      "813"
+    ],
+    "correctIndex": 2,
+    "explanation": "Alice's public key is base^(private key) mod prime = 1319^929 mod 1861 = 491."
+  },
+  {
+    "id": "crypto-14",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "In Diffie-Hellman key exchange with prime modulus 1861, primitive root (base) 1319, Alice's private key 929 and Bob's private key 599. What is Bob's public key?",
+    "options": [
+      "86",
+      "491",
+      "541",
+      "32"
+    ],
+    "correctIndex": 0,
+    "explanation": "Bob's public key is 1319^599 mod 1861 = 86."
+  },
+  {
+    "id": "crypto-15",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "In Diffie-Hellman key exchange with prime modulus 1861, primitive root (base) 1319, Alice's private key 929 and Bob's private key 599. What is the shared secret key?",
+    "options": [
+      "491",
+      "86",
+      "813",
+      "541"
+    ],
+    "correctIndex": 3,
+    "explanation": "The shared secret is Bob's public key to the power of Alice's private key mod the prime: 86^929 mod 1861 = 541. Alice gets the same result from 491^599 mod 1861."
+  },
+  {
+    "id": "crypto-16",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "In Linux, which directory contains the trusted CA root certificates (the trust store)?",
+    "options": [
+      "/var/log/certs",
+      "/usr/bin/ca",
+      "/etc/ssl/certs",
+      "/home/certs"
+    ],
+    "correctIndex": 2,
+    "explanation": "Linux keeps the CA certificates that the machine trusts when checking TLS/SSL connections in /etc/ssl/certs."
+  },
+  {
+    "id": "linux-09",
+    "subject": "Linux Command Line",
+    "type": "single",
+    "question": "Which command lists the files in /etc/ssl/certs and shows only the ones whose name contains the word Go_Daddy, ignoring upper and lower case?",
+    "options": [
+      "cat /etc/ssl/certs | grep -i Go_Daddy",
+      "ls -l /etc/ssl/certs > grep -i Go_Daddy",
+      "ls -l /etc/ssl/certs | grep -i Go_Daddy",
+      "grep -i Go_Daddy | ls -l /etc/ssl/certs"
+    ],
+    "correctIndex": 2,
+    "explanation": "ls -l lists the directory and the pipe (|) sends that list to grep -i, which keeps only the lines that match, ignoring case."
+  },
+  {
+    "id": "crypto-17",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "Which openssl command prints all the fields of the X.509 certificate file facebook.crt (such as its validity dates) as readable text?",
+    "options": [
+      "openssl x509 -in facebook.crt -text -noout",
+      "openssl dgst -text facebook.crt",
+      "openssl req -in facebook.crt -verify",
+      "openssl enc -d -in facebook.crt"
+    ],
+    "correctIndex": 0,
+    "explanation": "openssl x509 reads a certificate, -text prints its fields (issuer, validity, public key and so on) and -noout skips printing the raw encoded certificate."
+  },
+  {
+    "id": "auth-03",
+    "subject": "Access Control & Authentication",
+    "type": "single",
+    "question": "Which description best matches the Security Design Principle 'Separation of duty'?",
+    "options": [
+      "Dividing the steps of a process among different people or roles so no single one can subvert it alone",
+      "Designing a security mechanism to be as simple as possible, so it can be verified correctly",
+      "Minimizing reliance on mechanisms that are shared by many users",
+      "Layering complementary mechanisms so that defeating one still leaves others in place"
+    ],
+    "correctIndex": 0,
+    "explanation": "Separation of duty splits a process between different people or roles so that no single person can break it alone. The others describe economy of mechanism, least common mechanism and defense in depth."
+  },
+  {
+    "id": "auth-04",
+    "subject": "Access Control & Authentication",
+    "type": "single",
+    "question": "What is a key feature of Mandatory Access Control (MAC)?",
+    "options": [
+      "Access is controlled by system-enforced policies using security labels.",
+      "Permissions are granted based on user-defined relationships.",
+      "Users can freely share their resources with others",
+      "Permissions depend only on environmental attributes."
+    ],
+    "correctIndex": 0,
+    "explanation": "In MAC the system enforces the policy by comparing security labels and clearances, and users can't change it themselves."
+  },
+  {
+    "id": "auth-05",
+    "subject": "Access Control & Authentication",
+    "type": "single",
+    "question": "You must restrict access based on arbitrary attributes of the user, the object, and environment conditions tied to global policies. Which access control model fits best?",
+    "options": [
+      "Attribute Based Access Control (ABAC)",
+      "Mandatory Access Control (MAC)",
+      "Role Based Access Control (RBAC)",
+      "Discretionary Access Control (DAC)"
+    ],
+    "correctIndex": 0,
+    "explanation": "ABAC decides access from attributes of the subject, the object and the environment, which matches this description."
+  },
+  {
+    "id": "auth-06",
+    "subject": "Access Control & Authentication",
+    "type": "single",
+    "question": "Which description best matches 'Context Based Access'?",
+    "options": [
+      "Bases access decisions on the state of the situation, not solely on identity or content sensitivity",
+      "Bases access decisions on the sensitivity of the data, not solely on subject identity",
+      "A table of subjects and objects outlining their access relationships",
+      "Limits a user's environment within the system, thereby limiting access to objects"
+    ],
+    "correctIndex": 0,
+    "explanation": "Context based access looks at the state of the situation (time, location, earlier requests) rather than only who is asking or how sensitive the data is."
+  },
+  {
+    "id": "auth-07",
+    "subject": "Access Control & Authentication",
+    "type": "single",
+    "question": "Which description best matches Role-Based Access Control (RBAC)?",
+    "options": [
+      "Identity-based access control where the entities identified are functional positions in an organization",
+      "A policy based on entity identity and authorizations, with ownership so rights can be granted or revoked by the owner",
+      "Access decided by properties of the subject, object and environment conditions, per a set of policies",
+      "A policy comparing security labels of resources with security clearances of entities"
+    ],
+    "correctIndex": 0,
+    "explanation": "In RBAC access depends on the role (functional position) a person has. The others describe DAC, ABAC and MAC."
+  },
+  {
+    "id": "auth-08",
+    "subject": "Access Control & Authentication",
+    "type": "single",
+    "question": "Which statement correctly distinguishes DAC, MAC, RBAC, ABAC, and ReBAC?",
+    "options": [
+      "DAC = user decides; MAC = system decides; RBAC = roles; ABAC = attributes; ReBAC = relationships.",
+      "DAC and ReBAC are attribute-based; MAC and RBAC are role-based; ABAC is relationship-based.",
+      "DAC = attributes; MAC = relationships; RBAC = clearance; ABAC = labels; ReBAC = roles.",
+      "DAC = roles; MAC = attributes; RBAC = labels; ABAC = permissions; ReBAC = owners."
+    ],
+    "correctIndex": 0,
+    "explanation": "DAC lets the owner decide, MAC lets the system decide using labels, RBAC uses roles, ABAC uses attributes and ReBAC uses relationships between users and objects."
+  },
+  {
+    "id": "auth-09",
+    "subject": "Access Control & Authentication",
+    "type": "single",
+    "question": "Which description best matches Mandatory Access Control (MAC)?",
+    "options": [
+      "A policy comparing security labels of resources with security clearances of entities",
+      "A policy based on entity identity and authorizations, with ownership so rights can be granted or revoked by the owner",
+      "Access decided by properties of the subject, object and environment conditions, per a set of policies",
+      "Identity-based access control where the entities identified are functional positions in an organization"
+    ],
+    "correctIndex": 0,
+    "explanation": "MAC compares the security label of a resource with the clearance of the user. The others describe DAC, ABAC and RBAC."
+  },
+  {
+    "id": "auth-10",
+    "subject": "Access Control & Authentication",
+    "type": "single",
+    "question": "You must restrict access to files based on the identity and need-to-know of users, or groups the object belongs to, where the owner decides access. Which model fits?",
+    "options": [
+      "Role Based Access Control (RBAC)",
+      "Mandatory Access Control (MAC)",
+      "Discretionary Access Control (DAC)",
+      "Attribute Based Access Control (ABAC)"
+    ],
+    "correctIndex": 2,
+    "explanation": "DAC restricts access based on identity and need-to-know, and the owner of an object decides who gets access."
+  },
+  {
+    "id": "auth-11",
+    "subject": "Access Control & Authentication",
+    "type": "single",
+    "question": "The Linux tool pwscore prints a quality score between 0 and 100 for a password. What is the score of the password Cqzu9C7tqaso?",
+    "options": [
+      "90",
+      "93",
+      "78",
+      "87"
+    ],
+    "correctIndex": 3,
+    "explanation": "pwscore gives this password 87. In general a score below 50 is moderate quality and above 50 is fairly strong."
+  },
+  {
+    "id": "crypto-18",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "In Diffie-Hellman key exchange with prime modulus 811, primitive root (base) 563, Alice's private key 317 and Bob's private key 193. What is Alice's public key?",
+    "options": [
+      "360",
+      "504",
+      "530",
+      "51"
+    ],
+    "correctIndex": 1,
+    "explanation": "Alice's public key is 563^317 mod 811 = 504."
+  },
+  {
+    "id": "crypto-19",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "In Diffie-Hellman key exchange with prime modulus 811, primitive root (base) 563, Alice's private key 317 and Bob's private key 193. What is Bob's public key?",
+    "options": [
+      "504",
+      "530",
+      "356",
+      "360"
+    ],
+    "correctIndex": 3,
+    "explanation": "Bob's public key is 563^193 mod 811 = 360."
+  },
+  {
+    "id": "crypto-20",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "In Diffie-Hellman key exchange with prime modulus 811, primitive root (base) 563, Alice's private key 317 and Bob's private key 193. What is the shared secret key?",
+    "options": [
+      "530",
+      "504",
+      "360",
+      "356"
+    ],
+    "correctIndex": 0,
+    "explanation": "The shared secret is 360^317 mod 811 = 530. Alice gets the same result from 504^193 mod 811."
+  },
+  {
+    "id": "net-01",
+    "subject": "Network Security",
+    "type": "single",
+    "question": "In terms of scope of protection or location, Snort is a:",
+    "options": [
+      "Network Intrusion Detection System / Network Intrusion Prevention System",
+      "Host Intrusion Detection System",
+      "Application-based IDS",
+      "Physical Intrusion Detection System"
+    ],
+    "correctIndex": 0,
+    "explanation": "Snort watches network traffic rather than a single host, so it is a Network IDS/IPS."
+  },
+  {
+    "id": "net-02",
+    "subject": "Network Security",
+    "type": "single",
+    "question": "In terms of its detection model, Snort is a:",
+    "options": [
+      "Anomaly-based detection model",
+      "Signature based / rule based / misuse based detection model",
+      "Host-based detection model",
+      "Statistical detection model"
+    ],
+    "correctIndex": 1,
+    "explanation": "Snort matches traffic against a database of known attack signatures (rules), which makes it a signature/misuse based detector."
+  },
+  {
+    "id": "net-03",
+    "subject": "Network Security",
+    "type": "single",
+    "question": "Which of the following are modes Snort can operate in?",
+    "options": [
+      "Sniff mode, Log mode, NIDS mode, IPS mode",
+      "Sniffer mode, Packet Logger mode, Network Intrusion Detection mode",
+      "Scan mode, Alert mode, Block mode",
+      "Passive mode, Active mode, Hybrid mode"
+    ],
+    "correctIndex": 0,
+    "explanation": "Snort's four modes are sniffer (sniff), packet logger (log), network intrusion detection (NIDS) and intrusion prevention (IPS) mode."
+  },
+  {
+    "id": "net-04",
+    "subject": "Network Security",
+    "type": "single",
+    "question": "In terms of the accuracy of an Intrusion Detection System (IDS), which of the following is a correct description of the alarm type False negative?",
+    "options": [
+      "Is when an authorized and legitimate activity is mistakenly detected as an unauthorized and illegitimate activity. The system sends a false alarm. This is not desirable and must be reduced",
+      "Is when an unauthorized and illegitimate activity is not detected/identified. The system does not send any alarm. This is not desirable and is very dangerous as we want to detect such events",
+      "Is when an authorized and legitimate activity is correctly detected/identified. The system does not send any alarm. This is very desirable as the system is functioning as intended.",
+      "Is when an unauthorized and illegitimate activity is correctly detected/identified. The system sends a legitimate alarm. This is very desirable as the system is functioning as intended"
+    ],
+    "correctIndex": 1,
+    "explanation": "A false negative means a real attack slips through undetected, which is the most dangerous of the four outcomes."
+  },
+  {
+    "id": "net-05",
+    "subject": "Network Security",
+    "type": "single",
+    "question": "Which type of IDS captures raw packets and compares them to a signature database, profile, or model, depending on the type of IDS?",
+    "options": [
+      "Network-based IDS",
+      "Host-based IDS",
+      "Anomaly detection",
+      "Misuse detection"
+    ],
+    "correctIndex": 0,
+    "explanation": "A Network-based IDS captures raw packets off the network and compares them to signatures, profiles or models."
+  },
+  {
+    "id": "net-06",
+    "subject": "Network Security",
+    "type": "single",
+    "question": "Which type of IDS typically monitors a system's activities such as the file system, log files and user actions to detect an intrusion?",
+    "options": [
+      "Network-based IDS",
+      "Host-based IDS",
+      "Anomaly detection",
+      "Misuse detection"
+    ],
+    "correctIndex": 1,
+    "explanation": "A Host-based IDS (HIDS) runs on a single machine and watches its file system, logs and user actions."
+  },
+  {
+    "id": "net-07",
+    "subject": "Network Security",
+    "type": "single",
+    "question": "Which IDS detection method accumulates knowledge about specific attacks and how they are carried out, and assigns each identified attack a signature used to detect it?",
+    "options": [
+      "Network-based IDS",
+      "Host-based IDS",
+      "Misuse detection",
+      "Anomaly detection"
+    ],
+    "correctIndex": 2,
+    "explanation": "Misuse (signature-based) detection relies on a database of known attack signatures built up from knowledge about specific attacks."
+  },
+  {
+    "id": "net-08",
+    "subject": "Network Security",
+    "type": "single",
+    "question": "Which IDS detection method searches for activity that is different from the normal behavior of system entities and system resources?",
+    "options": [
+      "Network-based IDS",
+      "Host-based IDS",
+      "Misuse detection",
+      "Anomaly detection"
+    ],
+    "correctIndex": 3,
+    "explanation": "Anomaly detection flags activity that deviates from a learned baseline of normal behavior, rather than matching known signatures."
+  },
+  {
+    "id": "net-09",
+    "subject": "Network Security",
+    "type": "single",
+    "question": "A Dynamic Packet filter (Stateful) firewall tracks port numbers and connection state. At which layer does this filtering mainly take place?",
+    "options": [
+      "Transport Layer",
+      "Data Link Layer",
+      "Application Layer",
+      "Physical Layer"
+    ],
+    "explanation": "A stateful firewall tracks sender/recipient ports and connection/sequence state, which belongs to the Transport Layer (it also checks IP addresses at the Network Layer).",
+    "correctIndex": 0
+  },
+  {
+    "id": "net-10",
+    "subject": "Network Security",
+    "type": "single",
+    "question": "Which scenario best demonstrates when a HIDS would be more useful than a NIDS?",
+    "options": [
+      "When identifying packet floods at the network perimeter",
+      "When detecting large-scale network scans",
+      "When analyzing router traffic for malware patterns",
+      "When monitoring encrypted communications between servers"
+    ],
+    "correctIndex": 3,
+    "explanation": "A HIDS can inspect data on a host after it's decrypted, which makes it useful for monitoring encrypted sessions. A NIDS cannot see inside encrypted packets."
+  },
+  {
+    "id": "net-11",
+    "subject": "Network Security",
+    "type": "single",
+    "question": "At which stage of an attack is privilege escalation usually performed?",
+    "options": [
+      "During the exploration stage",
+      "During the lateral movement stage",
+      "During the maintain presence stage",
+      "During the reconnaissance stage"
+    ],
+    "correctIndex": 1,
+    "explanation": "Privilege escalation typically happens during the lateral movement stage, after an attacker has an initial foothold and is trying to gain wider access."
+  },
+  {
+    "id": "net-12",
+    "subject": "Network Security",
+    "type": "single",
+    "question": "As a security engineer, you are asked to set up a firewall that communicates with a router that first filters all external traffic. What type of firewall architecture would you recommend setting up?",
+    "options": [
+      "Screened Host Firewall",
+      "Dual-Homed Host Firewall",
+      "Proxy Firewall",
+      "Packet Filtering Firewall"
+    ],
+    "correctIndex": 0,
+    "explanation": "A Screened Host Firewall places a screening router in front of a bastion host, so the router filters external traffic before it reaches the firewall host."
+  },
+  {
+    "id": "net-13",
+    "subject": "Network Security",
+    "type": "single",
+    "question": "An architecture relays the client's request to the server and the response back, so neither side connects directly. What type of firewall is this?",
+    "options": [
+      "Packet Filtering Firewall",
+      "Application/Proxy Firewall",
+      "Screened Host Firewall",
+      "Dynamic Packet Filter"
+    ],
+    "correctIndex": 1,
+    "explanation": "A proxy (application) firewall sits between client and server, forwarding requests and responses on their behalf so neither side connects directly to the other."
+  },
+  {
+    "id": "net-14",
+    "subject": "Network Security",
+    "type": "single",
+    "question": "What is the role of continuous monitoring in a SIEM system?",
+    "options": [
+      "To ensure logs are stored indefinitely without review",
+      "To perform periodic audits of security controls once a month",
+      "To provide ongoing visibility into network and system activities for early threat detection",
+      "To automatically repair vulnerabilities when detected"
+    ],
+    "correctIndex": 2,
+    "explanation": "Continuous monitoring lets a SIEM track activity in real time and alert analysts before threats escalate, rather than only reviewing logs periodically."
+  },
+  {
+    "id": "crypto-21",
+    "subject": "Cryptography Basics",
+    "type": "single",
+    "question": "What is the primary purpose of Certificate Transparency (CT) in the TLS ecosystem?",
+    "options": [
+      "To verify that certificate chains are signed correctly during the TLS handshake",
+      "To provide a public, tamper-evident log of issued certificates so misissued ones can be detected",
+      "To automatically renew certificates before they expire",
+      "To distribute certificate revocation lists more efficiently"
+    ],
+    "correctIndex": 1,
+    "explanation": "CT logs record every certificate issued by trusted CAs so anyone can audit them, which helps catch unauthorized or misissued certificates. It doesn't handle renewal or revocation."
+  },
+  {
+    "id": "net-15",
+    "subject": "Network Security",
+    "type": "single",
+    "question": "Which Linux command would you use to start a Hydra brute-force attack against an HTTP login form at 10.5.0.2, trying the username alice with passwords from the file wordlist.txt?",
+    "options": [
+      "hydra -l alice -P wordlist.txt 10.5.0.2 http-get /login",
+      "nmap -p 80 --script hydra 10.5.0.2",
+      "cupp -l alice -w wordlist.txt 10.5.0.2",
+      "hydra -L wordlist.txt -p alice 10.5.0.2 ssh"
+    ],
+    "correctIndex": 0,
+    "explanation": "hydra -l (one username) -P (a password list) <target> <service> runs the attack. cupp only generates wordlists, it doesn't attack a target, and -L/-p would mean a list of usernames with one fixed password."
+  },
+  {
+    "id": "sdl-01",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "What is the main goal of the Security Development Life-cycle (SDL)?",
+    "options": [
+      "To embed security practices into every phase of software development",
+      "To replace manual testing with automated testing only",
+      "To outsource all security work to a third party",
+      "To make software development faster regardless of risk"
+    ],
+    "correctIndex": 0,
+    "explanation": "The SDL's goal is to build security into every phase of development, from training through release, rather than bolting it on at the end."
+  },
+  {
+    "id": "sdl-02",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "Which SDL phase comes directly after the Design phase?",
+    "options": [
+      "Coding/Implementation",
+      "Testing/Verification",
+      "Release and Maintenance",
+      "Training"
+    ],
+    "correctIndex": 0,
+    "explanation": "The SDL flows Training, Requirements, Design, Coding/Implementation, Testing/Verification, then Release and Maintenance."
+  },
+  {
+    "id": "sdl-03",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "Which SDL phase first establishes security requirements and assesses the risks the software may face?",
+    "options": [
+      "Requirements phase",
+      "Design phase",
+      "Coding/Implementation phase",
+      "Release and Maintenance phase"
+    ],
+    "correctIndex": 0,
+    "explanation": "The Requirements phase determines what the software must do and identifies the data protection and security requirements it needs to meet."
+  },
+  {
+    "id": "sdl-04",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "What is the OWASP Application Security Verification Standard (ASVS) mainly used for?",
+    "options": [
+      "Helping determine an application's security requirements",
+      "Scanning running applications for open network ports",
+      "Generating encryption keys for an application",
+      "Writing end user license agreements"
+    ],
+    "correctIndex": 0,
+    "explanation": "ASVS gives a structured list of verifiable security requirements that can be used in the Requirements phase of the SDL."
+  },
+  {
+    "id": "sdl-05",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "Which type of software testing intentionally sends random or malformed data to input fields to trigger errors?",
+    "options": [
+      "Fuzzy testing",
+      "Dynamic testing",
+      "Penetration testing",
+      "Static testing"
+    ],
+    "correctIndex": 0,
+    "explanation": "Fuzzy testing deliberately sends random or malformed data to find inputs that crash or misbehave the software."
+  },
+  {
+    "id": "sdl-06",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "Which type of testing uses tools that identify the software stack and deliberately try to exploit vulnerabilities?",
+    "options": [
+      "Penetration testing",
+      "Fuzzy testing",
+      "Dynamic testing",
+      "Unit testing"
+    ],
+    "correctIndex": 0,
+    "explanation": "Penetration testing searches for vulnerabilities and actively tries to exploit them, going further than dynamic testing's functional checks."
+  },
+  {
+    "id": "sdl-07",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "What mainly happens during the SDL's Release and Maintenance phase?",
+    "options": [
+      "Deploying the software, then keeping it configured, patched and monitored",
+      "Writing the first draft of the application's source code",
+      "Deciding what the software should do and for whom",
+      "Training developers on secure coding practices"
+    ],
+    "correctIndex": 0,
+    "explanation": "The Release and Maintenance phase covers deploying the software and then keeping it properly configured, patched and monitored over time."
+  },
+  {
+    "id": "pc-01",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "An app builds OS commands by concatenating user input into a string, letting attackers inject shell commands. Which Proactive Control best prevents this?",
+    "options": [
+      "C3: Validate all input & handle exceptions",
+      "C6: Keep your components secure",
+      "C9: Implement security logging and monitoring",
+      "C7: Secure digital identities"
+    ],
+    "correctIndex": 0,
+    "explanation": "C3 calls for validating all input before using it, which stops attacker-supplied data from being interpreted as commands."
+  },
+  {
+    "id": "pc-02",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "An application runs an old library version with a known, unpatched CVE that lets attackers run arbitrary code. Which Proactive Control best prevents this?",
+    "options": [
+      "C6: Keep your components secure",
+      "C4: Address security from the start",
+      "C2: Use cryptography to protect data",
+      "C10: Stop Server-Side Request Forgery"
+    ],
+    "correctIndex": 0,
+    "explanation": "C6 is about tracking and updating the components (libraries, frameworks) an application depends on, so known vulnerabilities get patched."
+  },
+  {
+    "id": "pc-03",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "Attackers upload a web shell during maintenance and no one notices, because the system records nothing about the activity. Which Proactive Control best prevents this?",
+    "options": [
+      "C9: Implement security logging and monitoring",
+      "C1: Implement access control",
+      "C3: Validate all input & handle exceptions",
+      "C7: Secure digital identities"
+    ],
+    "correctIndex": 0,
+    "explanation": "C9 is about logging security-relevant events and monitoring them, so suspicious activity like this gets noticed."
+  },
+  {
+    "id": "pc-04",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "A team only starts thinking about security once the application is already built and deployed. Which Proactive Control best addresses this?",
+    "options": [
+      "C4: Address security from the start",
+      "C6: Keep your components secure",
+      "C2: Use cryptography to protect data",
+      "C1: Implement access control"
+    ],
+    "correctIndex": 0,
+    "explanation": "C4 calls for considering security requirements and threats from the very start of a project, not as an afterthought."
+  },
+  {
+    "id": "pc-05",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "Login credentials and other sensitive data are stored and transmitted without proper protection. Which Proactive Control best addresses this?",
+    "options": [
+      "C2: Use cryptography to protect data",
+      "C7: Secure digital identities",
+      "C3: Validate all input & handle exceptions",
+      "C10: Stop Server-Side Request Forgery"
+    ],
+    "correctIndex": 0,
+    "explanation": "C2 covers using cryptography correctly to protect sensitive data, both at rest and in transit."
+  },
+  {
+    "id": "pc-06",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "An internal API returns every employee's records regardless of the requesting user's role. Which Proactive Control best addresses this?",
+    "options": [
+      "C1: Implement access control",
+      "C2: Use cryptography to protect data",
+      "C6: Keep your components secure",
+      "C4: Address security from the start"
+    ],
+    "correctIndex": 0,
+    "explanation": "C1 is about enforcing access control so users can only reach the data and actions their role permits."
+  },
+  {
+    "id": "pc-07",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "A server fetches a URL supplied by the user without validation, and an attacker uses it to reach internal-only services. Which Proactive Control best addresses this?",
+    "options": [
+      "C10: Stop Server-Side Request Forgery",
+      "C1: Implement access control",
+      "C3: Validate all input & handle exceptions",
+      "C6: Keep your components secure"
+    ],
+    "correctIndex": 0,
+    "explanation": "C10 is specifically about preventing Server-Side Request Forgery, where the server is tricked into making requests on an attacker's behalf."
+  },
+  {
+    "id": "pc-08",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "A password reset flow relies on guessable security questions like 'mother's maiden name', letting attackers take over accounts. Which Proactive Control best addresses this?",
+    "options": [
+      "C7: Secure digital identities",
+      "C9: Implement security logging and monitoring",
+      "C2: Use cryptography to protect data",
+      "C4: Address security from the start"
+    ],
+    "correctIndex": 0,
+    "explanation": "C7 covers securing authentication and identity flows, including avoiding weak account-recovery mechanisms like guessable security questions."
+  },
+  {
+    "id": "vs-01",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "Which command uses Trivy to scan a filesystem path for known vulnerabilities without first updating its vulnerability database?",
+    "options": [
+      "trivy fs --skip-db-update <path>",
+      "trivy image --skip-db-update <path>",
+      "trivy fs --update-db <path>",
+      "trivy scan --offline <path>"
+    ],
+    "correctIndex": 0,
+    "explanation": "trivy fs scans a filesystem path, and --skip-db-update tells it to use the existing local database instead of downloading a new one."
+  },
+  {
+    "id": "vs-02",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "A vulnerability scanner reports a known CVE in a library and names the version where it's fixed. What should you generally do?",
+    "options": [
+      "Upgrade the vulnerable library to the fixed version",
+      "Ignore it, since most CVEs are not worth fixing",
+      "Remove the library entirely without a replacement",
+      "Wait for the next major release before taking action"
+    ],
+    "correctIndex": 0,
+    "explanation": "Once a fix is available, upgrading to the patched version is the standard way to remove a known vulnerability from your dependencies."
+  },
+  {
+    "id": "sca-01",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "A SAST tool like Snyk analyzes source code without running it. Which type of issue is it well suited to catch?",
+    "options": [
+      "Unsanitized input reaching a dangerous function, such as Command Injection",
+      "A misconfigured firewall rule on the network",
+      "A phishing email sent to an employee",
+      "A weak Wi-Fi password on the office router"
+    ],
+    "correctIndex": 0,
+    "explanation": "Static analysis (SAST) reads source code for risky patterns, such as untrusted input flowing into a command or query, without needing to run the program."
+  },
+  {
+    "id": "sca-02",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "Which of the following vulnerability categories is typically found by analyzing source code patterns rather than by observing a running system?",
+    "options": [
+      "Deserialization of Untrusted Data",
+      "A DDoS attack already in progress",
+      "A stolen session cookie seen in network traffic",
+      "An employee falling for a phishing email"
+    ],
+    "correctIndex": 0,
+    "explanation": "Deserialization of Untrusted Data is a code-level pattern that static analysis tools can flag by inspecting the source, unlike network attacks or social engineering."
+  },
+  {
+    "id": "cat-01",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "User input is concatenated directly into a SQL query without sanitization. Which OWASP Top 10 (2021) category best fits?",
+    "options": [
+      "Injection",
+      "Broken Access Control",
+      "Security Misconfiguration",
+      "Cryptographic Failures"
+    ],
+    "correctIndex": 0,
+    "explanation": "Unsanitized input reaching a query or command is the classic example of an Injection vulnerability (A03:2021)."
+  },
+  {
+    "id": "cat-02",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "An attacker changes a URL parameter and views another user's private data because the server never checks who is asking. Which OWASP Top 10 category fits?",
+    "options": [
+      "Broken Access Control",
+      "Injection",
+      "Insecure Design",
+      "Server-Side Request Forgery"
+    ],
+    "correctIndex": 0,
+    "explanation": "Failing to verify that a user is authorized to access a specific resource is Broken Access Control (A01:2021)."
+  },
+  {
+    "id": "cat-03",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "Sensitive data is stored and transmitted without proper encryption, so it is exposed if intercepted. Which OWASP Top 10 category fits?",
+    "options": [
+      "Cryptographic Failures",
+      "Security Logging and Monitoring Failures",
+      "Software and Data Integrity Failures",
+      "Injection"
+    ],
+    "correctIndex": 0,
+    "explanation": "Failing to properly protect data with encryption falls under Cryptographic Failures (A02:2021)."
+  },
+  {
+    "id": "cat-04",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "A web app uses a library with a known, unpatched CVE that attackers can exploit. Which OWASP Top 10 category fits?",
+    "options": [
+      "Vulnerable and Outdated Components",
+      "Insecure Design",
+      "Identification and Authentication Failures",
+      "Server-Side Request Forgery"
+    ],
+    "correctIndex": 0,
+    "explanation": "Using components with known vulnerabilities is exactly what the Vulnerable and Outdated Components category (A06:2021) covers."
+  },
+  {
+    "id": "cat-05",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "A login form allows unlimited password attempts, letting attackers brute-force accounts. Which OWASP Top 10 category fits?",
+    "options": [
+      "Identification and Authentication Failures",
+      "Security Misconfiguration",
+      "Broken Access Control",
+      "Software and Data Integrity Failures"
+    ],
+    "correctIndex": 0,
+    "explanation": "Weak protection against credential guessing, such as no rate limiting on login attempts, is an Identification and Authentication Failure (A07:2021)."
+  },
+  {
+    "id": "cat-06",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "A server fetches a URL supplied by the user, and an attacker uses it to reach internal-only services. Which OWASP Top 10 category fits?",
+    "options": [
+      "Server-Side Request Forgery",
+      "Injection",
+      "Cryptographic Failures",
+      "Security Logging and Monitoring Failures"
+    ],
+    "correctIndex": 0,
+    "explanation": "Tricking a server into making requests to internal resources on the attacker's behalf is Server-Side Request Forgery (A10:2021)."
+  },
+  {
+    "id": "cat-07",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "A server is deployed with default admin credentials and unnecessary features still enabled. Which OWASP Top 10 category fits?",
+    "options": [
+      "Security Misconfiguration",
+      "Insecure Design",
+      "Vulnerable and Outdated Components",
+      "Broken Access Control"
+    ],
+    "correctIndex": 0,
+    "explanation": "Leaving default credentials or unnecessary features enabled is a classic Security Misconfiguration (A05:2021)."
+  },
+  {
+    "id": "cat-08",
+    "subject": "Software Security",
+    "type": "single",
+    "question": "An intrusion goes unnoticed for months because the application doesn't log suspicious activity or alert anyone. Which OWASP Top 10 category fits?",
+    "options": [
+      "Security Logging and Monitoring Failures",
+      "Software and Data Integrity Failures",
+      "Insecure Design",
+      "Cryptographic Failures"
+    ],
+    "correctIndex": 0,
+    "explanation": "Not logging or monitoring security-relevant events, so attacks go undetected, is Security Logging and Monitoring Failures (A09:2021)."
+  },
+  {
+    "id": "linux-10",
+    "subject": "Linux Command Line",
+    "type": "single",
+    "question": "Which command changes a file's permissions so only the owner can read, write and execute it?",
+    "options": [
+      "chmod 700 file",
+      "chmod 777 file",
+      "chown 700 file",
+      "chmod +r file"
+    ],
+    "correctIndex": 0,
+    "explanation": "chmod 700 sets read, write and execute (7) for the owner and no access for group or others. chown changes ownership, not permissions."
+  },
+  {
+    "id": "linux-11",
+    "subject": "Linux Command Line",
+    "type": "single",
+    "question": "Which command shows a snapshot of all currently running processes on the system?",
+    "options": [
+      "ps aux",
+      "top -list",
+      "kill -l",
+      "ls -la /proc"
+    ],
+    "correctIndex": 0,
+    "explanation": "ps aux lists all running processes with their user, PID, CPU and memory usage. top shows a live view instead of a one-off snapshot."
+  },
+  {
+    "id": "linux-12",
+    "subject": "Linux Command Line",
+    "type": "single",
+    "question": "Which command searches recursively through every file in the current directory for the word error?",
+    "options": [
+      "grep -r \"error\" .",
+      "find . -name error",
+      "cat -r \"error\" .",
+      "head -r \"error\" ."
+    ],
+    "correctIndex": 0,
+    "explanation": "grep -r searches recursively through a directory tree for lines matching a pattern."
+  },
+  {
+    "id": "linux-13",
+    "subject": "Linux Command Line",
+    "type": "single",
+    "question": "Which command searches a directory tree for a file named config.txt?",
+    "options": [
+      "find . -name \"config.txt\"",
+      "grep -r \"config.txt\" .",
+      "ls -R config.txt",
+      "locate -r config.txt ."
+    ],
+    "correctIndex": 0,
+    "explanation": "find searches a directory tree for files matching criteria such as a name, while grep searches file contents instead of filenames."
+  },
+  {
+    "id": "linux-14",
+    "subject": "Linux Command Line",
+    "type": "single",
+    "question": "Which command extracts the contents of the archive backup.tar.gz?",
+    "options": [
+      "tar -xzf backup.tar.gz",
+      "unzip backup.tar.gz",
+      "tar -czf backup.tar.gz",
+      "gzip -d backup.tar.gz -o out"
+    ],
+    "correctIndex": 0,
+    "explanation": "tar -xzf extracts (x) a gzip-compressed (z) tar archive from a file (f). -czf would instead create a new archive."
+  },
+  {
+    "id": "linux-15",
+    "subject": "Linux Command Line",
+    "type": "single",
+    "question": "Which command generates a new SSH key pair using the Ed25519 algorithm?",
+    "options": [
+      "ssh-keygen -t ed25519",
+      "ssh-add -t ed25519",
+      "ssh-copy-id -t ed25519",
+      "openssl genpkey ed25519"
+    ],
+    "correctIndex": 0,
+    "explanation": "ssh-keygen -t ed25519 creates a new SSH key pair using that algorithm. ssh-add loads an existing key into the agent, and ssh-copy-id installs a public key on a remote server."
+  },
+  {
+    "id": "auth-13",
+    "subject": "Access Control & Authentication",
+    "type": "single",
+    "question": "The OWASP ASVS (Application Security Verification Standard) is organized into chapters. What does the 'A' in ASVS stand for?",
+    "options": [
+      "Application",
+      "Authentication",
+      "Access",
+      "Audit"
+    ],
+    "correctIndex": 0,
+    "explanation": "ASVS stands for Application Security Verification Standard - a list of security requirements an application can be verified against."
+  },
+  {
+    "id": "auth-14",
+    "subject": "Access Control & Authentication",
+    "type": "single",
+    "question": "Which OWASP ASVS chapter mainly covers requirements for verifying user identity, such as password policy and multi-factor authentication?",
+    "options": [
+      "Authentication",
+      "Access Control",
+      "Session Management",
+      "Cryptography"
+    ],
+    "correctIndex": 0,
+    "explanation": "ASVS's Authentication chapter sets requirements for how users prove who they are, including password rules and multi-factor authentication."
+  },
+  {
+    "id": "auth-15",
+    "subject": "Access Control & Authentication",
+    "type": "single",
+    "question": "Which OWASP ASVS chapter mainly covers requirements for ensuring users can only reach the data and actions their role permits?",
+    "options": [
+      "Access Control",
+      "Authentication",
+      "Validation",
+      "Error Handling"
+    ],
+    "correctIndex": 0,
+    "explanation": "ASVS's Access Control chapter defines requirements for enforcing what an already-authenticated user is allowed to do."
+  },
+  {
+    "id": "auth-16",
+    "subject": "Access Control & Authentication",
+    "type": "single",
+    "question": "Which OWASP ASVS chapter mainly covers requirements for secure session tokens, timeouts and logout?",
+    "options": [
+      "Session Management",
+      "Authentication",
+      "Access Control",
+      "Cryptography"
+    ],
+    "correctIndex": 0,
+    "explanation": "ASVS's Session Management chapter covers how sessions are created, protected, timed out and ended, separately from how a user first logs in."
+  }
+]

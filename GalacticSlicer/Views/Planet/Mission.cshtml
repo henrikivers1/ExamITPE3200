@@ -41,8 +41,13 @@
                 <span class="mission-reward">+@creditReward credits</span>
                 <span class="mission-reward mission-reward--xp">+@xpReward XP</span>
             </div>
+            @* no questions in the database for this planet yet: nothing to start *@
+            @if (!Model.Questions.Any())
+            {
+                <p class="mt-4 mb-0">This mission has no questions yet. Check back later!</p>
+            }
             @* logged in: the button starts the quiz (wired up in the script below) *@
-            @if (User.Identity?.IsAuthenticated == true)
+            else if (User.Identity?.IsAuthenticated == true)
             {
                 <button type="button" class="gs-btn gs-btn--primary gs-btn--lg mt-4" id="missionStartBtn">
                     Start mission
@@ -110,9 +115,18 @@
             <p class="mission-score" id="missionFailedScore"></p>
             <p>You need @passPercent% correct to complete the mission. Study up and try again!</p>
             <div class="gs-quiz-complete-actions">
-                <button type="button" class="gs-btn gs-btn--primary" id="missionRetryBtn">Try again</button>
+                @* reloads the page, so the next attempt gets 10 new random questions *@
+                <a class="gs-btn gs-btn--primary" asp-controller="Planet" asp-action="Mission"
+                   asp-route-id="@Model.Planet.PlanetId">Try again</a>
                 <a class="gs-btn gs-btn--outline" asp-controller="Planet" asp-action="Index">Back to the galaxy</a>
             </div>
+        </div>
+
+        @* 4. review after finishing (passed or failed): every question with the correct answer
+           and the explanation, filled in by renderReview() *@
+        <div id="missionReview" hidden>
+            <h3 class="gs-quiz-review-title">Review your answers</h3>
+            <ol class="gs-quiz-review" id="missionReviewList"></ol>
         </div>
     </div>
 
@@ -165,7 +179,7 @@
         // show the real number of questions in the briefing text
         document.getElementById("missionQuestionCount").textContent = quizQuestions.length;
 
-        // resets the score and shows the first question (used by both Start and Try again)
+        // resets the score and shows the first question
         function startMission() {
             currentIndex = 0;
             correctCount = 0;
@@ -282,11 +296,54 @@
                     failedArea.hidden = false;
                 }
 
+                renderReview(result.review);
+
             } catch (error) {
                 console.error(error);
                 questionArea.hidden = false;
-                alert("Something went wrong. Please try again.");
+                alert("Something went wrong. Please reload the page and try again.");
             }
+        }
+
+        // lists every question with the player's answer, the correct answer and the explanation
+        function renderReview(review) {
+            const list = document.getElementById("missionReviewList");
+            list.innerHTML = "";
+
+            review.forEach(function (item) {
+                const li = document.createElement("li");
+                li.className = "gs-quiz-review-item " +
+                    (item.isCorrect ? "gs-quiz-review-item--correct" : "gs-quiz-review-item--incorrect");
+
+                const question = document.createElement("p");
+                question.className = "gs-quiz-review-question";
+                question.textContent = item.question;
+                li.appendChild(question);
+
+                const yours = document.createElement("p");
+                yours.className = "gs-quiz-review-answer";
+                yours.textContent = (item.isCorrect ? "✓ " : "✗ ") + "Your answer: " + item.selectedAnswer;
+                li.appendChild(yours);
+
+                // only show the correct answer separately when the player got it wrong
+                if (!item.isCorrect) {
+                    const correct = document.createElement("p");
+                    correct.className = "gs-quiz-review-answer gs-quiz-review-answer--correct";
+                    correct.textContent = "Correct answer: " + item.correctAnswer;
+                    li.appendChild(correct);
+                }
+
+                if (item.explanation) {
+                    const explanation = document.createElement("p");
+                    explanation.className = "gs-quiz-explanation";
+                    explanation.textContent = item.explanation;
+                    li.appendChild(explanation);
+                }
+
+                list.appendChild(li);
+            });
+
+            document.getElementById("missionReview").hidden = false;
         }
 
         // PLACEHOLDER: animates the XP bar from the old value to the new one, ranking up if it overflows
@@ -313,7 +370,6 @@
         if (startBtn) {
             startBtn.addEventListener("click", startMission);
         }
-        document.getElementById("missionRetryBtn").addEventListener("click", startMission);
 
         // go to the next question, or finish after the last one
         nextBtn.addEventListener("click", function () {

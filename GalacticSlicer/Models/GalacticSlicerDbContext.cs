@@ -36,6 +36,11 @@ public class GalacticSlicerDbContext : IdentityDbContext
             .HasIndex(uc => new { uc.UserId, uc.CharacterId })
             .IsUnique();
 
+    // Each question from questions.json is only imported once (user-made questions have no SourceId)
+        modelBuilder.Entity<Challenge>()
+            .HasIndex(c => c.SourceId)
+            .IsUnique();
+
     // Prevent users from completing the same challenge twice
         modelBuilder.Entity<CompletedChallenge>()
             .HasIndex(cc => new { cc.UserId, cc.ChallengeId })

@@ -21,6 +21,11 @@ public class Planet
     [Required]
     [StringLength(30)]
     public string CssClass { get; set; } = string.Empty;
+
+    // Subject from questions.json that this planet's mission asks about.
+    // Null means the mission mixes questions from every subject (Endor, the final test).
+    [StringLength(100)]
+    public string? Subject { get; set; }
     // Navigation property: all challenges on this planet
     public List<Challenge>? Challenges { get; set; }
 }

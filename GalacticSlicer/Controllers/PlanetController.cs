@@ -16,11 +16,14 @@ public class PlanetController : Controller
     private readonly UserManager<IdentityUser> _userManager;
     private readonly PlanetProgressService _planetProgressService;
     private readonly PlayerProgressService _progressService;
+    private readonly QuestionService _questionService;
 
     public PlanetController(IPlanetRepository planetRepository, ILogger<PlanetController>
     logger, ChallengeCompletionService completionService, UserManager<IdentityUser>
-    userManager, PlanetProgressService planetProgressService, PlayerProgressService progressService)
+    userManager, PlanetProgressService planetProgressService, PlayerProgressService progressService,
+    QuestionService questionService)
     {
+        _questionService = questionService;
         _planetRepository = planetRepository;
         _logger = logger;
         _completionService = completionService;
@@ -60,6 +63,10 @@ public class PlanetController : Controller
                 .GetOrCreateProgressAsync(userId);
         }
 
+        // Number of questions.json questions per subject, for the "X challenges" label
+        var subjects = await _questionService.GetSubjectsAsync();
+        var totalQuestions = subjects.Sum(s => s.Count);
+
         // Convert database planets into ViewModels for the Galaxy page
         var viewModels = planets.Select(p => new PlanetViewModel
         {
@@ -68,8 +75,10 @@ public class PlanetController : Controller
             CssClass = p.CssClass,
             StepLabel = $"Chapter {p.Order}",
 
-            // Count the challenges belonging to each planet
-            ChallengeCount = p.Challenges?.Count ?? 0,
+            // Questions the planet's mission can pick from (every subject for the mixed planet)
+            ChallengeCount = p.Subject == null
+                ? totalQuestions
+                : subjects.FirstOrDefault(s => s.Subject == p.Subject).Count,
 
             // The first planet is always unlocked.
             // Other planets unlock when the player has enough XP.
@@ -127,29 +136,31 @@ public class PlanetController : Controller
             }
         }
 
+        // 10 random questions from the planet's subject (questions.json only, never user-made ones)
+        var questions = QuestionService.PickRandom(
+            await _questionService.GetPlanetPoolAsync(planet));
+
+        // Remember which questions were handed out, so SubmitMission only accepts answers to these
+        TempData[MissionKey(planet.PlanetId)] =
+            string.Join(",", questions.Select(q => q.ChallengeId));
+
         var model = new MissionViewModel
         {
             Planet = planet,
             PassPercent = 80,
 
             // Total Credits available for completing the mission
-            TotalCreditReward = planet.Challenges?
-             .Sum(c => c.CreditReward) ?? 0,
+            TotalCreditReward = questions.Sum(c => c.CreditReward),
 
-            Questions = planet.Challenges?
+            // Options are shuffled so the correct answer isn't always in the same place
+            Questions = questions
                  .Select(c => new MissionQuestionViewModel
                  {
                      ChallengeId = c.ChallengeId,
                      Question = c.Question,
-                     Options = new List<string>
-                     {
-                    c.OptionA,
-                    c.OptionB,
-                    c.OptionC,
-                    c.OptionD
-                     }
+                     Options = QuestionService.ShuffledOptions(c)
                  })
-                 .ToList() ?? new List<MissionQuestionViewModel>()
+                 .ToList()
         };
 
         return View(model);
@@ -191,10 +202,23 @@ public class PlanetController : Controller
             return Forbid();
         }
 
-        var challenges = planet.Challenges?.ToList();
+        // The questions Mission() handed out for this planet (stored in TempData, removed once read)
+        if (TempData[MissionKey(planet.PlanetId)] is not string servedList)
+            return BadRequest("This mission has expired. Reload the page to get new questions.");
+
+        var servedIds = servedList.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(int.Parse)
+            .ToList();
+
+        // Load them from the planet's question pool, in the order they were asked
+        var pool = await _questionService.GetPlanetPoolAsync(planet);
+        var challenges = servedIds
+            .Select(id => pool.FirstOrDefault(c => c.ChallengeId == id))
+            .OfType<Challenge>()
+            .ToList();
 
         // A mission needs actual questions in the database
-        if (challenges == null || challenges.Count == 0)
+        if (challenges.Count == 0)
             return BadRequest("This mission has no challenges.");
 
         var answers = submission.Answers;
@@ -202,7 +226,7 @@ public class PlanetController : Controller
         if (answers == null || answers.Count != challenges.Count)
             return BadRequest("All questions must be answered.");
 
-        // Reject duplicate IDs or questions from other planets
+        // Reject duplicate IDs or questions that weren't handed out
         var expectedIds = challenges.Select(c => c.ChallengeId).ToHashSet();
         var submittedIds = answers.Select(a => a.ChallengeId).ToList();
 
@@ -238,13 +262,33 @@ public class PlanetController : Controller
             }
         }
 
+        // Review for the result screen: the correct answer and explanation for every question
+        var review = challenges.Select(challenge =>
+        {
+            var selected = answers.First(a => a.ChallengeId == challenge.ChallengeId).SelectedAnswer;
+
+            return new
+            {
+                question = challenge.Question,
+                selectedAnswer = selected,
+                correctAnswer = challenge.CorrectAnswer,
+                isCorrect = string.Equals(selected, challenge.CorrectAnswer,
+                    StringComparison.OrdinalIgnoreCase),
+                explanation = challenge.Explanation
+            };
+        });
+
         return Json(new
         {
             passed,
             correctCount,
             totalQuestions = challenges.Count,
-            percent = Math.Round(percent, 1)
+            percent = Math.Round(percent, 1),
+            review
         });
     }
+
+    // TempData key for the questions handed out for one planet's mission
+    private static string MissionKey(int planetId) => $"MissionQuestions{planetId}";
 
 }

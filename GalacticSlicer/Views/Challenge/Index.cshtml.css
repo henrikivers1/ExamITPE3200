@@ -1,0 +1,74 @@
+/* Styles for the Manage Challenges list only (scoped CSS: applies to Index.cshtml) */
+
+/* one of the user's challenges: dark themed card with a gold edge on hover */
+.challenge-card {
+  margin-bottom: 1.25rem;
+  padding: 1.5rem 1.75rem;
+  background: var(--gs-bg-card);
+  border: 1px solid var(--gs-border);
+  border-left: 3px solid var(--gs-accent);
+  border-radius: var(--gs-radius-lg);
+  box-shadow: var(--gs-shadow);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.challenge-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(214, 170, 76, 0.45);
+  border-left-color: var(--gs-accent);
+}
+
+/* challenge title in bright text so it stands out on the dark card */
+.challenge-card-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--gs-text);
+}
+
+/* row with the planet tag and the reward */
+.challenge-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* planet name as a small pill */
+.challenge-tag {
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--gs-text);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--gs-border);
+}
+
+/* reward in gold, like Credits everywhere else */
+.challenge-reward {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--gs-accent);
+}
+
+/* Details / Edit / Delete buttons, wrapping on small screens */
+.challenge-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+/* red outline Delete button, filled red on hover */
+.challenge-btn-delete {
+  color: #f59a9a;
+  border: 1px solid rgba(239, 91, 91, 0.5);
+  background: transparent;
+}
+
+.challenge-btn-delete:hover {
+  color: #fff;
+  background: #d94848;
+  border-color: #d94848;
+}

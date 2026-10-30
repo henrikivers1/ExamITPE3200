@@ -27,36 +27,51 @@ namespace GalacticSlicer.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("CreatedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("CreditReward")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Explanation")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("OptionA")
                         .IsRequired()
-                        .HasMaxLength(200)
+                        .HasMaxLength(400)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("OptionB")
                         .IsRequired()
-                        .HasMaxLength(200)
+                        .HasMaxLength(400)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("OptionC")
                         .IsRequired()
-                        .HasMaxLength(200)
+                        .HasMaxLength(400)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("OptionD")
                         .IsRequired()
-                        .HasMaxLength(200)
+                        .HasMaxLength(400)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("PlanetId")
-                        .HasMaxLength(100)
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Question")
                         .IsRequired()
                         .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SourceId")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Title")
@@ -67,6 +82,9 @@ namespace GalacticSlicer.Migrations
                     b.HasKey("ChallengeId");
 
                     b.HasIndex("PlanetId");
+
+                    b.HasIndex("SourceId")
+                        .IsUnique();
 
                     b.ToTable("Challenges");
                 });
@@ -145,6 +163,10 @@ namespace GalacticSlicer.Migrations
 
                     b.Property<int>("Order")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
 
                     b.HasKey("PlanetId");
 
