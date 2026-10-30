@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using GalacticSlicer.Models;
 
@@ -56,5 +57,16 @@ public class HomeController : Controller
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    }
+
+    // GET: /Home/HttpStatus/404 - friendly page for status codes (see UseStatusCodePagesWithReExecute in Program.cs)
+    public IActionResult HttpStatus(int id)
+    {
+        // The URL the player actually asked for, before ASP.NET re-ran this action
+        var originalPath = HttpContext.Features.Get<IStatusCodeReExecuteFeature>()?.OriginalPath;
+
+        _logger.LogWarning("[HomeController] Status code {StatusCode} for path {Path}", id, originalPath);
+
+        return View(id);
     }
 }

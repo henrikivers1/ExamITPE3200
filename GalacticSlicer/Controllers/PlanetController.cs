@@ -81,9 +81,6 @@ public class PlanetController : Controller
 
         // Send the planet data and unlock status to the Razor View
         return View(viewModels);
-
-        // TODO 10b: real count once challenges belong to planets
-        // TODO Task 14: real unlocking from Jonas's service
     }
 
 

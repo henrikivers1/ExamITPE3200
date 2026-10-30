@@ -27,6 +27,24 @@ namespace GalacticSlicer.Controllers
             ViewBag.Planets = new SelectList(planets, "PlanetId", "Name", selectedPlanetId);
         }
 
+        // Domain rule: the correct answer must be one of the four options, and the options must differ.
+        // Missions compare the clicked option's text with CorrectAnswer, so anything else is unanswerable.
+        private void ValidateAnswerOptions(Challenge challenge)
+        {
+            var options = new[] { challenge.OptionA, challenge.OptionB, challenge.OptionC, challenge.OptionD };
+
+            if (!options.Contains(challenge.CorrectAnswer, StringComparer.OrdinalIgnoreCase))
+            {
+                ModelState.AddModelError(nameof(challenge.CorrectAnswer),
+                    "The correct answer must match one of the four options exactly.");
+            }
+
+            if (options.Distinct(StringComparer.OrdinalIgnoreCase).Count() != options.Length)
+            {
+                ModelState.AddModelError(string.Empty, "The four options must all be different.");
+            }
+        }
+
         public IActionResult Topics()
         {
             var topics = new List<ChallengeTopicViewModel>
@@ -91,6 +109,8 @@ namespace GalacticSlicer.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Challenge challenge)
         {
+            ValidateAnswerOptions(challenge);
+
             if (ModelState.IsValid)
             {
                 bool ok = await _challengeRepository.Create(challenge);
@@ -99,7 +119,7 @@ namespace GalacticSlicer.Controllers
 
                 ModelState.AddModelError(string.Empty, "Could not save the challenge. Please try again.");
             }
-            _logger.LogWarning("[ChallengeController] Challenge creation failed {@challenge}", challenge);
+            _logger.LogWarning("[ChallengeController] Challenge creation failed for {Title}", challenge.Title);
 
             // The form is shown again, so the dropdown needs its planets again
             await LoadPlanetDropdown(challenge.PlanetId);
@@ -132,6 +152,8 @@ namespace GalacticSlicer.Controllers
                 return BadRequest("Challenge id mismatch");
             }
 
+            ValidateAnswerOptions(challenge);
+
             if (ModelState.IsValid)
             {
                 bool ok = await _challengeRepository.Update(challenge);
@@ -140,7 +162,7 @@ namespace GalacticSlicer.Controllers
 
                 ModelState.AddModelError(string.Empty, "Could not update the challenge. Please try again.");
             }
-            _logger.LogWarning("[ChallengeController] Challenge update failed {@challenge}", challenge);
+            _logger.LogWarning("[ChallengeController] Challenge update failed for ChallengeId {ChallengeId:0000}", challenge.ChallengeId);
 
             await LoadPlanetDropdown(challenge.PlanetId);
             return View(challenge);
