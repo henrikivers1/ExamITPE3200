@@ -32,8 +32,8 @@ public class CharacterController : Controller
 
         if (characters == null)
         {
-            _logger.LogError("Character list not found");
-            return NotFound("Character list not found");
+            _logger.LogError("[CharacterController] Character list not found");
+            return NotFound();
         }
 
         int playerCredits = 0;

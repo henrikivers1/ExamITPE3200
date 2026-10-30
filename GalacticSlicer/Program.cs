@@ -67,7 +67,8 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-
+// 404, 400 ... without a body are re-run through HomeController.HttpStatus, which shows a friendly page
+app.UseStatusCodePagesWithReExecute("/Home/HttpStatus/{0}");
 app.UseHttpsRedirection();
 app.UseRouting();
 
