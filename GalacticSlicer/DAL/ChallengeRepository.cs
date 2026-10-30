@@ -152,16 +152,16 @@ public class ChallengeRepository : IChallengeRepository
 
     public async Task<IEnumerable<Challenge>?> Search(
         string? searchString,
-        string? planetName,
-        int? minReward)
+        string? subject,
+        string createdByUserId)
     {
         try
         {
-            // Start with all challenges, but don't run the query yet
+            // Start with the user's own challenges (questions.json has no owner), but don't run the query yet
             IQueryable<Challenge> query = _db.Challenges
-                .Include(c => c.Planet);
+                .Where(c => c.SourceId == null && c.CreatedByUserId == createdByUserId);
 
-            // Add one filter per parameter the user actually filled in
+            // Add one filter per field the user actually filled in
             if (!string.IsNullOrWhiteSpace(searchString))
             {
                 query = query.Where(c =>
@@ -169,17 +169,9 @@ public class ChallengeRepository : IChallengeRepository
                     c.Question.Contains(searchString));
             }
 
-            if (!string.IsNullOrWhiteSpace(planetName))
+            if (!string.IsNullOrWhiteSpace(subject))
             {
-                query = query.Where(c =>
-                    c.Planet != null &&
-                    c.Planet.Name == planetName);
-            }
-
-            if (minReward.HasValue)
-            {
-                query = query.Where(c =>
-                    c.CreditReward >= minReward.Value);
+                query = query.Where(c => c.Subject == subject);
             }
 
             // Only now is the SQL sent to the database

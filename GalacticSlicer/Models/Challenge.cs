@@ -8,7 +8,7 @@ public class Challenge
 {
     public int ChallengeId { get; set; }
 
-    [Required]
+    // Short version of the question, made by the server (not typed in by the user)
     [StringLength(100)]
     public string Title { get; set; } = string.Empty;
 
@@ -16,17 +16,19 @@ public class Challenge
     [StringLength(500)]
     public string Question { get; set; } = string.Empty;
 
+    // The text of the correct option (the form picks it with a dropdown)
     [Required]
+    [Display(Name = "Correct answer")]
     public string CorrectAnswer { get; set; } = string.Empty;
 
-    [Range(100, 10000)]
+    // Credits for completing it in a mission (questions.json only; user-made challenges give 0)
+    [Range(0, 10000)]
     public int CreditReward { get; set; }
 
-    [Required]
-    // Foreign key: which planet this challenge belongs to
+    // Foreign key: which planet's mission this question belongs to.
+    // Null for challenges made by users, since they are never used in missions.
     [Display(Name = "Planet")]
-    [Range(1, int.MaxValue, ErrorMessage = "Please choose a planet.")]
-    public int PlanetId { get; set; }
+    public int? PlanetId { get; set; }
 
     // Navigation property: lets us write challenge.Planet.Name
     public Planet? Planet { get; set; }
@@ -34,21 +36,25 @@ public class Challenge
 
     [Required]
     [StringLength(400)]
+    [Display(Name = "Option A")]
     public string OptionA { get; set; } = string.Empty;
 
     [Required]
     [StringLength(400)]
+    [Display(Name = "Option B")]
     public string OptionB { get; set; } = string.Empty;
 
     [Required]
     [StringLength(400)]
+    [Display(Name = "Option C")]
     public string OptionC { get; set; } = string.Empty;
 
     [Required]
     [StringLength(400)]
+    [Display(Name = "Option D")]
     public string OptionD { get; set; } = string.Empty;
 
-    // Subject from questions.json, e.g. "Network Security" (null for questions made by users)
+    // Subject, e.g. "Network Security": from questions.json, or picked in the form for user-made challenges
     [StringLength(100)]
     public string? Subject { get; set; }
 

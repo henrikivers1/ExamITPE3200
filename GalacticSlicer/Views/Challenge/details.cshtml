@@ -2,42 +2,41 @@
 
 @{
     ViewData["Title"] = "Challenge Details";
+    var options = new[] { ("A", Model.OptionA), ("B", Model.OptionB), ("C", Model.OptionC), ("D", Model.OptionD) };
 }
 
-<h1>Challenge Details</h1>
+@* same themed card as Log in / Sign up, just wider *@
+<section class="gs-auth-wrapper">
+    <div class="gs-auth-card gs-auth-card--wide">
+        <h1 class="gs-auth-title">Challenge Details</h1>
+        <p class="gs-auth-subtitle">This is how your question looks.</p>
 
-<div class="card">
-    <div class="card-body">
+        <span class="gs-detail-label">Subject</span>
+        <p class="gs-detail-value">@Model.Subject</p>
 
-        <h3>@Model.Title</h3>
+        <span class="gs-detail-label">Question</span>
+        <p class="gs-detail-value">@Model.Question</p>
 
-        <p>
-            <strong>Question:</strong>
-            @Model.Question
-        </p>
+        @* the four options, with the correct one marked in green *@
+        <span class="gs-detail-label">Options</span>
+        <ul class="gs-option-list">
+            @foreach (var (letter, text) in options)
+            {
+                var isCorrect = text == Model.CorrectAnswer;
+                <li class="@(isCorrect ? "is-correct" : "")">
+                    <span class="gs-option-letter">@letter</span>
+                    <span>@text</span>
+                    @if (isCorrect)
+                    {
+                        <span class="gs-option-correct">&#10003; Correct answer</span>
+                    }
+                </li>
+            }
+        </ul>
 
-        <p>
-            <strong>Correct Answer:</strong>
-            @Model.CorrectAnswer
-        </p>
-
-        <p>
-            <strong>Reward:</strong>
-            @Model.CreditReward Credits
-        </p>
-
-        <p>
-            <strong>Planet:</strong>
-            @Model.Planet?.Name
-        </p>
-
-        <a asp-action="Edit" asp-route-id="@Model.ChallengeId" class="btn btn-warning">
-            Edit
-        </a>
-
-        <a asp-action="Index" class="btn btn-secondary">
-            Back
-        </a>
-
+        <div class="gs-form-actions">
+            <a asp-action="Edit" asp-route-id="@Model.ChallengeId" class="gs-btn gs-btn--primary">Edit</a>
+            <a asp-action="Index" class="gs-btn gs-btn--ghost">Back</a>
+        </div>
     </div>
-</div>
+</section>

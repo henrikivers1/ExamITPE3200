@@ -25,7 +25,15 @@
                         <span class="gs-star-node-info">
                             <span class="gs-star-node-step">@planet.StepLabel</span>
                             <span class="gs-star-node-name">@planet.Name</span>
-                            <span class="gs-star-node-meta">@planet.ChallengeCount challenges</span>
+                            @* status: completed once the mission has been passed, otherwise just unlocked *@
+                            @if (planet.IsCompleted)
+                            {
+                                <span class="gs-star-node-meta gs-star-node-meta--completed">&#10003; Completed</span>
+                            }
+                            else
+                            {
+                                <span class="gs-star-node-meta">Unlocked</span>
+                            }
                         </span>
                     </a>
                 }

@@ -26,7 +26,7 @@
   color: var(--gs-text);
 }
 
-/* row with the planet tag and the reward */
+/* row with the subject tag */
 .challenge-card-meta {
   display: flex;
   flex-wrap: wrap;
@@ -34,7 +34,7 @@
   gap: 0.75rem;
 }
 
-/* planet name as a small pill */
+/* subject as a small pill */
 .challenge-tag {
   padding: 0.2rem 0.7rem;
   border-radius: 999px;
@@ -45,11 +45,10 @@
   border: 1px solid var(--gs-border);
 }
 
-/* reward in gold, like Credits everywhere else */
-.challenge-reward {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--gs-accent);
+/* messages when the list is empty (no challenges yet, no search results, not logged in),
+   in bright text so they're readable on the dark background */
+.challenge-empty {
+  color: var(--gs-text);
 }
 
 /* Details / Edit / Delete buttons, wrapping on small screens */
@@ -58,17 +57,4 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 1.25rem;
-}
-
-/* red outline Delete button, filled red on hover */
-.challenge-btn-delete {
-  color: #f59a9a;
-  border: 1px solid rgba(239, 91, 91, 0.5);
-  background: transparent;
-}
-
-.challenge-btn-delete:hover {
-  color: #fff;
-  background: #d94848;
-  border-color: #d94848;
 }

@@ -664,6 +664,116 @@ a:hover {
   margin-bottom: 1.25rem;
 }
 
+/* ---------- challenge pages (Create / Edit / Details / Delete) ---------- */
+
+/* wider, left-aligned version of the auth card for longer forms */
+.gs-auth-card--wide {
+  max-width: 640px;
+  text-align: left;
+}
+
+.gs-auth-card--wide .gs-auth-title,
+.gs-auth-card--wide .gs-auth-subtitle {
+  text-align: center;
+}
+
+/* dropdowns in the dark theme: dark option list and a pointer cursor */
+select.gs-input {
+  color-scheme: dark;
+  cursor: pointer;
+}
+
+/* row of buttons at the bottom of a form or card */
+.gs-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+/* red outline button for deleting, filled red on hover */
+.gs-btn--danger {
+  color: #f59a9a;
+  border: 1px solid rgba(239, 91, 91, 0.5);
+  background: transparent;
+}
+
+.gs-btn--danger:hover {
+  color: #fff;
+  background: #d94848;
+  border-color: #d94848;
+}
+
+/* small uppercase label above a value, e.g. "Subject" on the Details page */
+.gs-detail-label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gs-text-muted);
+}
+
+/* the value under a label */
+.gs-detail-value {
+  margin: 0 0 1.25rem;
+  color: var(--gs-text);
+}
+
+/* the four options on the Details page */
+.gs-option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.gs-option-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--gs-border);
+  border-radius: var(--gs-radius-sm);
+  background: var(--gs-bg-elevated);
+  color: var(--gs-text);
+}
+
+/* the correct option, in green */
+.gs-option-list li.is-correct {
+  border-color: #3ecf8e;
+  background: rgba(62, 207, 142, 0.12);
+}
+
+/* the option letter (A-D) */
+.gs-option-letter {
+  font-weight: 700;
+  color: var(--gs-accent);
+}
+
+/* "Correct answer" tag on the right of the correct option */
+.gs-option-correct {
+  margin-left: auto;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #3ecf8e;
+  white-space: nowrap;
+}
+
+/* warning box on the Delete page */
+.gs-delete-warning {
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(239, 91, 91, 0.45);
+  border-radius: var(--gs-radius-sm);
+  background: rgba(239, 91, 91, 0.12);
+  color: #f59a9a;
+  font-weight: 500;
+}
+
 /* ---------- generic page intro (used by Planet, Challenge, Progress pages) ---------- */
 
 .gs-page-intro {
@@ -1012,6 +1122,12 @@ a.gs-star-node-link:hover .gs-star-node-name {
 .gs-star-node-meta {
   font-size: 0.8rem;
   color: var(--gs-text-muted);
+}
+
+/* "✓ Completed" status on planets whose mission has been passed */
+.gs-star-node-meta--completed {
+  color: #3ecf8e;
+  font-weight: 600;
 }
 
 /* ---------- challenge topics ---------- */

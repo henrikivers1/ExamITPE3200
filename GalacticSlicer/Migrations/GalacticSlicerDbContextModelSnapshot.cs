@@ -58,7 +58,7 @@ namespace GalacticSlicer.Migrations
                         .HasMaxLength(400)
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("PlanetId")
+                    b.Property<int?>("PlanetId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Question")
@@ -139,6 +139,32 @@ namespace GalacticSlicer.Migrations
                         .IsUnique();
 
                     b.ToTable("CompletedChallenges");
+                });
+
+            modelBuilder.Entity("GalacticSlicer.Models.CompletedMission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CompletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PlanetId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlanetId");
+
+                    b.HasIndex("UserId", "PlanetId")
+                        .IsUnique();
+
+                    b.ToTable("CompletedMissions");
                 });
 
             modelBuilder.Entity("GalacticSlicer.Models.Planet", b =>
@@ -432,9 +458,7 @@ namespace GalacticSlicer.Migrations
                 {
                     b.HasOne("GalacticSlicer.Models.Planet", "Planet")
                         .WithMany("Challenges")
-                        .HasForeignKey("PlanetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PlanetId");
 
                     b.Navigation("Planet");
                 });
@@ -454,6 +478,23 @@ namespace GalacticSlicer.Migrations
                         .IsRequired();
 
                     b.Navigation("Challenge");
+                });
+
+            modelBuilder.Entity("GalacticSlicer.Models.CompletedMission", b =>
+                {
+                    b.HasOne("GalacticSlicer.Models.Planet", "Planet")
+                        .WithMany()
+                        .HasForeignKey("PlanetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Planet");
                 });
 
             modelBuilder.Entity("GalacticSlicer.Models.PlayerProgress", b =>

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using GalacticSlicer.Models;
+using GalacticSlicer.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace GalacticSlicer.DAL;
@@ -78,11 +79,14 @@ public static class DBInit
             File.ReadAllText(path),
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<QuestionSeed>();
 
-        // One-time cleanup: the first time the JSON questions are imported, remove the old
-        // placeholder challenges (and the completions pointing to them)
-        if (!context.Challenges.Any(c => c.SourceId != null))
+        // Cleanup: remove challenges that are neither from questions.json nor made by a user
+        // (the old placeholder challenges), and the completions pointing to them.
+        // Nobody can see or use them, since missions only use questions.json and users only see their own.
+        var placeholders = context.Challenges
+            .Where(c => c.SourceId == null && c.CreatedByUserId == null)
+            .ToList();
+        if (placeholders.Count > 0)
         {
-            var placeholders = context.Challenges.Where(c => c.SourceId == null).ToList();
             var placeholderIds = placeholders.Select(c => c.ChallengeId).ToList();
             context.CompletedChallenges.RemoveRange(
                 context.CompletedChallenges.Where(cc => placeholderIds.Contains(cc.ChallengeId)));
@@ -110,7 +114,7 @@ public static class DBInit
             }
 
             challenge.Subject = seed.Subject;
-            challenge.Title = MakeTitle(seed.Question);
+            challenge.Title = QuestionService.MakeTitle(seed.Question);
             challenge.Question = seed.Question;
             challenge.OptionA = seed.Options[0];
             challenge.OptionB = seed.Options[1];
@@ -121,17 +125,6 @@ public static class DBInit
             challenge.PlanetId = (planets.FirstOrDefault(p => p.Subject == seed.Subject) ?? mixedPlanet).PlanetId;
         }
         context.SaveChanges();
-    }
-
-    // The JSON has no titles, so use the start of the question (cut at a word, max ~90 characters)
-    private static string MakeTitle(string question)
-    {
-        if (question.Length <= 90)
-        {
-            return question;
-        }
-        var cut = question.LastIndexOf(' ', 90);
-        return question[..(cut > 0 ? cut : 90)] + "…";
     }
 
     // One question as written in questions.json

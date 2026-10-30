@@ -9,5 +9,5 @@ public interface IChallengeRepository
     Task<bool> Create(Challenge challenge);
     Task<bool> Update(Challenge challenge);
     Task<bool> Delete(int id);
-    Task<IEnumerable<Challenge>?> Search(string? searchString, string? planetName, int? minReward);
+    Task<IEnumerable<Challenge>?> Search(string? searchString, string? subject, string createdByUserId);
 }

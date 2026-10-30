@@ -1,0 +1,81 @@
+@model GalacticSlicer.Models.Challenge
+
+@* The fields shared by Create and Edit. The <form> tag and the buttons are in those views. *@
+@{
+    // Which option is marked as correct: what was just posted (if the form is shown again with errors),
+    // otherwise the saved answer when editing
+    var correctOption = ViewData["CorrectOption"] as string
+        ?? (Model == null || string.IsNullOrEmpty(Model.CorrectAnswer) ? null
+            : Model.CorrectAnswer == Model.OptionA ? "A"
+            : Model.CorrectAnswer == Model.OptionB ? "B"
+            : Model.CorrectAnswer == Model.OptionC ? "C"
+            : Model.CorrectAnswer == Model.OptionD ? "D"
+            : null);
+}
+
+<div asp-validation-summary="ModelOnly" class="gs-form-error-summary"></div>
+
+<div class="gs-form-group">
+    <label asp-for="Subject" class="gs-label"></label>
+    @* The subjects come from questions.json (ViewBag.Subjects is set in the controller) *@
+    <select asp-for="Subject" asp-items="ViewBag.Subjects" class="gs-input">
+        <option value="">-- Select subject --</option>
+    </select>
+    <span asp-validation-for="Subject" class="gs-field-error"></span>
+</div>
+
+<div class="gs-form-group">
+    <label asp-for="Question" class="gs-label"></label>
+    <textarea asp-for="Question" class="gs-input gs-textarea" rows="3"></textarea>
+    <span asp-validation-for="Question" class="gs-field-error"></span>
+</div>
+
+<div class="gs-form-group">
+    <label asp-for="OptionA" class="gs-label"></label>
+    <input asp-for="OptionA" class="gs-input" data-option="A" />
+    <span asp-validation-for="OptionA" class="gs-field-error"></span>
+</div>
+
+<div class="gs-form-group">
+    <label asp-for="OptionB" class="gs-label"></label>
+    <input asp-for="OptionB" class="gs-input" data-option="B" />
+    <span asp-validation-for="OptionB" class="gs-field-error"></span>
+</div>
+
+<div class="gs-form-group">
+    <label asp-for="OptionC" class="gs-label"></label>
+    <input asp-for="OptionC" class="gs-input" data-option="C" />
+    <span asp-validation-for="OptionC" class="gs-field-error"></span>
+</div>
+
+<div class="gs-form-group">
+    <label asp-for="OptionD" class="gs-label"></label>
+    <input asp-for="OptionD" class="gs-input" data-option="D" />
+    <span asp-validation-for="OptionD" class="gs-field-error"></span>
+</div>
+
+@* Correct answer: pick one of the four options above. The server turns the letter into the option's text. *@
+<div class="gs-form-group">
+    <label for="correctOption" class="gs-label">Correct answer</label>
+    <select id="correctOption" name="correctOption" class="gs-input">
+        <option value="">-- Select the correct option --</option>
+        @foreach (var letter in new[] { "A", "B", "C", "D" })
+        {
+            <option value="@letter" selected="@(letter == correctOption)">Option @letter</option>
+        }
+    </select>
+    <span asp-validation-for="CorrectAnswer" class="gs-field-error"></span>
+</div>
+
+<script>
+    // Show what was typed in each option inside the dropdown, e.g. "Option A: pwd"
+    document.querySelectorAll("[data-option]").forEach(function (input) {
+        const letter = input.dataset.option;
+        const choice = document.querySelector('#correctOption option[value="' + letter + '"]');
+        function update() {
+            choice.textContent = "Option " + letter + (input.value.trim() ? ": " + input.value.trim() : "");
+        }
+        input.addEventListener("input", update);
+        update();
+    });
+</script>

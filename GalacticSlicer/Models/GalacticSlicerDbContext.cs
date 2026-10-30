@@ -19,6 +19,7 @@ public class GalacticSlicerDbContext : IdentityDbContext
     public DbSet<PlayerProgress> PlayerProgresses { get; set; }
     public DbSet<UserCharacter> UserCharacters { get; set; }
     public DbSet<CompletedChallenge> CompletedChallenges { get; set; }
+    public DbSet<CompletedMission> CompletedMissions { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -40,6 +41,18 @@ public class GalacticSlicerDbContext : IdentityDbContext
         modelBuilder.Entity<Challenge>()
             .HasIndex(c => c.SourceId)
             .IsUnique();
+
+    // Each mission is only recorded as completed once per player
+        modelBuilder.Entity<CompletedMission>()
+            .HasIndex(cm => new { cm.UserId, cm.PlanetId })
+            .IsUnique();
+
+    // Connect completed missions to ASP.NET Identity
+        modelBuilder.Entity<CompletedMission>()
+            .HasOne<IdentityUser>()
+            .WithMany()
+            .HasForeignKey(cm => cm.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
     // Prevent users from completing the same challenge twice
         modelBuilder.Entity<CompletedChallenge>()

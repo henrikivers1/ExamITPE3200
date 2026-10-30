@@ -55,17 +55,18 @@ public class PlanetController : Controller
 
         // Visitors who are not logged in do not have player progress
         PlayerProgress? progress = null;
+        var completedPlanetIds = new HashSet<int>();
 
         if (userId != null)
         {
             // Load the player's saved Credits, XP and rank from SQLite
             progress = await _progressService
                 .GetOrCreateProgressAsync(userId);
-        }
 
-        // Number of questions.json questions per subject, for the "X challenges" label
-        var subjects = await _questionService.GetSubjectsAsync();
-        var totalQuestions = subjects.Sum(s => s.Count);
+            // Planets whose mission the player has already passed
+            completedPlanetIds = await _completionService
+                .GetCompletedPlanetIdsAsync(userId);
+        }
 
         // Convert database planets into ViewModels for the Galaxy page
         var viewModels = planets.Select(p => new PlanetViewModel
@@ -74,11 +75,7 @@ public class PlanetController : Controller
             Name = p.Name,
             CssClass = p.CssClass,
             StepLabel = $"Chapter {p.Order}",
-
-            // Questions the planet's mission can pick from (every subject for the mixed planet)
-            ChallengeCount = p.Subject == null
-                ? totalQuestions
-                : subjects.FirstOrDefault(s => s.Subject == p.Subject).Count,
+            IsCompleted = completedPlanetIds.Contains(p.PlanetId),
 
             // The first planet is always unlocked.
             // Other planets unlock when the player has enough XP.
@@ -274,6 +271,9 @@ public class PlanetController : Controller
                     userId,
                     challenge.ChallengeId);
             }
+
+            // Remember the pass, so the Galaxy page shows the planet as completed
+            await _completionService.CompleteMissionAsync(userId, planet.PlanetId);
         }
 
         // Review for the result screen: the correct answer and explanation for every question

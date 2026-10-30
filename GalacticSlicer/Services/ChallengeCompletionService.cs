@@ -99,4 +99,59 @@ public class ChallengeCompletionService
             return false;
         }
     }
+
+    public async Task<bool> CompleteMissionAsync(
+        string userId,
+        int planetId)
+    {
+        try
+        {
+            // Only the first pass is recorded
+            bool alreadyCompleted = await _context.CompletedMissions
+                .AnyAsync(m => m.UserId == userId &&
+                               m.PlanetId == planetId);
+
+            if (alreadyCompleted)
+            {
+                return false;
+            }
+
+            _context.CompletedMissions.Add(new CompletedMission
+            {
+                UserId = userId,
+                PlanetId = planetId,
+                CompletedAt = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Mission on Planet {PlanetId} completed",
+                planetId);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to complete mission on Planet {PlanetId}",
+                planetId);
+
+            _context.ChangeTracker.Clear();
+
+            return false;
+        }
+    }
+
+    // IDs of the planets whose mission the player has passed
+    public async Task<HashSet<int>> GetCompletedPlanetIdsAsync(string userId)
+    {
+        var planetIds = await _context.CompletedMissions
+            .Where(m => m.UserId == userId)
+            .Select(m => m.PlanetId)
+            .ToListAsync();
+
+        return planetIds.ToHashSet();
+    }
 }

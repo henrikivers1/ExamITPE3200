@@ -63,6 +63,17 @@ public class QuestionService
         return pool.OrderBy(_ => Random.Shared.Next()).Take(count).ToList();
     }
 
+    // Challenges have no typed-in title, so use the start of the question (cut at a word, max ~90 characters)
+    public static string MakeTitle(string question)
+    {
+        if (question.Length <= 90)
+        {
+            return question;
+        }
+        var cut = question.LastIndexOf(' ', 90);
+        return question[..(cut > 0 ? cut : 90)] + "…";
+    }
+
     // The four options in random order, so the correct answer isn't always in the same place
     public static List<string> ShuffledOptions(Challenge challenge)
     {

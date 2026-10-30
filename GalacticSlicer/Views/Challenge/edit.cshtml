@@ -4,80 +4,27 @@
     ViewData["Title"] = "Edit Challenge";
 }
 
-<h1>Edit Challenge</h1>
+@* same themed card as Log in / Sign up, just wider *@
+<section class="gs-auth-wrapper">
+    <div class="gs-auth-card gs-auth-card--wide">
+        <h1 class="gs-auth-title">Edit Challenge</h1>
+        <p class="gs-auth-subtitle">Change the question, the options or which one is correct.</p>
 
-<form asp-action="Edit" method="post">
+        <form asp-action="Edit" method="post" class="gs-form">
 
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="ChallengeId" />
 
-    <input type="hidden" asp-for="ChallengeId" />
+            @* subject, question, options and correct answer (same fields as Create) *@
+            <partial name="_ChallengeForm" />
 
-    <div class="mb-3">
-        <label asp-for="Title" class="form-label"></label>
-        <input asp-for="Title" class="form-control" />
-        <span asp-validation-for="Title" class="text-danger"></span>
+            <div class="gs-form-actions">
+                <button type="submit" class="gs-btn gs-btn--primary">Save</button>
+                <a asp-action="Index" class="gs-btn gs-btn--ghost">Back</a>
+            </div>
+
+        </form>
     </div>
-
-    <div class="mb-3">
-        <label asp-for="Question" class="form-label"></label>
-        <textarea asp-for="Question" class="form-control"></textarea>
-        <span asp-validation-for="Question" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="CorrectAnswer" class="form-label"></label>
-        <input asp-for="CorrectAnswer" class="form-control" />
-        <span asp-validation-for="CorrectAnswer" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="OptionA" class="form-label"></label>
-        <input asp-for="OptionA" class="form-control" />
-        <span asp-validation-for="OptionA" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="OptionB" class="form-label"></label>
-        <input asp-for="OptionB" class="form-control" />
-        <span asp-validation-for="OptionB" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="OptionC" class="form-label"></label>
-        <input asp-for="OptionC" class="form-control" />
-        <span asp-validation-for="OptionC" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="OptionD" class="form-label"></label>
-        <input asp-for="OptionD" class="form-control" />
-        <span asp-validation-for="OptionD" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="CreditReward" class="form-label"></label>
-        <input asp-for="CreditReward" class="form-control" />
-        <span asp-validation-for="CreditReward" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="PlanetId" class="form-label"></label>
-        @* The planet list comes from the database (ViewBag.Planets is set in the controller) *@
-        <select asp-for="PlanetId" asp-items="ViewBag.Planets" class="form-select">
-            <option value="">-- Select planet --</option>
-        </select>
-        <span asp-validation-for="PlanetId" class="text-danger"></span>
-    </div>
-
-    <button type="submit" class="btn btn-primary">
-        Save
-    </button>
-
-    <a asp-action="Index" class="btn btn-secondary">
-        Back
-    </a>
-
-</form>
+</section>
 
 @* Turns on client-side validation (jQuery Validate) for the form above *@
 @section Scripts {
