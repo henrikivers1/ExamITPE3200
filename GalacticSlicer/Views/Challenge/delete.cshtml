@@ -4,6 +4,12 @@
     ViewData["Title"] = "Delete Challenge";
 }
 
+@* Shown when DeleteConfirmed failed and sent the player back here *@
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
 <h1>Delete Challenge</h1>
 
 <div class="alert alert-warning">

@@ -41,6 +41,24 @@ namespace GalacticSlicer.Controllers
             ViewBag.Planets = new SelectList(planets, "PlanetId", "Name", selectedPlanetId);
         }
 
+        // Domain rule: the correct answer must be one of the four options, and the options must differ.
+        // Missions compare the clicked option's text with CorrectAnswer, so anything else is unanswerable.
+        private void ValidateAnswerOptions(Challenge challenge)
+        {
+            var options = new[] { challenge.OptionA, challenge.OptionB, challenge.OptionC, challenge.OptionD };
+
+            if (!options.Contains(challenge.CorrectAnswer, StringComparer.OrdinalIgnoreCase))
+            {
+                ModelState.AddModelError(nameof(challenge.CorrectAnswer),
+                    "The correct answer must match one of the four options exactly.");
+            }
+
+            if (options.Distinct(StringComparer.OrdinalIgnoreCase).Count() != options.Length)
+            {
+                ModelState.AddModelError(string.Empty, "The four options must all be different.");
+            }
+        }
+
         // GET: /Challenge/Topics - one card per subject in questions.json, in planet order
         public async Task<IActionResult> Topics()
         {
@@ -109,7 +127,7 @@ namespace GalacticSlicer.Controllers
             if (challenges == null)
             {
                 _logger.LogError("[ChallengeController] Challenge list not found while executing Search()");
-                return NotFound("Challenge list not found");
+                return NotFound();
             }
 
             // Only the logged-in user's own challenges (visitors see none, questions.json is never listed)
@@ -131,7 +149,7 @@ namespace GalacticSlicer.Controllers
             if (challenge == null || !IsOwnChallenge(challenge))
             {
                 _logger.LogError("[ChallengeController] Challenge not found for ChallengeId {ChallengeId:0000}", id);
-                return NotFound("Challenge not found");
+                return NotFound();
             }
             return View(challenge);
         }
@@ -155,15 +173,22 @@ namespace GalacticSlicer.Controllers
             challenge.Subject = null;
             challenge.Explanation = null;
 
+            ValidateAnswerOptions(challenge);
+
             if (ModelState.IsValid)
             {
-                bool ok = await _challengeRepository.Create(challenge);
-                if (ok)
+                try
+                {
+                    await _challengeRepository.Create(challenge);
                     return RedirectToAction(nameof(Index));
-
-                ModelState.AddModelError(string.Empty, "Could not save the challenge. Please try again.");
+                }
+                catch (Exception)
+                {
+                    // The repository already logged the full exception
+                    ModelState.AddModelError(string.Empty, "Could not save the challenge. Please try again.");
+                }
             }
-            _logger.LogWarning("[ChallengeController] Challenge creation failed {@challenge}", challenge);
+            _logger.LogWarning("[ChallengeController] Challenge creation failed for {Title}", challenge.Title);
 
             // The form is shown again, so the dropdown needs its planets again
             await LoadPlanetDropdown(challenge.PlanetId);
@@ -178,7 +203,7 @@ namespace GalacticSlicer.Controllers
             if (challenge == null || !IsOwnChallenge(challenge))
             {
                 _logger.LogError("[ChallengeController] Challenge not found when editing ChallengeId {ChallengeId:0000}", id);
-                return NotFound("Challenge not found");
+                return NotFound();
             }
 
             await LoadPlanetDropdown(challenge.PlanetId);
@@ -193,36 +218,43 @@ namespace GalacticSlicer.Controllers
             if (id != challenge.ChallengeId)
             {
                 _logger.LogWarning("[ChallengeController] Edit id mismatch: route {RouteId}, form {FormId}", id, challenge.ChallengeId);
-                return BadRequest("Challenge id mismatch");
+                return BadRequest();
             }
 
             // Load the saved challenge and check the owner there, not in the posted form
             var existing = await _challengeRepository.GetChallengeById(id);
             if (existing == null || !IsOwnChallenge(existing))
             {
-                return NotFound("Challenge not found");
+                return NotFound();
             }
+
+            ValidateAnswerOptions(challenge);
 
             if (ModelState.IsValid)
             {
-                // Copy only the fields the form edits, so owner and source can't be changed
-                existing.Title = challenge.Title;
-                existing.Question = challenge.Question;
-                existing.CorrectAnswer = challenge.CorrectAnswer;
-                existing.CreditReward = challenge.CreditReward;
-                existing.PlanetId = challenge.PlanetId;
-                existing.OptionA = challenge.OptionA;
-                existing.OptionB = challenge.OptionB;
-                existing.OptionC = challenge.OptionC;
-                existing.OptionD = challenge.OptionD;
+                try
+                {
+                    // Copy only the fields the form edits, so owner and source can't be changed
+                    existing.Title = challenge.Title;
+                    existing.Question = challenge.Question;
+                    existing.CorrectAnswer = challenge.CorrectAnswer;
+                    existing.CreditReward = challenge.CreditReward;
+                    existing.PlanetId = challenge.PlanetId;
+                    existing.OptionA = challenge.OptionA;
+                    existing.OptionB = challenge.OptionB;
+                    existing.OptionC = challenge.OptionC;
+                    existing.OptionD = challenge.OptionD;
 
-                bool ok = await _challengeRepository.Update(existing);
-                if (ok)
+                    await _challengeRepository.Update(existing);
                     return RedirectToAction(nameof(Index));
-
-                ModelState.AddModelError(string.Empty, "Could not update the challenge. Please try again.");
+                }
+                catch (Exception)
+                {
+                    // E.g. the challenge was deleted by someone else while this form was open
+                    ModelState.AddModelError(string.Empty, "Could not update the challenge. Please try again.");
+                }
             }
-            _logger.LogWarning("[ChallengeController] Challenge update failed {@challenge}", challenge);
+            _logger.LogWarning("[ChallengeController] Challenge update failed for ChallengeId {ChallengeId:0000}", challenge.ChallengeId);
 
             await LoadPlanetDropdown(challenge.PlanetId);
             return View(challenge);
@@ -236,7 +268,7 @@ namespace GalacticSlicer.Controllers
             if (challenge == null || !IsOwnChallenge(challenge))
             {
                 _logger.LogError("[ChallengeController] Challenge not found when deleting ChallengeId {ChallengeId:0000}", id);
-                return NotFound("Challenge not found");
+                return NotFound();
             }
             return View(challenge);
         }
@@ -250,15 +282,26 @@ namespace GalacticSlicer.Controllers
             var challenge = await _challengeRepository.GetChallengeById(id);
             if (challenge == null || !IsOwnChallenge(challenge))
             {
-                return NotFound("Challenge not found");
+                return NotFound();
             }
 
-            bool ok = await _challengeRepository.Delete(id);
-            if (!ok)
+            try
             {
-                _logger.LogError("[ChallengeController] Challenge deletion failed for ChallengeId {ChallengeId:0000}", id);
-                return BadRequest("Challenge deletion failed");
+                bool deleted = await _challengeRepository.Delete(id);
+                if (!deleted)
+                {
+                    _logger.LogWarning("[ChallengeController] Challenge {ChallengeId:0000} not found for deletion", id);
+                    return NotFound();
+                }
             }
+            catch (Exception)
+            {
+                // The repository already logged the full exception; show the confirm page again with a message
+                _logger.LogWarning("[ChallengeController] Challenge deletion failed for ChallengeId {ChallengeId:0000}", id);
+                TempData["ErrorMessage"] = "Could not delete the challenge. Please try again.";
+                return RedirectToAction(nameof(Delete), new { id });
+            }
+
             return RedirectToAction(nameof(Index));
         }
     }

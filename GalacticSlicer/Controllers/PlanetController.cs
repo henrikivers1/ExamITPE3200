@@ -47,7 +47,7 @@ public class PlanetController : Controller
             _logger.LogError(
                 "[PlanetController] Planet list not found while executing GetAll()");
 
-            return NotFound("Planet list not found");
+            return NotFound();
         }
 
         // Get the currently logged-in user's ID
@@ -90,9 +90,6 @@ public class PlanetController : Controller
 
         // Send the planet data and unlock status to the Razor View
         return View(viewModels);
-
-        // TODO 10b: real count once challenges belong to planets
-        // TODO Task 14: real unlocking from Jonas's service
     }
 
 
@@ -107,7 +104,7 @@ public class PlanetController : Controller
                 "[PlanetController] Planet not found for PlanetId {PlanetId}",
                 id);
 
-            return NotFound("Planet not found");
+            return NotFound();
         }
 
         // The first planet is always available
@@ -174,13 +171,19 @@ public class PlanetController : Controller
         [FromBody] MissionSubmissionViewModel submission)
     {
         if (submission == null || !ModelState.IsValid)
+        {
+            _logger.LogWarning("[PlanetController] Invalid mission submission");
             return BadRequest("Invalid submission.");
+        }
 
         var planet = await _planetRepository
             .GetPlanetById(submission.PlanetId);
 
         if (planet == null)
+        {
+            _logger.LogWarning("[PlanetController] Mission submitted for unknown Planet {PlanetId}", submission.PlanetId);
             return NotFound("Planet not found.");
+        }
 
         // Get the authenticated player's ID
         var userId = _userManager.GetUserId(User);
@@ -219,12 +222,18 @@ public class PlanetController : Controller
 
         // A mission needs actual questions in the database
         if (challenges.Count == 0)
+        {
+            _logger.LogWarning("[PlanetController] Mission {PlanetId} has no challenges", planet.PlanetId);
             return BadRequest("This mission has no challenges.");
+        }
 
         var answers = submission.Answers;
 
         if (answers == null || answers.Count != challenges.Count)
+        {
+            _logger.LogWarning("[PlanetController] Wrong number of answers for Planet {PlanetId}", planet.PlanetId);
             return BadRequest("All questions must be answered.");
+        }
 
         // Reject duplicate IDs or questions that weren't handed out
         var expectedIds = challenges.Select(c => c.ChallengeId).ToHashSet();
@@ -233,6 +242,7 @@ public class PlanetController : Controller
         if (submittedIds.Count != submittedIds.Distinct().Count() ||
             submittedIds.Any(id => !expectedIds.Contains(id)))
         {
+            _logger.LogWarning("[PlanetController] Invalid challenge ids in submission for Planet {PlanetId}", planet.PlanetId);
             return BadRequest("Invalid challenge IDs.");
         }
 
@@ -250,6 +260,10 @@ public class PlanetController : Controller
 
         double percent = correctCount * 100.0 / challenges.Count;
         bool passed = percent >= 80;
+
+        _logger.LogInformation(
+            "[PlanetController] User {UserId} submitted Planet {PlanetId}: {Correct}/{Total}, passed {Passed}",
+            userId, planet.PlanetId, correctCount, challenges.Count, passed);
 
         // Award Credits and XP only when the mission is passed
         if (passed)

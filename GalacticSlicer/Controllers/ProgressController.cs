@@ -1,4 +1,3 @@
-
 using GalacticSlicer.DAL;
 using GalacticSlicer.Models;
 using GalacticSlicer.Services;
@@ -58,7 +57,7 @@ public class ProgressController : Controller
             _logger.LogError(
                 "[ProgressController] Could not load dashboard data");
 
-            return NotFound("Progress data not found");
+            return NotFound();
         }
 
         // Count the logged-in player's completed challenges

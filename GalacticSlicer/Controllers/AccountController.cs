@@ -92,7 +92,10 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
+        var username = User.Identity?.Name;
         await _signInManager.SignOutAsync();
+
+        _logger.LogInformation("[AccountController] User logged out: {Username}", username);
         return RedirectToAction("Index", "Home");
     }
 }
