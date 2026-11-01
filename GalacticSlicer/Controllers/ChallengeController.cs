@@ -89,10 +89,11 @@ namespace GalacticSlicer.Controllers
             }
         }
 
-        // GET: /Challenge/Topics - one card per subject in questions.json, in planet order
+        // GET: /Challenge/Topics - one card per subject in questions.json, in planet order.
+        // The question count includes the logged-in player's own questions in that subject.
         public async Task<IActionResult> Topics()
         {
-            var subjects = await _questionService.GetSubjectsAsync();
+            var subjects = await _questionService.GetSubjectsAsync(_userManager.GetUserId(User));
 
             var topics = subjects.Select(s => new ChallengeTopicViewModel
             {
@@ -122,9 +123,10 @@ namespace GalacticSlicer.Controllers
         // Practice gives no rewards, so the correct answers are sent to the page for instant feedback.
         public async Task<IActionResult> Practice(string subject)
         {
+            var userId = _userManager.GetUserId(User);
             var pool = string.IsNullOrWhiteSpace(subject)
                 ? new List<Challenge>()
-                : await _questionService.GetSubjectPoolAsync(subject);
+                : await _questionService.GetSubjectPoolAsync(subject, userId);
 
             if (pool.Count == 0)
             {
@@ -134,6 +136,7 @@ namespace GalacticSlicer.Controllers
             var model = new PracticeViewModel
             {
                 Subject = subject,
+                // 10 random questions; the player's own questions are picked like any other
                 Questions = QuestionService.PickRandom(pool).Select(c =>
                 {
                     var options = QuestionService.ShuffledOptions(c);
