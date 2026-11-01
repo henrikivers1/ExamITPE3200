@@ -191,17 +191,48 @@ public class ChallengeCompletionService
                 return true;
             }
 
-            // Load official questions from the database
+            // Identify the planet before validating its questions
+            var planet = await _context.Planets
+                .FirstOrDefaultAsync(p => p.PlanetId == planetId);
+
+            if (planet == null)
+            {
+                _logger.LogWarning(
+                    "Mission reward rejected: Planet {PlanetId} does not exist",
+                    planetId);
+
+                return false;
+            }
+
+            // Endor is the final exam and can use official questions
+            // from all previous planets.
+            bool isFinalExam =
+                string.Equals(
+                    planet.Name,
+                    "Endor",
+                    StringComparison.OrdinalIgnoreCase) &&
+                planet.Subject == null;
+
+            // Load the submitted questions from the database
             var challenges = await _context.Challenges
                 .Where(c => challengeIds.Contains(c.ChallengeId))
                 .ToListAsync();
 
-            // Reject missing, unofficial, or incorrectly assigned questions
-            if (challenges.Count != submittedAnswers.Count ||
+            // Reject missing or unofficial questions.
+            // Normal planets only accept their own subject questions.
+            // Endor accepts official questions from previous planets.
+            bool invalidQuestions =
+                challenges.Count != submittedAnswers.Count ||
                 challenges.Any(c =>
-                    c.PlanetId != planetId ||
                     string.IsNullOrWhiteSpace(c.SourceId) ||
-                    c.CreatedByUserId != null))
+                    c.CreatedByUserId != null ||
+                    !c.PlanetId.HasValue ||
+                    (isFinalExam
+                        ? c.PlanetId == planetId
+                        : c.PlanetId != planetId ||
+                          c.Subject != planet.Subject));
+
+            if (invalidQuestions)
             {
                 _logger.LogWarning(
                     "Invalid mission questions for Planet {PlanetId}",
@@ -224,6 +255,12 @@ public class ChallengeCompletionService
             // Failed missions must not award permanent rewards
             if (percent < 80)
             {
+                _logger.LogInformation(
+                    "Mission failed on Planet {PlanetId}: {Correct}/{Total} correct",
+                    planetId,
+                    correctChallenges.Count,
+                    challenges.Count);
+
                 return false;
             }
 
@@ -251,23 +288,35 @@ public class ChallengeCompletionService
             int awardedCredits = 0;
             int awardedXp = 0;
 
-            // Only correctly answered, previously uncompleted questions earn rewards
+            // Reward correct answers.
+            // Endor can reward previously completed questions as a final exam.
             foreach (var challenge in correctChallenges)
             {
-                if (completedSet.Contains(challenge.ChallengeId))
+                bool alreadyRewarded = completedSet.Contains(challenge.ChallengeId);
+
+                if (isFinalExam)
                 {
-                    continue;
+                    // Final exam rewards are independent of previous planet rewards
+                    awardedCredits += challenge.CreditReward;
+                    awardedXp += 150;
+                }
+                else if (!alreadyRewarded)
+                {
+                    // Normal planets reward each challenge only once
+                    awardedCredits += challenge.CreditReward;
+                    awardedXp += 150;
                 }
 
-                _context.CompletedChallenges.Add(new CompletedChallenge
+                // Never insert duplicate CompletedChallenge records
+                if (!alreadyRewarded)
                 {
-                    UserId = userId,
-                    ChallengeId = challenge.ChallengeId,
-                    CompletedAt = DateTime.UtcNow
-                });
-
-                awardedCredits += challenge.CreditReward;
-                awardedXp += 150;
+                    _context.CompletedChallenges.Add(new CompletedChallenge
+                    {
+                        UserId = userId,
+                        ChallengeId = challenge.ChallengeId,
+                        CompletedAt = DateTime.UtcNow
+                    });
+                }
             }
 
             // Update Credits, XP, and rank
@@ -308,7 +357,6 @@ public class ChallengeCompletionService
             return false;
         }
     }
-
 
     // IDs of the planets whose mission the player has passed
     public async Task<HashSet<int>> GetCompletedPlanetIdsAsync(string userId)
