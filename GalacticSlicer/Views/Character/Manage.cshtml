@@ -1,0 +1,74 @@
+@model List<GalacticSlicer.ViewModels.CharacterManageViewModel>
+@using GalacticSlicer.Helpers
+ 
+@{
+    ViewData["Title"] = "Manage Characters";
+}
+ 
+<section class="gs-page-intro">
+    <h1>@ViewData["Title"]</h1>
+    <p>Add, edit and remove the characters in the Shop.</p>
+</section>
+ 
+@* Messages from Create/Edit/Delete (TempData, shown once after the redirect) *@
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="gs-form-success text-center" role="status">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="gs-delete-warning text-center" role="alert">@TempData["ErrorMessage"]</div>
+}
+ 
+<div class="d-flex justify-content-center gap-3 my-4">
+    <a asp-action="Create" class="gs-btn gs-btn--primary">Add Character</a>
+    <a asp-action="Shop" class="gs-btn gs-btn--ghost">Back to the Shop</a>
+</div>
+ 
+@if (!Model.Any())
+{
+    <p class="text-center text-muted">No characters yet. Add the first one above.</p>
+}
+else
+{
+    <section class="row justify-content-center pb-5">
+        <div class="col-lg-10">
+            <table class="table table-dark table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>Tier</th>
+                        <th>Price</th>
+                        <th>Owners</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model)
+                    {
+                        <tr>
+                            <td><span class="gs-user-badge"><partial name="_CharacterBadge" model="row.Character" /></span></td>
+                            <td>@row.Character.Name</td>
+                            <td>@CharacterTier.Get(row.Character.Price).Label</td>
+                            <td>@(row.Character.Price == 0 ? "Free" : $"{row.Character.Price} Credits")</td>
+                            <td>@row.OwnerCount</td>
+                            <td class="text-end">
+                                <a asp-action="Edit" asp-route-id="@row.Character.CharacterId" class="gs-btn gs-btn--outline gs-btn--sm">Edit</a>
+                                @if (row.CanDelete)
+                                {
+                                    <a asp-action="Delete" asp-route-id="@row.Character.CharacterId" class="gs-btn gs-btn--sm gs-btn--danger">Delete</a>
+                                }
+                                else
+                                {
+                                    <span class="gs-btn gs-btn--sm gs-btn--ghost" title="Players own this character, or it is the last free one">Locked</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+}
+ 

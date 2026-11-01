@@ -5,6 +5,7 @@ using GalacticSlicer.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using GalacticSlicer.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace GalacticSlicer.Controllers;
 
@@ -301,7 +302,248 @@ public class PlanetController : Controller
             review
         });
     }
+        // ---------- Manage planets (CRUD) ----------
 
+    // The planet looks Filip has CSS for (.gs-planet--tatooine etc. in site.css)
+    private static readonly string[] PlanetStyles =
+        { "tatooine", "naboo", "coruscant", "kamino", "hoth", "endor" };
+
+    // Fills the two dropdowns on the Create and Edit forms
+    private async Task LoadPlanetDropdowns(Planet? planet = null)
+    {
+        var subjects = (await _questionService.GetSubjectsAsync()).Select(s => s.Subject);
+        ViewBag.Subjects = new SelectList(subjects, planet?.Subject);
+
+        // Value "tatooine", text "Tatooine"
+        var styles = PlanetStyles.Select(s => new { Value = s, Text = char.ToUpper(s[0]) + s[1..] });
+        ViewBag.Styles = new SelectList(styles, "Value", "Text", planet?.CssClass);
+    }
+
+    // Domain rules for planets, checked on the server for both Create and Edit
+    private async Task ValidatePlanetRules(Planet planet)
+    {
+        // Every planet except the one being edited
+        var others = (await _planetRepository.GetAll() ?? Enumerable.Empty<Planet>())
+            .Where(p => p.PlanetId != planet.PlanetId)
+            .ToList();
+
+        if (others.Any(p => p.Order == planet.Order))
+        {
+            ModelState.AddModelError(nameof(planet.Order),
+                $"Chapter {planet.Order} is already used by another planet.");
+        }
+
+        if (others.Any(p => string.Equals(p.Name, planet.Name, StringComparison.OrdinalIgnoreCase)))
+        {
+            ModelState.AddModelError(nameof(planet.Name), "A planet with this name already exists.");
+        }
+
+        // Missions pick questions by subject, so two planets can't share one
+        if (planet.Subject != null && others.Any(p => p.Subject == planet.Subject))
+        {
+            ModelState.AddModelError(nameof(planet.Subject), "Another planet already uses this subject.");
+        }
+
+        if (planet.Subject != null &&
+            !(await _questionService.GetSubjectsAsync()).Any(s => s.Subject == planet.Subject))
+        {
+            ModelState.AddModelError(nameof(planet.Subject), "Please choose a subject from the list.");
+        }
+
+        if (!PlanetStyles.Contains(planet.CssClass))
+        {
+            ModelState.AddModelError(nameof(planet.CssClass), "Please choose a planet look.");
+        }
+    }
+
+    // Domain rule: the first planet and planets that still have mission questions can't be deleted
+    private static bool CanDeletePlanet(Planet planet) =>
+        planet.Order != 1 && (planet.Challenges == null || planet.Challenges.Count == 0);
+
+    // Turns a planet into one row for the Manage and Delete pages
+    private static PlanetManageViewModel ToManageRow(Planet planet) => new PlanetManageViewModel
+    {
+        Planet = planet,
+        QuestionCount = planet.Challenges?.Count ?? 0,
+        CanDelete = CanDeletePlanet(planet)
+    };
+        // GET: /Planet/Manage - table of all planets with Edit and Delete buttons
+    [Authorize]
+    public async Task<IActionResult> Manage()
+    {
+        var planets = await _planetRepository.GetAll();
+        if (planets == null)
+        {
+            _logger.LogError("[PlanetController] Planet list not found while executing Manage()");
+            return NotFound();
+        }
+
+        return View(planets.Select(ToManageRow).ToList());
+    }
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> Create()
+    {
+        // Suggest the next free chapter and a default look
+        var planets = await _planetRepository.GetAll() ?? Enumerable.Empty<Planet>();
+        var planet = new Planet
+        {
+            Order = planets.Any() ? planets.Max(p => p.Order) + 1 : 1,
+            CssClass = PlanetStyles[0]
+        };
+
+        await LoadPlanetDropdowns(planet);
+        return View(planet);
+    }
+
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(Planet planet)
+    {
+        // A new planet always gets a new id and no questions (questions.json is linked by DBInit)
+        planet.PlanetId = 0;
+        planet.Challenges = null;
+
+        await ValidatePlanetRules(planet);
+
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                await _planetRepository.Create(planet);
+                TempData["SuccessMessage"] = $"{planet.Name} was added to the galaxy.";
+                return RedirectToAction(nameof(Manage));
+            }
+            catch (Exception)
+            {
+                // The repository already logged the full exception
+                ModelState.AddModelError(string.Empty, "Could not save the planet. Please try again.");
+            }
+        }
+        _logger.LogWarning("[PlanetController] Planet creation failed for {Name}", planet.Name);
+
+        // The form is shown again, so the dropdowns need their items again
+        await LoadPlanetDropdowns(planet);
+        return View(planet);
+    }
+        [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> Edit(int id)
+    {
+        var planet = await _planetRepository.GetPlanetById(id);
+        if (planet == null)
+        {
+            _logger.LogError("[PlanetController] Planet not found when editing PlanetId {PlanetId}", id);
+            return NotFound();
+        }
+
+        await LoadPlanetDropdowns(planet);
+        return View(planet);
+    }
+
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, Planet planet)
+    {
+        if (id != planet.PlanetId)
+        {
+            _logger.LogWarning("[PlanetController] Edit id mismatch: route {RouteId}, form {FormId}", id, planet.PlanetId);
+            return BadRequest();
+        }
+
+        var existing = await _planetRepository.GetPlanetById(id);
+        if (existing == null)
+        {
+            return NotFound();
+        }
+
+        await ValidatePlanetRules(planet);
+
+        // Domain rule: the starting planet must stay chapter 1, or new players have nothing to play
+        if (existing.Order == 1 && planet.Order != 1)
+        {
+            ModelState.AddModelError(nameof(planet.Order), "The starting planet must stay chapter 1.");
+        }
+
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                // Copy only the fields the form edits
+                existing.Name = planet.Name;
+                existing.Order = planet.Order;
+                existing.Subject = planet.Subject;
+                existing.CssClass = planet.CssClass;
+                existing.Description = planet.Description;
+
+                await _planetRepository.Update(existing);
+                TempData["SuccessMessage"] = $"{existing.Name} was updated.";
+                return RedirectToAction(nameof(Manage));
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Could not update the planet. Please try again.");
+            }
+        }
+        _logger.LogWarning("[PlanetController] Planet update failed for PlanetId {PlanetId}", id);
+
+        await LoadPlanetDropdowns(planet);
+        return View(planet);
+    }
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var planet = await _planetRepository.GetPlanetById(id);
+        if (planet == null)
+        {
+            _logger.LogError("[PlanetController] Planet not found when deleting PlanetId {PlanetId}", id);
+            return NotFound();
+        }
+
+        return View(ToManageRow(planet));
+    }
+
+    [HttpPost, ActionName("Delete")]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        var planet = await _planetRepository.GetPlanetById(id);
+        if (planet == null)
+        {
+            return NotFound();
+        }
+
+        // Checked again here: the page hides the button, but a POST can be sent without the page
+        if (!CanDeletePlanet(planet))
+        {
+            _logger.LogWarning("[PlanetController] Blocked deletion of Planet {PlanetId}", id);
+            TempData["ErrorMessage"] = $"{planet.Name} can't be deleted: it is the first planet or it still has mission questions.";
+            return RedirectToAction(nameof(Manage));
+        }
+
+        try
+        {
+            if (!await _planetRepository.Delete(id))
+            {
+                return NotFound();
+            }
+        }
+        catch (Exception)
+        {
+            _logger.LogWarning("[PlanetController] Planet deletion failed for PlanetId {PlanetId}", id);
+            TempData["ErrorMessage"] = "Could not delete the planet. Please try again.";
+            return RedirectToAction(nameof(Manage));
+        }
+
+        TempData["SuccessMessage"] = $"{planet.Name} was removed from the galaxy.";
+        return RedirectToAction(nameof(Manage));
+    }
     // TempData key for the questions handed out for one planet's mission
     private static string MissionKey(int planetId) => $"MissionQuestions{planetId}";
 

@@ -1,0 +1,29 @@
+@model GalacticSlicer.Models.Character
+ 
+@{
+    ViewData["Title"] = "Edit Character";
+}
+ 
+<section class="gs-auth-wrapper">
+    <div class="gs-auth-card gs-auth-card--wide">
+        <h1 class="gs-auth-title">Edit @Model.Name</h1>
+        <p class="gs-auth-subtitle">Players who already own this character keep it, even if the price changes.</p>
+ 
+        <form asp-action="Edit" method="post" class="gs-form">
+            <input type="hidden" asp-for="CharacterId" />
+ 
+            <partial name="_CharacterForm" />
+ 
+            <div class="gs-form-actions">
+                <button type="submit" class="gs-btn gs-btn--primary">Save</button>
+                <a asp-action="Manage" class="gs-btn gs-btn--ghost">Back</a>
+            </div>
+ 
+        </form>
+    </div>
+</section>
+ 
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+ 

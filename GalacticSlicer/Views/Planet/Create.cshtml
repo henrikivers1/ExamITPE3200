@@ -1,0 +1,31 @@
+@model GalacticSlicer.Models.Planet
+ 
+@{
+    ViewData["Title"] = "Add Planet";
+}
+ 
+@* same themed card as the Challenge forms *@
+<section class="gs-auth-wrapper">
+    <div class="gs-auth-card gs-auth-card--wide">
+        <h1 class="gs-auth-title">Add Planet</h1>
+        <p class="gs-auth-subtitle">Give the planet a chapter, a mission subject and a look.</p>
+ 
+        <form asp-action="Create" method="post" class="gs-form">
+ 
+            @* name, chapter, subject, look and description (same fields as Edit) *@
+            <partial name="_PlanetForm" />
+ 
+            <div class="gs-form-actions">
+                <button type="submit" class="gs-btn gs-btn--primary">Create</button>
+                <a asp-action="Manage" class="gs-btn gs-btn--ghost">Back</a>
+            </div>
+ 
+        </form>
+    </div>
+</section>
+ 
+@* Turns on client-side validation (jQuery Validate) for the form above *@
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+ 

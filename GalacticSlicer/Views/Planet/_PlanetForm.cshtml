@@ -1,0 +1,56 @@
+@model GalacticSlicer.Models.Planet
+ 
+@* The fields shared by Create and Edit. The <form> tag and the buttons are in those views. *@
+@{
+    // Look to show in the preview circle (Tatooine until one is picked)
+    var look = string.IsNullOrEmpty(Model?.CssClass) ? "tatooine" : Model.CssClass;
+}
+ 
+<div asp-validation-summary="ModelOnly" class="gs-form-error-summary"></div>
+ 
+<div class="gs-form-group">
+    <label asp-for="Name" class="gs-label"></label>
+    <input asp-for="Name" class="gs-input" />
+    <span asp-validation-for="Name" class="gs-field-error"></span>
+</div>
+ 
+<div class="gs-form-group">
+    <label asp-for="Order" class="gs-label">Chapter</label>
+    <input asp-for="Order" class="gs-input" type="number" min="1" max="100" />
+    <span asp-validation-for="Order" class="gs-field-error"></span>
+</div>
+ 
+<div class="gs-form-group">
+    <label asp-for="Subject" class="gs-label">Mission subject</label>
+    @* The subjects come from questions.json (ViewBag.Subjects is set in the controller) *@
+    <select asp-for="Subject" asp-items="ViewBag.Subjects" class="gs-input">
+        <option value="">Mixed: questions from every subject</option>
+    </select>
+    <span asp-validation-for="Subject" class="gs-field-error"></span>
+</div>
+ 
+<div class="gs-form-group">
+    <label asp-for="CssClass" class="gs-label">Planet look</label>
+    <div class="d-flex align-items-center gap-3">
+        @* live preview of the chosen look, using Filip's planet CSS *@
+        <span id="planetPreview" class="gs-planet gs-planet--@look" aria-hidden="true"></span>
+        <select asp-for="CssClass" asp-items="ViewBag.Styles" class="gs-input"></select>
+    </div>
+    <span asp-validation-for="CssClass" class="gs-field-error"></span>
+</div>
+ 
+<div class="gs-form-group">
+    <label asp-for="Description" class="gs-label"></label>
+    <textarea asp-for="Description" class="gs-input gs-textarea" rows="3"></textarea>
+    <span asp-validation-for="Description" class="gs-field-error"></span>
+</div>
+ 
+<script>
+    // Swap the preview circle when another look is picked
+    const lookSelect = document.getElementById("CssClass");
+    const preview = document.getElementById("planetPreview");
+    lookSelect.addEventListener("change", function () {
+        preview.className = "gs-planet gs-planet--" + lookSelect.value;
+    });
+</script>
+ 

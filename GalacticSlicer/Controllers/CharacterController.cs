@@ -1,5 +1,6 @@
 using GalacticSlicer.DAL;
 using GalacticSlicer.ViewModels;
+using GalacticSlicer.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using GalacticSlicer.Services;
@@ -165,5 +166,207 @@ public class CharacterController : Controller
         }
 
         return RedirectToAction(nameof(Shop));
+    }
+        // ---------- Manage characters (CRUD) ----------
+
+    // Domain rules for characters, checked on the server for both Create and Edit
+    private async Task ValidateCharacterRules(Character character)
+    {
+        // Every character except the one being edited
+        var others = (await _characterRepository.GetAll() ?? Enumerable.Empty<Character>())
+            .Where(c => c.CharacterId != character.CharacterId)
+            .ToList();
+
+        if (others.Any(c => string.Equals(c.Name, character.Name, StringComparison.OrdinalIgnoreCase)))
+        {
+            ModelState.AddModelError(nameof(character.Name), "A character with this name already exists.");
+        }
+
+        // New players have 0 Credits, so the Shop must always have a free character
+        if (character.Price > 0 && !others.Any(c => c.Price == 0))
+        {
+            ModelState.AddModelError(nameof(character.Price),
+                "At least one character must stay free (price 0) for new players.");
+        }
+    }
+
+    // Builds one row for the Manage and Delete pages, including the Delete rule:
+    // nobody may own the character, and it can't be the last free one
+    private async Task<CharacterManageViewModel> ToManageRow(Character character, List<Character> all)
+    {
+        int owners = await _characterRepository.CountOwners(character.CharacterId);
+        bool isLastFree = character.Price == 0 &&
+            !all.Any(c => c.CharacterId != character.CharacterId && c.Price == 0);
+
+        return new CharacterManageViewModel
+        {
+            Character = character,
+            OwnerCount = owners,
+            CanDelete = owners == 0 && !isLastFree
+        };
+    }
+        // GET: /Character/Manage - table of all characters with Edit and Delete buttons
+    [Authorize]
+    public async Task<IActionResult> Manage()
+    {
+        var characters = await _characterRepository.GetAll();
+        if (characters == null)
+        {
+            _logger.LogError("[CharacterController] Character list not found while executing Manage()");
+            return NotFound();
+        }
+
+        var all = characters.ToList();
+        var rows = new List<CharacterManageViewModel>();
+        foreach (var character in all)
+        {
+            rows.Add(await ToManageRow(character, all));
+        }
+
+        return View(rows);
+    }
+
+    [HttpGet]
+    [Authorize]
+    public IActionResult Create()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(Character character)
+    {
+        // Set on the server: always a new id, and no image URL from the form
+        character.CharacterId = 0;
+        character.ImageUrl = null;
+
+        await ValidateCharacterRules(character);
+
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                await _characterRepository.Create(character);
+                TempData["SuccessMessage"] = $"{character.Name} was added to the Shop.";
+                return RedirectToAction(nameof(Manage));
+            }
+            catch (Exception)
+            {
+                // The repository already logged the full exception
+                ModelState.AddModelError(string.Empty, "Could not save the character. Please try again.");
+            }
+        }
+        _logger.LogWarning("[CharacterController] Character creation failed for {Name}", character.Name);
+        return View(character);
+    }
+        [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> Edit(int id)
+    {
+        var character = await _characterRepository.GetCharacterById(id);
+        if (character == null)
+        {
+            _logger.LogError("[CharacterController] Character not found when editing CharacterId {CharacterId}", id);
+            return NotFound();
+        }
+
+        return View(character);
+    }
+
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, Character character)
+    {
+        if (id != character.CharacterId)
+        {
+            _logger.LogWarning("[CharacterController] Edit id mismatch: route {RouteId}, form {FormId}", id, character.CharacterId);
+            return BadRequest();
+        }
+
+        var existing = await _characterRepository.GetCharacterById(id);
+        if (existing == null)
+        {
+            return NotFound();
+        }
+
+        await ValidateCharacterRules(character);
+
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                // Copy only the fields the form edits (ImageUrl stays as it is)
+                existing.Name = character.Name;
+                existing.Price = character.Price;
+                existing.Description = character.Description;
+
+                await _characterRepository.Update(existing);
+                TempData["SuccessMessage"] = $"{existing.Name} was updated.";
+                return RedirectToAction(nameof(Manage));
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Could not update the character. Please try again.");
+            }
+        }
+        _logger.LogWarning("[CharacterController] Character update failed for CharacterId {CharacterId}", id);
+        return View(character);
+    }
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var character = await _characterRepository.GetCharacterById(id);
+        if (character == null)
+        {
+            _logger.LogError("[CharacterController] Character not found when deleting CharacterId {CharacterId}", id);
+            return NotFound();
+        }
+
+        var all = (await _characterRepository.GetAll())?.ToList() ?? new List<Character>();
+        return View(await ToManageRow(character, all));
+    }
+
+    [HttpPost, ActionName("Delete")]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        var character = await _characterRepository.GetCharacterById(id);
+        if (character == null)
+        {
+            return NotFound();
+        }
+
+        // Checked again here: the page hides the button, but a POST can be sent without the page
+        var all = (await _characterRepository.GetAll())?.ToList() ?? new List<Character>();
+        var row = await ToManageRow(character, all);
+        if (!row.CanDelete)
+        {
+            _logger.LogWarning("[CharacterController] Blocked deletion of Character {CharacterId}", id);
+            TempData["ErrorMessage"] = $"{character.Name} can't be deleted: players own it, or it is the last free character.";
+            return RedirectToAction(nameof(Manage));
+        }
+
+        try
+        {
+            if (!await _characterRepository.Delete(id))
+            {
+                return NotFound();
+            }
+        }
+        catch (Exception)
+        {
+            _logger.LogWarning("[CharacterController] Character deletion failed for CharacterId {CharacterId}", id);
+            TempData["ErrorMessage"] = "Could not delete the character. Please try again.";
+            return RedirectToAction(nameof(Manage));
+        }
+
+        TempData["SuccessMessage"] = $"{character.Name} was removed from the Shop.";
+        return RedirectToAction(nameof(Manage));
     }
 }
