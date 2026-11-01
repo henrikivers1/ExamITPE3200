@@ -50,7 +50,7 @@ public class ChallengeCompletionServiceTests
             Order = 1
         });
 
-        // Create a challenge worth 200 Credits
+        // Create an official planet challenge eligible for Credits and XP
         context.Challenges.Add(new Challenge
         {
             ChallengeId = 1,
@@ -62,7 +62,9 @@ public class ChallengeCompletionServiceTests
             OptionC = "Using password123",
             OptionD = "Reusing passwords",
             CreditReward = 200,
-            PlanetId = 1
+            PlanetId = 1,
+            SourceId = "test-official-01",
+            CreatedByUserId = null
         });
 
         await context.SaveChangesAsync();
@@ -226,4 +228,59 @@ public class ChallengeCompletionServiceTests
             Assert.Empty(await context.PlayerProgresses.ToListAsync());
         }
     }
+
+
+    // Negative: User-created Practice questions must never award Credits or XP
+    [Fact]
+    public async Task CompleteChallenge_UserCreatedQuestion_DoesNotAwardRewards()
+    {
+        // Arrange
+        var (context, connection) = await CreateDatabaseAsync();
+
+        await using (connection)
+        await using (context)
+        {
+            await SeedDataAsync(context);
+
+            context.Challenges.Add(new Challenge
+            {
+                ChallengeId = 2,
+                Title = "User Practice Question",
+                Question = "What is a strong password?",
+                CorrectAnswer = "A unique long password",
+                OptionA = "A unique long password",
+                OptionB = "123456",
+                OptionC = "password",
+                OptionD = "qwerty",
+                CreditReward = 0,
+                PlanetId = null,
+                SourceId = null,
+                CreatedByUserId = "test-user"
+            });
+
+            await context.SaveChangesAsync();
+
+            var service = new ChallengeCompletionService(
+                context,
+                new PlayerProgressService(
+                    context,
+                    NullLogger<PlayerProgressService>.Instance),
+                new RankService(),
+                NullLogger<ChallengeCompletionService>.Instance);
+
+            // Act
+            bool result = await service.CompleteChallengeAsync("test-user", 2);
+
+            // Assert
+            Assert.False(result);
+
+            // No completion record or player rewards should be created
+            Assert.False(await context.CompletedChallenges
+                .AnyAsync(c => c.UserId == "test-user" && c.ChallengeId == 2));
+
+            Assert.False(await context.PlayerProgresses
+                .AnyAsync(p => p.UserId == "test-user"));
+        }
+    }
+
 }

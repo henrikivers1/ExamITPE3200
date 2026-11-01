@@ -263,18 +263,31 @@ public class PlanetController : Controller
             "[PlanetController] User {UserId} submitted Planet {PlanetId}: {Correct}/{Total}, passed {Passed}",
             userId, planet.PlanetId, correctCount, challenges.Count, passed);
 
-        // Award Credits and XP only when the mission is passed
+
+        // Award rewards only when the mission is passed
         if (passed)
         {
-            foreach (var challenge in challenges)
-            {
-                await _completionService.CompleteChallengeAsync(
-                    userId,
-                    challenge.ChallengeId);
-            }
+            // Send the answers to the service for server-side verification
+            var submittedAnswers = answers.ToDictionary(
+                a => a.ChallengeId,
+                a => a.SelectedAnswer ?? string.Empty);
 
-            // Remember the pass, so the Galaxy page shows the planet as completed
-            await _completionService.CompleteMissionAsync(userId, planet.PlanetId);
+            // Save correct answers, Credits, XP, and mission completion atomically
+            bool saved = await _completionService.CompletePassedMissionAsync(
+                userId,
+                planet.PlanetId,
+                submittedAnswers);
+
+            if (!saved)
+            {
+                _logger.LogError(
+                    "[PlanetController] Failed to save mission rewards for Planet {PlanetId}",
+                    planet.PlanetId);
+
+                return StatusCode(
+                    500,
+                    "Mission results could not be saved.");
+            }
         }
 
         // Review for the result screen: the correct answer and explanation for every question

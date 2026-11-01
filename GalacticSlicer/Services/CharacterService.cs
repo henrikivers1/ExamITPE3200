@@ -78,6 +78,7 @@ public class CharacterService
             _context.UserCharacters.Add(new UserCharacter
             {
                 UserId = userId,
+                PlayerProgressId = progress.Id, // Link ownership to PlayerProgress
                 CharacterId = characterId,
                 PurchasedAt = DateTime.UtcNow
             });

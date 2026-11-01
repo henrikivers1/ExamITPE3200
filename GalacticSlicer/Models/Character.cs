@@ -17,12 +17,18 @@ public class Character
     public int Price { get; set; }
 
     public string? ImageUrl { get; set; }
+
+    // Players who own this character
+    public ICollection<UserCharacter> Owners { get; set; }
+        = new List<UserCharacter>();
 }
 
+
 /*
- * CharacterId - Unique ID for each character.
- * Name        - Character name, e.g. Kael Voss.
- * Description - Short description of the character.
- * Price       - Number of Credits required to purchase the character.
- * ImageUrl    - Path to the character image, e.g. /images/characters/kael-voss.png.
+ * CharacterId - Unique ID for the character.
+ * Name        - Name of the character.
+ * Description - Optional description of the character.
+ * Price       - Cost of the character in Credits.
+ * ImageUrl    - Optional URL to the character's image.
+ * Owners      - Collection of ownership records linking the character to players (N:M).
  */
