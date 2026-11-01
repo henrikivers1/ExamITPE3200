@@ -1,0 +1,48 @@
+@model GalacticSlicer.ViewModels.PlanetManageViewModel
+ 
+@{
+    ViewData["Title"] = "Delete Planet";
+}
+ 
+<section class="gs-auth-wrapper">
+    <div class="gs-auth-card gs-auth-card--wide">
+        <h1 class="gs-auth-title">Delete @Model.Planet.Name</h1>
+        <p class="gs-auth-subtitle">This can't be undone.</p>
+ 
+        <div class="d-flex justify-content-center mb-4">
+            <span class="gs-planet gs-planet--@Model.Planet.CssClass" style="--gs-planet-size: 90px" aria-hidden="true"></span>
+        </div>
+ 
+        <span class="gs-detail-label">Chapter</span>
+        <p class="gs-detail-value">@Model.Planet.Order</p>
+ 
+        <span class="gs-detail-label">Mission subject</span>
+        <p class="gs-detail-value">@(Model.Planet.Subject ?? "Mixed (every subject)")</p>
+ 
+        <span class="gs-detail-label">Mission questions</span>
+        <p class="gs-detail-value">@Model.QuestionCount</p>
+ 
+        @* Conditional rendering: only show the Delete button when the domain rule allows it *@
+        @if (Model.CanDelete)
+        {
+            <div class="gs-delete-warning">Are you sure you want to delete this planet? Players who completed it lose that record.</div>
+ 
+            <form asp-action="Delete" method="post">
+                <input type="hidden" name="id" value="@Model.Planet.PlanetId" />
+ 
+                <div class="gs-form-actions">
+                    <button type="submit" class="gs-btn gs-btn--danger">Delete</button>
+                    <a asp-action="Manage" class="gs-btn gs-btn--ghost">Cancel</a>
+                </div>
+            </form>
+        }
+        else
+        {
+            <div class="gs-delete-warning">
+                This planet can't be deleted: it is the first planet, or it still has mission questions.
+            </div>
+            <a asp-action="Manage" class="gs-btn gs-btn--ghost">Back</a>
+        }
+    </div>
+</section>
+ 
