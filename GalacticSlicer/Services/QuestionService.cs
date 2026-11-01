@@ -3,8 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GalacticSlicer.Services;
 
-// Picks random questions from questions.json (stored in the Challenges table with a SourceId)
-// for planet missions and practice. Questions made by users have no SourceId and are never used here.
+// Picks random questions for planet missions and practice.
+// Missions only use questions.json (stored in the Challenges table with a SourceId).
+// Practice also includes the logged-in player's own questions in that subject.
 public class QuestionService
 {
     // How many questions a mission or practice round asks
@@ -30,19 +31,23 @@ public class QuestionService
         return await query.ToListAsync();
     }
 
-    // All questions in one subject
-    public async Task<List<Challenge>> GetSubjectPoolAsync(string subject)
+    // All practice questions in one subject: questions.json plus the player's own questions
+    // (userId is null for visitors, who only get questions.json)
+    public async Task<List<Challenge>> GetSubjectPoolAsync(string subject, string? userId = null)
     {
         return await _context.Challenges
-            .Where(c => c.SourceId != null && c.Subject == subject)
+            .Where(c => (c.SourceId != null || (userId != null && c.CreatedByUserId == userId))
+                        && c.Subject == subject)
             .ToListAsync();
     }
 
-    // Each subject with its number of questions, in planet order (subjects without a planet last)
-    public async Task<List<(string Subject, int Count, int Order)>> GetSubjectsAsync()
+    // Each subject with its number of practice questions (questions.json plus the player's own),
+    // in planet order (subjects without a planet last)
+    public async Task<List<(string Subject, int Count, int Order)>> GetSubjectsAsync(string? userId = null)
     {
         var counts = await _context.Challenges
-            .Where(c => c.SourceId != null && c.Subject != null)
+            .Where(c => (c.SourceId != null || (userId != null && c.CreatedByUserId == userId))
+                        && c.Subject != null)
             .GroupBy(c => c.Subject!)
             .Select(g => new { Subject = g.Key, Count = g.Count() })
             .ToListAsync();

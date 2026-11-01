@@ -1,0 +1,26 @@
+@model GalacticSlicer.Models.Character
+ 
+@* The fields shared by Create and Edit. The <form> tag and the buttons are in those views. *@
+ 
+<div asp-validation-summary="ModelOnly" class="gs-form-error-summary"></div>
+ 
+<div class="gs-form-group">
+    <label asp-for="Name" class="gs-label"></label>
+    <input asp-for="Name" class="gs-input" />
+    <span asp-validation-for="Name" class="gs-field-error"></span>
+</div>
+ 
+<div class="gs-form-group">
+    <label asp-for="Price" class="gs-label">Price (Credits)</label>
+    <input asp-for="Price" class="gs-input" type="number" min="0" max="100000" />
+    @* the price decides the badge tier (Helpers/CharacterTier.cs) *@
+    <small class="text-muted">0 = Starter, under 300 = Uncommon, under 500 = Rare, under 1000 = Epic, 1000+ = Legendary</small>
+    <span asp-validation-for="Price" class="gs-field-error"></span>
+</div>
+ 
+<div class="gs-form-group">
+    <label asp-for="Description" class="gs-label"></label>
+    <textarea asp-for="Description" class="gs-input gs-textarea" rows="3"></textarea>
+    <span asp-validation-for="Description" class="gs-field-error"></span>
+</div>
+ 

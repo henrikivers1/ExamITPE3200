@@ -7,6 +7,7 @@ namespace GalacticSlicer.DAL;
 public class CharacterRepository : ICharacterRepository
 {
     private readonly GalacticSlicerDbContext _db;
+
     private readonly ILogger<CharacterRepository> _logger;
 
     public CharacterRepository(
@@ -134,6 +135,25 @@ public class CharacterRepository : ICharacterRepository
                 ex,
                 "Failed to delete Character {CharacterId}",
                 id);
+
+            throw;
+        }
+
+    }
+    
+    public async Task<int> CountOwners(int characterId)
+    {
+        try
+        {
+            return await _db.UserCharacters
+                .CountAsync(uc => uc.CharacterId == characterId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to count owners of Character {CharacterId}",
+                characterId);
 
             throw;
         }
