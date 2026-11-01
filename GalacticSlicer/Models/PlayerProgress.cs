@@ -18,16 +18,22 @@ public class PlayerProgress
 
     public Character? ActiveCharacter { get; set; }
 
+    // Characters owned by this player
+    public ICollection<UserCharacter> OwnedCharacters { get; set; }
+        = new List<UserCharacter>();
+
     [Range(0, int.MaxValue)]
     public int ExperiencePoints { get; set; } = 0;
 }
 
+
 /*
- * Id                - Unique ID for the player's progress.
- * UserId            - ID of the player (connected to ASP.NET Identity later).
- * Credits           - Number of Credits the player currently owns.
- * Rank              - Current player rank, starting at Rookie.
- * ActiveCharacterId - ID of the character currently equipped.
- * ActiveCharacter   - Navigation property to the selected Character.
- * ExpiriencePoints  - For your Rank
+ * Id                - Unique ID for the player's progress record.
+ * UserId            - ID of the associated Identity user.
+ * Credits           - Current Credits balance of the player.
+ * Rank              - Current rank based on the player's experience.
+ * ActiveCharacterId - Foreign key to the currently equipped character (nullable).
+ * ActiveCharacter   - Navigation property to the equipped character.
+ * ExperiencePoints  - Total XP earned by the player.
+ * OwnedCharacters   - Collection of ownership records linking the player to characters (N:M).
  */

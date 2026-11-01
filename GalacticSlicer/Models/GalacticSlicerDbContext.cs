@@ -27,79 +27,86 @@ public class GalacticSlicerDbContext : IdentityDbContext
         base.OnModelCreating(modelBuilder);
 
 
-     // Each user can have only one progress record
+        // Each user can have only one progress record
         modelBuilder.Entity<PlayerProgress>()
             .HasIndex(p => p.UserId)
             .IsUnique();
 
-    // Prevent users from owning the same character twice
+        // Prevent users from owning the same character twice
         modelBuilder.Entity<UserCharacter>()
             .HasIndex(uc => new { uc.UserId, uc.CharacterId })
             .IsUnique();
 
-    // Each question from questions.json is only imported once (user-made questions have no SourceId)
+        // Each question from questions.json is only imported once (user-made questions have no SourceId)
         modelBuilder.Entity<Challenge>()
             .HasIndex(c => c.SourceId)
             .IsUnique();
 
-    // Each mission is only recorded as completed once per player
+        // Each mission is only recorded as completed once per player
         modelBuilder.Entity<CompletedMission>()
             .HasIndex(cm => new { cm.UserId, cm.PlanetId })
             .IsUnique();
 
-    // Connect completed missions to ASP.NET Identity
+        // Connect completed missions to ASP.NET Identity
         modelBuilder.Entity<CompletedMission>()
             .HasOne<IdentityUser>()
             .WithMany()
             .HasForeignKey(cm => cm.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-    // Prevent users from completing the same challenge twice
+        // Prevent users from completing the same challenge twice
         modelBuilder.Entity<CompletedChallenge>()
             .HasIndex(cc => new { cc.UserId, cc.ChallengeId })
             .IsUnique();
 
-    // A character can be equipped by multiple players
+        // A character can be equipped by multiple players
         modelBuilder.Entity<PlayerProgress>()
             .HasOne(p => p.ActiveCharacter)
             .WithMany()
             .HasForeignKey(p => p.ActiveCharacterId)
             .OnDelete(DeleteBehavior.SetNull);
 
-    // Connect player progress to ASP.NET Identity
+        // Connect player progress to ASP.NET Identity
         modelBuilder.Entity<PlayerProgress>()
             .HasOne<IdentityUser>()
             .WithMany()
             .HasForeignKey(p => p.UserId)
-            .OnDelete(DeleteBehavior.Cascade);   
-    
-      // Owned character relationship
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // One character can be owned by multiple players
         modelBuilder.Entity<UserCharacter>()
             .HasOne(uc => uc.Character)
-            .WithMany()
+            .WithMany(c => c.Owners)
             .HasForeignKey(uc => uc.CharacterId)
             .OnDelete(DeleteBehavior.Restrict);
-        
-    // Connect owned characters to ASP.NET Identity
+
+        // One player progress record can own multiple characters
+        modelBuilder.Entity<UserCharacter>()
+            .HasOne(uc => uc.PlayerProgress)
+            .WithMany(p => p.OwnedCharacters)
+            .HasForeignKey(uc => uc.PlayerProgressId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Connect owned characters to ASP.NET Identity
         modelBuilder.Entity<UserCharacter>()
             .HasOne<IdentityUser>()
             .WithMany()
             .HasForeignKey(uc => uc.UserId)
             .OnDelete(DeleteBehavior.Cascade);
-        
-    // Completed challenge relationship
+
+        // Completed challenge relationship
         modelBuilder.Entity<CompletedChallenge>()
             .HasOne(cc => cc.Challenge)
             .WithMany()
             .HasForeignKey(cc => cc.ChallengeId)
             .OnDelete(DeleteBehavior.Restrict);
-    // Connect completed challenges to ASP.NET Identity
+        // Connect completed challenges to ASP.NET Identity
         modelBuilder.Entity<CompletedChallenge>()
             .HasOne<IdentityUser>()
             .WithMany()
             .HasForeignKey(cc => cc.UserId)
             .OnDelete(DeleteBehavior.Cascade);
-    
+
     }
 
 }

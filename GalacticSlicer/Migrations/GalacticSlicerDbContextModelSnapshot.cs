@@ -241,6 +241,9 @@ namespace GalacticSlicer.Migrations
                     b.Property<int>("CharacterId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("PlayerProgressId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("PurchasedAt")
                         .HasColumnType("TEXT");
 
@@ -251,6 +254,8 @@ namespace GalacticSlicer.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CharacterId");
+
+                    b.HasIndex("PlayerProgressId");
 
                     b.HasIndex("UserId", "CharacterId")
                         .IsUnique();
@@ -516,10 +521,15 @@ namespace GalacticSlicer.Migrations
             modelBuilder.Entity("GalacticSlicer.Models.UserCharacter", b =>
                 {
                     b.HasOne("GalacticSlicer.Models.Character", "Character")
-                        .WithMany()
+                        .WithMany("Owners")
                         .HasForeignKey("CharacterId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("GalacticSlicer.Models.PlayerProgress", "PlayerProgress")
+                        .WithMany("OwnedCharacters")
+                        .HasForeignKey("PlayerProgressId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithMany()
@@ -528,6 +538,8 @@ namespace GalacticSlicer.Migrations
                         .IsRequired();
 
                     b.Navigation("Character");
+
+                    b.Navigation("PlayerProgress");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -581,9 +593,19 @@ namespace GalacticSlicer.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("GalacticSlicer.Models.Character", b =>
+                {
+                    b.Navigation("Owners");
+                });
+
             modelBuilder.Entity("GalacticSlicer.Models.Planet", b =>
                 {
                     b.Navigation("Challenges");
+                });
+
+            modelBuilder.Entity("GalacticSlicer.Models.PlayerProgress", b =>
+                {
+                    b.Navigation("OwnedCharacters");
                 });
 #pragma warning restore 612, 618
         }
