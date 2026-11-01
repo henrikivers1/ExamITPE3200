@@ -17,7 +17,7 @@ public class PlanetProgressService
             3 => 1500,      // Coruscant
             4 => 3000,      // Kamino
             5 => 5000,      // Hoth
-            6 => 8000,      // Endor
+            6 => 6000,      // Endor
             _ => int.MaxValue // Unknown planet orders stay locked
         };
 

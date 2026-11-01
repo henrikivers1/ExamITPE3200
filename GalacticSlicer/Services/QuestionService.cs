@@ -21,7 +21,11 @@ public class QuestionService
     // All questions a planet's mission can ask: its subject, or every subject if it has none (Endor)
     public async Task<List<Challenge>> GetPlanetPoolAsync(Planet planet)
     {
-        var query = _context.Challenges.Where(c => c.SourceId != null);
+        // Only use official questions assigned to a planet
+        var query = _context.Challenges.Where(c =>
+            !string.IsNullOrEmpty(c.SourceId) &&
+            c.CreatedByUserId == null &&
+            c.PlanetId.HasValue);
 
         if (planet.Subject != null)
         {
