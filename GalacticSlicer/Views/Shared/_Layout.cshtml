@@ -23,6 +23,8 @@
 </head>
 
 <body>
+    @* first thing Tab reaches: lets keyboard users jump past the navbar (hidden until focused) *@
+    <a class="gs-skip-link" href="#main">Skip to content</a>
     @{
         var activeController = ViewContext.RouteData.Values["controller"]?.ToString();
 
@@ -137,7 +139,8 @@
             </nav>
         </header>
 
-        <main class="gs-main">
+        @* tabindex="-1" lets the skip link move focus here *@
+        <main class="gs-main" id="main" tabindex="-1">
             @RenderBody()
         </main>
 

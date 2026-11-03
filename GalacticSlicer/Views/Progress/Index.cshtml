@@ -12,8 +12,10 @@
 
         @* badge, name, rank and Credits *@
         <div class="pilot-head">
+            @* the badge picture is hidden from screen readers, so aria-label gives the link its name *@
             <a class="pilot-badge" href="@Url.Action("Shop", "Character")"
-               title="@(Model.ActiveCharacter?.Name ?? "No badge equipped - pick one in the Shop")">
+               title="@(Model.ActiveCharacter?.Name ?? "No badge equipped - pick one in the Shop")"
+               aria-label="@(Model.ActiveCharacter == null ? "No badge equipped, open the Shop" : Model.ActiveCharacter.Name + " badge, open the Shop")">
                 <partial name="_CharacterBadge" model="Model.ActiveCharacter" />
             </a>
             <div class="pilot-info">
@@ -65,16 +67,16 @@
                         <a class="pilot-chart-link" href="@Url.Action("Mission", "Planet", new { id = planet.PlanetId })"
                            title="@planet.Name: @status">
                             <span class="gs-planet gs-planet--@planet.CssClass pilot-chart-planet" aria-hidden="true"></span>
-                            <span class="pilot-chart-name">@planet.Name</span>
-                            <span class="pilot-chart-status">@(planet.IsCompleted ? "✓" : isNext ? "▶" : "")</span>
+                            <span class="pilot-chart-name">@planet.Name<span class="gs-sr-only">, @status</span></span>
+                            <span class="pilot-chart-status" aria-hidden="true">@(planet.IsCompleted ? "✓" : isNext ? "▶" : "")</span>
                         </a>
                     }
                     else
                     {
                         <span class="pilot-chart-link" aria-disabled="true" title="@planet.Name: Locked">
                             <span class="gs-planet gs-planet--@planet.CssClass pilot-chart-planet" aria-hidden="true"></span>
-                            <span class="pilot-chart-name">@planet.Name</span>
-                            <span class="pilot-chart-status">&#128274;</span>
+                            <span class="pilot-chart-name">@planet.Name<span class="gs-sr-only">, Locked</span></span>
+                            <span class="pilot-chart-status" aria-hidden="true">&#128274;</span>
                         </span>
                     }
                 </li>
@@ -90,7 +92,9 @@
             <span>Starchart progress</span>
             <span>@Model.PlanetsUnlocked / @Model.PlanetsTotal planets unlocked</span>
         </div>
-        <div class="gs-progress-bar">
+        @* role="progressbar" + aria values: screen readers read the bar as "2 of 6" *@
+        <div class="gs-progress-bar" role="progressbar" aria-label="Starchart progress"
+             aria-valuemin="0" aria-valuemax="@Model.PlanetsTotal" aria-valuenow="@Model.PlanetsUnlocked">
             <div class="gs-progress-bar-fill" style="width: @(Model.PlanetPercent)%;"></div>
         </div>
     </div>
@@ -100,7 +104,8 @@
             <span>Challenges progress</span>
             <span>@Model.ChallengesCompleted / @Model.ChallengesTotal challenges</span>
         </div>
-        <div class="gs-progress-bar">
+        <div class="gs-progress-bar" role="progressbar" aria-label="Challenges progress"
+             aria-valuemin="0" aria-valuemax="@Model.ChallengesTotal" aria-valuenow="@Model.ChallengesCompleted">
             <div class="gs-progress-bar-fill gs-progress-bar-fill--accent2" style="width: @(Model.ChallengePercent)%;"></div>
         </div>
     </div>
@@ -117,7 +122,9 @@
                 <span>@Model.ExperiencePoints XP · top rank reached</span>
             }
         </div>
-        <div class="gs-progress-bar">
+        <div class="gs-progress-bar" role="progressbar" aria-label="Experience towards the next rank"
+             aria-valuemin="@Model.XpForCurrentRank" aria-valuemax="@Model.XpForNextRank"
+             aria-valuenow="@Math.Min(Model.ExperiencePoints, Model.XpForNextRank)">
             <div class="gs-progress-bar-fill" style="width: @(Model.XpPercent)%;"></div>
         </div>
     </div>
