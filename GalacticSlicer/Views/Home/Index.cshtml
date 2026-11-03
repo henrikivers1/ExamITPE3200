@@ -1,7 +1,9 @@
-﻿@{
+@model GalacticSlicer.ViewModels.HomeViewModel
+@{
     ViewData["Title"] = "Home";
 }
 
+@* The intro is the same for everyone; players also get a greeting and a button to their next mission *@
 <section class="gs-hero">
     <div class="gs-hero-inner">
         <h1 class="gs-hero-title">Galactic <span class="gs-accent">Slicer</span></h1>
@@ -10,16 +12,36 @@
             real-world inspired challenges, build your skills, and help make the
             galaxy a safer place.
         </p>
+        @if (Model.IsLoggedIn)
+        {
+            <p class="home-welcome">Welcome back, <strong>@Model.Username</strong></p>
+        }
         <div class="gs-hero-actions">
-            <a class="gs-btn gs-btn--primary gs-btn--lg" asp-area="" asp-controller="Challenge" asp-action="Topics">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M4.5 16.5c-1.5 1.5-2 5-2 5s3.5-.5 5-2c.8-.8.8-2.2 0-3s-2.2-.8-3 0Z" />
-                    <path d="M12 15l-3-3a22 22 0 0 1 8-8c2 0 3 1 3 3a22 22 0 0 1-8 8Z" />
-                    <path d="M9 12 6.5 9.5" />
-                    <path d="M14.5 17.5 17 15" />
-                </svg>
-                Start your journey
-            </a>
+            @if (!Model.IsLoggedIn)
+            {
+                @* missions need an account, so the journey starts with signing up *@
+                <a class="gs-btn gs-btn--primary gs-btn--lg" asp-area="" asp-controller="Account" asp-action="SignUp">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M4.5 16.5c-1.5 1.5-2 5-2 5s3.5-.5 5-2c.8-.8.8-2.2 0-3s-2.2-.8-3 0Z" />
+                        <path d="M12 15l-3-3a22 22 0 0 1 8-8c2 0 3 1 3 3a22 22 0 0 1-8 8Z" />
+                        <path d="M9 12 6.5 9.5" />
+                        <path d="M14.5 17.5 17 15" />
+                    </svg>
+                    Start your journey
+                </a>
+            }
+            else if (Model.NextPlanet != null)
+            {
+                @* players go straight to the first unlocked mission they haven't completed *@
+                <a class="gs-btn gs-btn--primary gs-btn--lg" asp-controller="Planet" asp-action="Mission"
+                   asp-route-id="@Model.NextPlanet.PlanetId">&#9654; Continue: @Model.NextPlanet.Name mission</a>
+            }
+            else if (Model.LastUnlockedPlanet != null)
+            {
+                @* every unlocked mission is completed: replay the latest one *@
+                <a class="gs-btn gs-btn--primary gs-btn--lg" asp-controller="Planet" asp-action="Mission"
+                   asp-route-id="@Model.LastUnlockedPlanet.PlanetId">&#8635; Replay @Model.LastUnlockedPlanet.Name</a>
+            }
             <a class="gs-btn gs-btn--outline gs-btn--lg" asp-area="" asp-controller="Planet" asp-action="Index">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M9 4 3 6.5v14L9 18l6 2.5 6-2.5v-14L15 6.5 9 4Z" />
@@ -32,6 +54,7 @@
     </div>
 </section>
 
+@* feature cards: each one links somewhere the buttons above don't *@
 <section class="gs-features">
     <div class="gs-feature-card">
         <div class="gs-feature-icon" aria-hidden="true">
@@ -42,7 +65,7 @@
                 <path d="M12 3c2.5 2.5 3.6 5.7 3.6 9s-1.1 6.5-3.6 9c-2.5-2.5-3.6-5.7-3.6-9S9.5 5.5 12 3Z" />
             </svg>
         </div>
-        <h3 class="gs-feature-title">Planets</h3>
+        <h3 class="gs-feature-title">Galaxy</h3>
         <p class="gs-feature-text">Explore unique worlds, each with its own mission and story.</p>
     </div>
 
@@ -55,9 +78,14 @@
         </div>
         <h3 class="gs-feature-title">Challenges</h3>
         <p class="gs-feature-text">Solve cybersecurity challenges and apply real-world skills.</p>
-        <a class="gs-feature-link" asp-area="" asp-controller="Challenge" asp-action="Topics">
-            Browse challenges →
-        </a>
+        @if (Model.IsLoggedIn)
+        {
+            <a class="gs-feature-link" asp-area="" asp-controller="Challenge" asp-action="Index">Create your own challenges →</a>
+        }
+        else
+        {
+            <a class="gs-feature-link" asp-area="" asp-controller="Challenge" asp-action="Topics">Try practice questions →</a>
+        }
     </div>
 
     <div class="gs-feature-card">
@@ -70,5 +98,13 @@
         </div>
         <h3 class="gs-feature-title">Progress</h3>
         <p class="gs-feature-text">Track your progress, earn rewards, and become a legendary slicer.</p>
+        @if (Model.IsLoggedIn)
+        {
+            <a class="gs-feature-link" asp-area="" asp-controller="Progress" asp-action="Index">See your full progress →</a>
+        }
+        else
+        {
+            <a class="gs-feature-link" asp-area="" asp-controller="Account" asp-action="Login">Log in to track progress →</a>
+        }
     </div>
 </section>

@@ -3,73 +3,122 @@
     ViewData["Title"] = "Progress";
 }
 
-<section class="gs-profile-header">
-    <div>
-        <span class="gs-rank-badge">@Model.Rank</span>
-        @* equipped character's badge (or an empty circle) next to the username *@
-        <div class="gs-profile-name">
-            <span class="gs-profile-badge" title="@(Model.ActiveCharacter?.Name ?? "No badge equipped")">
+@* Links styled by Index.cshtml.css use href="@Url.Action(...)" instead of asp-* attributes:
+   scoped CSS doesn't reach tag-helper links, which broke the layout before. *@
+
+@* Pilot panel: badge, name, rank, Credits, the next mission and a mini starchart *@
+<section class="pilot-wrapper">
+    <div class="pilot">
+
+        @* badge, name, rank and Credits *@
+        <div class="pilot-head">
+            <a class="pilot-badge" href="@Url.Action("Shop", "Character")"
+               title="@(Model.ActiveCharacter?.Name ?? "No badge equipped - pick one in the Shop")">
                 <partial name="_CharacterBadge" model="Model.ActiveCharacter" />
-            </span>
-            <h1>@Model.Username</h1>
+            </a>
+            <div class="pilot-info">
+                <h1 class="pilot-name">@Model.Username</h1>
+                <div class="pilot-stats">
+                    <span class="gs-rank-badge">@Model.Rank</span>
+                    <span class="pilot-credits"><span aria-hidden="true">&#9679;</span> @Model.Credits Credits</span>
+                </div>
+                <a class="pilot-badge-link" href="@Url.Action("Shop", "Character")">
+                    @(Model.ActiveCharacter == null ? "Equip a badge in the Shop" : "Change badge")
+                </a>
+            </div>
         </div>
-        <a class="gs-profile-badge-link" asp-controller="Character" asp-action="Shop">
-            @(Model.ActiveCharacter == null ? "Equip a badge in the Shop" : "Change badge")
-        </a>
+
+        @* the next mission to play, or a replay once every unlocked mission is completed *@
+        <div class="pilot-actions">
+            @if (Model.NextPlanet != null)
+            {
+                <a class="gs-btn gs-btn--primary" href="@Url.Action("Mission", "Planet", new { id = Model.NextPlanet.PlanetId })">
+                    &#9654; Continue: @Model.NextPlanet.Name mission
+                </a>
+            }
+            else if (Model.LastUnlockedPlanet != null)
+            {
+                <a class="gs-btn gs-btn--primary" href="@Url.Action("Mission", "Planet", new { id = Model.LastUnlockedPlanet.PlanetId })">
+                    &#8635; Replay @Model.LastUnlockedPlanet.Name
+                </a>
+            }
+            <a class="gs-btn gs-btn--outline" href="@Url.Action("Topics", "Challenge")">Practice</a>
+        </div>
+        @if (Model.NextLockedPlanet != null)
+        {
+            <p class="pilot-hint">@Model.NextLockedPlanet.Name unlocks at @Model.NextLockedPlanetXp XP</p>
+        }
+
+        @* mini starchart: every planet with its status; unlocked ones open their mission *@
+        <ol class="pilot-chart">
+            @foreach (var planet in Model.Planets)
+            {
+                var isNext = planet.PlanetId == Model.NextPlanet?.PlanetId;
+                var stateClass = planet.IsCompleted ? "pilot-chart-item--completed"
+                    : isNext ? "pilot-chart-item--next"
+                    : planet.IsUnlocked ? "" : "pilot-chart-item--locked";
+                var status = planet.IsCompleted ? "Completed" : isNext ? "Next mission" : planet.IsUnlocked ? "Unlocked" : "Locked";
+
+                <li class="pilot-chart-item @stateClass">
+                    @if (planet.IsUnlocked)
+                    {
+                        <a class="pilot-chart-link" href="@Url.Action("Mission", "Planet", new { id = planet.PlanetId })"
+                           title="@planet.Name: @status">
+                            <span class="gs-planet gs-planet--@planet.CssClass pilot-chart-planet" aria-hidden="true"></span>
+                            <span class="pilot-chart-name">@planet.Name</span>
+                            <span class="pilot-chart-status">@(planet.IsCompleted ? "✓" : isNext ? "▶" : "")</span>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="pilot-chart-link" aria-disabled="true" title="@planet.Name: Locked">
+                            <span class="gs-planet gs-planet--@planet.CssClass pilot-chart-planet" aria-hidden="true"></span>
+                            <span class="pilot-chart-name">@planet.Name</span>
+                            <span class="pilot-chart-status">&#128274;</span>
+                        </span>
+                    }
+                </li>
+            }
+        </ol>
     </div>
 </section>
 
-<section class="gs-stats-grid">
-    <div class="gs-stat-card">
-        <span class="gs-stat-label">Credits</span>
-        <span class="gs-stat-value">@Model.Credits</span>
-    </div>
-    <div class="gs-stat-card">
-        <span class="gs-stat-label">Challenges completed</span>
-        <span class="gs-stat-value">@Model.ChallengesCompleted <span class="gs-stat-value-total">/
-            @Model.ChallengesTotal</span></span>
+@* Progress bars: planets unlocked, challenges completed and XP towards the next rank *@
+<section class="gs-progress-section">
+    <div class="gs-progress-block">
+        <div class="gs-progress-block-header">
+            <span>Starchart progress</span>
+            <span>@Model.PlanetsUnlocked / @Model.PlanetsTotal planets unlocked</span>
         </div>
-        <div class="gs-stat-card">
-            <span class="gs-stat-label">Planets unlocked</span>
-            <span class="gs-stat-value">@Model.PlanetsUnlocked <span class="gs-stat-value-total">/
-                @Model.PlanetsTotal</span></span>
-            </div>
-            <div class="gs-stat-card">
-                <span class="gs-stat-label">Current rank</span>
-                <span class="gs-stat-value gs-stat-value--rank">@Model.Rank</span>
-            </div>
-        </section>
+        <div class="gs-progress-bar">
+            <div class="gs-progress-bar-fill" style="width: @(Model.PlanetPercent)%;"></div>
+        </div>
+    </div>
 
+    <div class="gs-progress-block">
+        <div class="gs-progress-block-header">
+            <span>Challenges progress</span>
+            <span>@Model.ChallengesCompleted / @Model.ChallengesTotal challenges</span>
+        </div>
+        <div class="gs-progress-bar">
+            <div class="gs-progress-bar-fill gs-progress-bar-fill--accent2" style="width: @(Model.ChallengePercent)%;"></div>
+        </div>
+    </div>
 
-        <section class="gs-progress-section">
-            <div class="gs-progress-block">
-                <div class="gs-progress-block-header">
-                    <span>Starchart progress</span>
-                    <span>@Model.PlanetsUnlocked / @Model.PlanetsTotal planets</span>
-                </div>
-                <div class="gs-progress-bar">
-                    <div class="gs-progress-bar-fill" style="width: @(Model.PlanetPercent)%;"></div>
-                </div>
-            </div>
-
-            <div class="gs-progress-block">
-                <div class="gs-progress-block-header">
-                    <span>Challenges progress</span>
-                    <span>@Model.ChallengesCompleted / @Model.ChallengesTotal challenges</span>
-                </div>
-                <div class="gs-progress-bar">
-                    <div class="gs-progress-bar-fill gs-progress-bar-fill--accent2" style="width: @(Model.ChallengePercent)%;">
-                    </div>
-                </div>
-            </div>
-
-            <div class="gs-progress-block">
-                <div class="gs-progress-block-header">
-                    <span>Experience progress – @Model.Rank</span>
-                    <span>@Model.ExperiencePoints / @Model.XpForNextRank XP</span>
-                </div>
-                <div class="gs-progress-bar">
-                    <div class="gs-progress-bar-fill" style="width: @(Model.XpPercent)%;"></div>
-                </div>
-            </div>
-        </section>
+    <div class="gs-progress-block">
+        <div class="gs-progress-block-header">
+            <span>Experience progress – @Model.Rank</span>
+            @if (Model.XpForNextRank > Model.XpForCurrentRank)
+            {
+                <span>@Model.ExperiencePoints / @Model.XpForNextRank XP</span>
+            }
+            else
+            {
+                <span>@Model.ExperiencePoints XP · top rank reached</span>
+            }
+        </div>
+        <div class="gs-progress-bar">
+            <div class="gs-progress-bar-fill" style="width: @(Model.XpPercent)%;"></div>
+        </div>
+    </div>
+</section>

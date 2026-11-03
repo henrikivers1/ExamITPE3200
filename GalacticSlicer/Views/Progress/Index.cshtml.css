@@ -1,0 +1,194 @@
+/* Styles for the Progress page only (scoped CSS: applies to Progress/Index.cshtml).
+   Note: these don't reach <a asp-...> tag-helper links, so the view uses href="@Url.Action(...)". */
+
+/* space above and below the pilot panel */
+.pilot-wrapper {
+  max-width: var(--gs-max-width);
+  margin: 2.5rem auto 1.5rem;
+  padding: 0 1rem;
+}
+
+/* the pilot panel: a see-through card with a faint gold glow */
+.pilot {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 1.75rem);
+  background: rgba(15, 22, 40, 0.82);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(214, 170, 76, 0.35);
+  border-radius: var(--gs-radius-lg);
+  box-shadow: var(--gs-shadow), 0 0 40px -12px rgba(214, 170, 76, 0.45);
+}
+
+/* badge on the left, name and stats on the right (stays side by side, even on phones) */
+.pilot-head {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 2.5vw, 1.25rem);
+}
+
+/* the equipped badge (or empty circle), scaling with the screen; links to the Shop */
+.pilot-badge {
+  display: block;
+  flex: 0 0 auto;
+  width: clamp(52px, 13vw, 76px);
+  transition: transform 0.25s ease;
+}
+
+.pilot-badge:hover {
+  transform: scale(1.06) rotate(-4deg);
+}
+
+/* glow in the badge's tier color (::deep reaches the svg inside the badge partial) */
+.pilot-badge ::deep .gs-badge {
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--tier) 55%, transparent));
+}
+
+/* name, stats and the badge link; min-width 0 lets long names wrap instead of overflowing */
+.pilot-info {
+  min-width: 0;
+}
+
+/* the player's username */
+.pilot-name {
+  margin: 0 0 0.4rem;
+  font-size: clamp(1.25rem, 4.5vw, 1.9rem);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+/* rank pill and Credits side by side, wrapping on small screens */
+.pilot-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+/* Credits in gold, like in the navbar */
+.pilot-credits {
+  font-weight: 700;
+  color: var(--gs-accent);
+}
+
+/* small "Change badge" link */
+.pilot-badge-link {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+}
+
+/* Continue / Replay and Practice buttons, wrapping on small screens */
+.pilot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+}
+
+/* "Coruscant unlocks at 1500 XP" under the buttons */
+.pilot-hint {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  color: var(--gs-text-muted);
+}
+
+/* mini starchart: six equal columns on wide screens, three per row on phones */
+.pilot-chart {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+  margin: 1.25rem 0 0;
+  padding: 1rem 0 0;
+  border-top: 1px solid var(--gs-border);
+  list-style: none;
+}
+
+/* planet, name and status stacked; unlocked ones are links to the mission */
+.pilot-chart-link {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.25rem;
+  border-radius: var(--gs-radius-sm);
+  color: var(--gs-text);
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+a.pilot-chart-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+}
+
+/* small version of the shared planet drawing */
+.pilot-chart-planet {
+  --gs-planet-size: clamp(32px, 7vw, 44px);
+}
+
+/* planet name under it */
+.pilot-chart-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ✓ / ▶ / lock mark at the planet's top-right */
+.pilot-chart-status {
+  position: absolute;
+  top: 0.2rem;
+  left: calc(50% + 12px);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* completed planets get a green check */
+.pilot-chart-item--completed .pilot-chart-status {
+  color: #3ecf8e;
+}
+
+/* the next mission is highlighted in gold */
+.pilot-chart-item--next .pilot-chart-status,
+.pilot-chart-item--next .pilot-chart-name {
+  color: var(--gs-accent);
+}
+
+.pilot-chart-item--next .pilot-chart-planet {
+  box-shadow: 0 0 0 2px var(--gs-accent), 0 0 16px rgba(214, 170, 76, 0.6);
+}
+
+/* locked planets are dimmed, like on the Galaxy page */
+.pilot-chart-item--locked .pilot-chart-link {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.pilot-chart-item--locked .pilot-chart-planet {
+  filter: grayscale(0.5) brightness(0.6);
+}
+
+/* phones: three planets per row, buttons full width */
+@media (max-width: 575.98px) {
+  .pilot-chart {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .pilot-actions .gs-btn {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}
+
+/* no tilting or lifting for players who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+  .pilot-badge,
+  .pilot-chart-link {
+    transition: none;
+  }
+
+  .pilot-badge:hover,
+  a.pilot-chart-link:hover {
+    transform: none;
+  }
+}
