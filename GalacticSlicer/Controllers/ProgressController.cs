@@ -18,6 +18,9 @@ public class ProgressController : Controller
     private readonly PlayerProgressService _progressService;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly GalacticSlicerDbContext _context;
+    private readonly PlanetProgressService _planetProgressService;
+    private readonly ChallengeCompletionService _completionService;
+    private readonly RankService _rankService;
 
     public ProgressController(
         IChallengeRepository challengeRepository,
@@ -25,7 +28,10 @@ public class ProgressController : Controller
         ILogger<ProgressController> logger,
         PlayerProgressService progressService,
         UserManager<IdentityUser> userManager,
-        GalacticSlicerDbContext context)
+        GalacticSlicerDbContext context,
+        PlanetProgressService planetProgressService,
+        ChallengeCompletionService completionService,
+        RankService rankService)
     {
         _challengeRepository = challengeRepository;
         _planetRepository = planetRepository;
@@ -33,6 +39,9 @@ public class ProgressController : Controller
         _progressService = progressService;
         _userManager = userManager;
         _context = context;
+        _planetProgressService = planetProgressService;
+        _completionService = completionService;
+        _rankService = rankService;
     }
 
     public async Task<IActionResult> Index()
@@ -64,13 +73,17 @@ public class ProgressController : Controller
         var completedCount = await _context.CompletedChallenges
             .CountAsync(c => c.UserId == userId);
 
-        // Temporary unlocking rule until Task 6
-        var planetsUnlocked = planets.Count(p => p.Order == 1);
+        // Locked / unlocked / completed status for every planet (same rules as the Galaxy page)
+        var completedPlanetIds = await _completionService.GetCompletedPlanetIdsAsync(userId);
+        var statuses = _planetProgressService.GetPlanetStatuses(planets, progress, completedPlanetIds);
+        var nextLocked = statuses.FirstOrDefault(p => !p.IsUnlocked);
 
         // The equipped character, for the badge next to the username
         var activeCharacter = progress.ActiveCharacterId == null
             ? null
             : await _context.Characters.FindAsync(progress.ActiveCharacterId);
+
+        var xpRange = _rankService.GetXpRange(progress.ExperiencePoints);
 
         var model = new PlayerDashboardViewModel
         {
@@ -78,31 +91,21 @@ public class ProgressController : Controller
             ActiveCharacter = activeCharacter,
             Credits = progress.Credits,
             ChallengesCompleted = completedCount,
-            ChallengesTotal = challenges.Count(),
-            PlanetsUnlocked = planetsUnlocked,
-            PlanetsTotal = planets.Count(),
+            // Only questions.json questions can be completed in missions, so only those count
+            // (user-made challenges don't change anyone's total)
+            ChallengesTotal = challenges.Count(c => c.SourceId != null),
+            PlanetsUnlocked = statuses.Count(p => p.IsUnlocked),
+            PlanetsTotal = statuses.Count,
             Rank = progress.Rank,
             ExperiencePoints = progress.ExperiencePoints,
-            XpForCurrentRank = progress.ExperiencePoints switch
-            {
-                >= 12000 => 12000,
-                >= 8000 => 8000,
-                >= 5000 => 5000,
-                >= 3000 => 3000,
-                >= 1500 => 1500,
-                >= 500 => 500,
-                _ => 0
-            },
-            XpForNextRank = progress.ExperiencePoints switch
-            {
-                >= 12000 => 12000,
-                >= 8000 => 12000,
-                >= 5000 => 8000,
-                >= 3000 => 5000,
-                >= 1500 => 3000,
-                >= 500 => 1500,
-                _ => 500
-            },
+            XpForCurrentRank = xpRange.Current,
+            XpForNextRank = xpRange.Next,
+            Planets = statuses,
+            NextPlanet = statuses.FirstOrDefault(p => p.IsUnlocked && !p.IsCompleted),
+            LastUnlockedPlanet = statuses.LastOrDefault(p => p.IsUnlocked),
+            NextLockedPlanet = nextLocked,
+            NextLockedPlanetXp = nextLocked == null ? 0 : _planetProgressService.GetRequiredXp(
+                planets.First(p => p.PlanetId == nextLocked.PlanetId).Order)
         };
 
         return View(model);

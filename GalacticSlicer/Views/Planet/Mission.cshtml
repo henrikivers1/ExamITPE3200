@@ -67,14 +67,17 @@
         @* 2. the questions *@
         <div id="quizQuestionArea" hidden>
             @* "Question X of Y" and a bar showing how far through the mission the player is *@
+            @* aria-live: screen readers read "Question X of Y" out loud when it changes *@
             <div class="gs-quiz-progress-row">
-                <span id="quizProgressLabel"></span>
-                <div class="gs-progress-bar gs-quiz-progress-bar">
+                <span id="quizProgressLabel" aria-live="polite"></span>
+                <div class="gs-progress-bar gs-quiz-progress-bar" id="quizProgressBar" role="progressbar"
+                     aria-label="Mission progress" aria-valuemin="0" aria-valuemax="@Model.Questions.Count" aria-valuenow="0">
                     <div class="gs-progress-bar-fill" id="quizProgressFill" style="width: 0%;"></div>
                 </div>
             </div>
-            @* question text and answer buttons are filled in by renderQuestion() *@
-            <h2 class="gs-quiz-question" id="quizQuestionText"></h2>
+            @* question text and answer buttons are filled in by renderQuestion();
+               tabindex="-1" so the script can move focus here when a new question appears *@
+            <h2 class="gs-quiz-question" id="quizQuestionText" tabindex="-1"></h2>
             <div class="gs-quiz-options" id="quizOptions"></div>
             @* appears once an answer is picked *@
             <button type="button" class="gs-btn gs-btn--primary gs-quiz-next" id="quizNextBtn" hidden>
@@ -84,7 +87,7 @@
 
         @* 3a. passed *@
         <div id="missionComplete" class="gs-quiz-complete" hidden>
-            <h2>Mission complete!</h2>
+            <h2 id="missionCompleteTitle" tabindex="-1">Mission complete!</h2>
             <p class="mission-score" id="missionCompleteScore"></p>
             <div class="mission-rewards">
                 <span class="mission-reward">+@creditReward credits</span>
@@ -111,7 +114,7 @@
 
         @* 3b. failed *@
         <div id="missionFailed" class="gs-quiz-complete" hidden>
-            <h2>Mission failed</h2>
+            <h2 id="missionFailedTitle" tabindex="-1">Mission failed</h2>
             <p class="mission-score" id="missionFailedScore"></p>
             <p>You need @passPercent% correct to complete the mission. Study up and try again!</p>
             <div class="gs-quiz-complete-actions">
@@ -175,6 +178,7 @@
         const nextBtn = document.getElementById("quizNextBtn");
         const progressLabel = document.getElementById("quizProgressLabel");
         const progressFill = document.getElementById("quizProgressFill");
+        const progressBar = document.getElementById("quizProgressBar");
 
         // show the real number of questions in the briefing text
         document.getElementById("missionQuestionCount").textContent = quizQuestions.length;
@@ -199,6 +203,7 @@
 
             progressLabel.textContent = "Question " + (currentIndex + 1) + " of " + quizQuestions.length;
             progressFill.style.width = Math.round((currentIndex / quizQuestions.length) * 100) + "%";
+            progressBar.setAttribute("aria-valuenow", currentIndex);
 
             questionText.textContent = q.question;
             optionsContainer.innerHTML = "";
@@ -214,6 +219,9 @@
                 });
                 optionsContainer.appendChild(btn);
             });
+
+            // keyboard and screen reader users start at the new question
+            questionText.focus();
         }
 
         // locks the answers, marks right (green) and wrong (red), and counts the score
@@ -247,6 +255,9 @@
                 currentIndex === quizQuestions.length - 1
                     ? "Finish mission"
                     : "Next question";
+
+            // the clicked option is now disabled, so move focus to the button that continues
+            nextBtn.focus();
         }
 
         async function finishMission() {
@@ -297,6 +308,9 @@
                 }
 
                 renderReview(result.review);
+
+                // move focus to the result heading, so it's read out and Tab continues to its buttons
+                document.getElementById(result.passed ? "missionCompleteTitle" : "missionFailedTitle").focus();
 
             } catch (error) {
                 console.error(error);

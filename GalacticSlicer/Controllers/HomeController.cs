@@ -1,22 +1,60 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using GalacticSlicer.DAL;
 using GalacticSlicer.Models;
+using GalacticSlicer.Services;
+using GalacticSlicer.ViewModels;
 
 namespace GalacticSlicer.Controllers;
 
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
+    private readonly UserManager<IdentityUser> _userManager;
+    private readonly PlayerProgressService _progressService;
+    private readonly PlanetProgressService _planetProgressService;
+    private readonly ChallengeCompletionService _completionService;
+    private readonly IPlanetRepository _planetRepository;
 
-    public HomeController(ILogger<HomeController> logger)
+    public HomeController(ILogger<HomeController> logger, UserManager<IdentityUser> userManager,
+        PlayerProgressService progressService, PlanetProgressService planetProgressService,
+        ChallengeCompletionService completionService, IPlanetRepository planetRepository)
     {
         _logger = logger;
+        _userManager = userManager;
+        _progressService = progressService;
+        _planetProgressService = planetProgressService;
+        _completionService = completionService;
+        _planetRepository = planetRepository;
     }
 
-    public IActionResult Index()
+    // GET: / - the intro for everyone; players also get a greeting and a button to their next mission
+    public async Task<IActionResult> Index()
     {
-        return View();
+        var userId = _userManager.GetUserId(User);
+
+        // Visitors only see the intro, so no database work is needed
+        if (userId == null)
+        {
+            return View(new HomeViewModel { IsLoggedIn = false });
+        }
+
+        var progress = await _progressService.GetOrCreateProgressAsync(userId);
+        var completedPlanetIds = await _completionService.GetCompletedPlanetIdsAsync(userId);
+        var planets = await _planetRepository.GetAll() ?? new List<Planet>();
+        var statuses = _planetProgressService.GetPlanetStatuses(planets, progress, completedPlanetIds);
+
+        var model = new HomeViewModel
+        {
+            IsLoggedIn = true,
+            Username = User.Identity?.Name ?? "Slicer",
+            NextPlanet = statuses.FirstOrDefault(p => p.IsUnlocked && !p.IsCompleted),
+            LastUnlockedPlanet = statuses.LastOrDefault(p => p.IsUnlocked)
+        };
+
+        return View(model);
     }
 
     public IActionResult Privacy()

@@ -113,6 +113,50 @@ a:hover {
   outline-offset: 2px;
 }
 
+/* Bootstrap's text-muted is dark grey (made for light pages) and almost invisible on our dark
+   background, so it uses the theme's muted color instead (Bootstrap marks it !important too) */
+.text-muted {
+  color: var(--gs-text-muted) !important;
+}
+
+/* "Skip to content" link for keyboard users: hidden until it gets focus with Tab */
+.gs-skip-link {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 1000;
+  padding: 0.6rem 1rem;
+  border-radius: var(--gs-radius-sm);
+  background: var(--gs-accent);
+  color: #03101d;
+  font-weight: 700;
+  transform: translateY(-200%);
+}
+
+.gs-skip-link:focus {
+  transform: translateY(0);
+  color: #03101d;
+}
+
+/* elements that only get focus from scripts or the skip link (main, question headings)
+   don't need the outline: they aren't buttons or links */
+[tabindex="-1"]:focus {
+  outline: none;
+}
+
+/* text only for screen readers, e.g. "Correct!" after answering (hidden visually) */
+.gs-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
@@ -884,8 +928,9 @@ select.gs-input {
   cursor: not-allowed;
 }
 
+/* dimmed, but still readable: 0.8 keeps the muted "Locked" text above the 4.5:1 contrast minimum */
 .gs-star-node--locked .gs-star-node-info {
-  opacity: 0.55;
+  opacity: 0.8;
 }
 
 /* dim locked planets without making them see-through (the path line is behind them) */
@@ -1193,54 +1238,6 @@ a.gs-star-node-link:hover .gs-star-node-name {
 
 /* ---------- progress page ---------- */
 
-.gs-profile-header {
-  max-width: var(--gs-max-width);
-  margin: 3rem auto 2rem;
-  padding: 0 1.5rem;
-  text-align: center;
-}
-
-.gs-profile-header h1 {
-  margin: 0.5rem 0 0.25rem;
-  font-size: clamp(1.75rem, 4vw, 2.25rem);
-}
-
-/* username with the equipped badge to its left */
-.gs-profile-name {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.9rem;
-  margin-top: 0.75rem;
-}
-
-.gs-profile-name h1 {
-  margin: 0;
-}
-
-/* the badge on the Progress page, with a glow in its tier color */
-.gs-profile-badge {
-  display: block;
-  width: clamp(52px, 6vw, 68px);
-  flex-shrink: 0;
-}
-
-.gs-profile-badge .gs-badge {
-  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--tier) 55%, transparent));
-}
-
-/* small "Change badge" link under the username */
-.gs-profile-badge-link {
-  display: inline-block;
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
-}
-
-.gs-profile-meta {
-  font-size: 0.9rem;
-  margin: 0;
-}
-
 .gs-rank-badge {
   display: inline-block;
   padding: 0.3rem 0.9rem;
@@ -1251,46 +1248,6 @@ a.gs-star-node-link:hover .gs-star-node-name {
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-}
-
-.gs-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.1rem;
-  max-width: var(--gs-max-width);
-  margin: 0 auto 2.5rem;
-}
-
-.gs-stat-card {
-  background: var(--gs-bg-card);
-  border: 1px solid var(--gs-border);
-  border-radius: var(--gs-radius);
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.gs-stat-label {
-  font-size: 0.8rem;
-  color: var(--gs-text-muted);
-}
-
-.gs-stat-value {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: var(--gs-text);
-}
-
-.gs-stat-value--rank {
-  font-size: 1.15rem;
-  color: var(--gs-accent);
-}
-
-.gs-stat-value-total {
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--gs-text-muted);
 }
 
 .gs-progress-section {
@@ -1407,6 +1364,13 @@ a.gs-star-node-link:hover .gs-star-node-name {
 .gs-quiz-option--incorrect {
   border-color: #ef5b5b;
   background: rgba(239, 91, 91, 0.14);
+}
+
+/* the option picked in a mission (right/wrong is only shown at the end), in gold with a thicker edge */
+.gs-quiz-option--selected {
+  border-color: var(--gs-accent);
+  box-shadow: inset 0 0 0 1px var(--gs-accent);
+  background: var(--gs-accent-soft);
 }
 
 .gs-quiz-next {
@@ -1555,15 +1519,10 @@ a.gs-star-node-link:hover .gs-star-node-name {
   .gs-topic-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-
-  .gs-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 @media (max-width: 480px) {
-  .gs-topic-grid,
-  .gs-stats-grid {
+  .gs-topic-grid {
     grid-template-columns: 1fr;
   }
 }

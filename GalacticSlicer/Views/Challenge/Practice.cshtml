@@ -10,17 +10,22 @@
 
 <section class="gs-quiz-wrapper">
     <div class="gs-quiz-card">
+        @* aria-live: screen readers read "Question X of Y" out loud when it changes *@
         <div class="gs-quiz-progress-row">
-            <span id="quizProgressLabel"></span>
-            <div class="gs-progress-bar gs-quiz-progress-bar">
+            <span id="quizProgressLabel" aria-live="polite"></span>
+            <div class="gs-progress-bar gs-quiz-progress-bar" id="quizProgressBar" role="progressbar"
+                 aria-label="Practice progress" aria-valuemin="0" aria-valuemax="@Model.Questions.Count" aria-valuenow="0">
                 <div class="gs-progress-bar-fill" id="quizProgressFill" style="width: 0%;"></div>
             </div>
         </div>
 
         @* question text, answer buttons and explanation are filled in by renderQuestion() *@
         <div id="quizQuestionArea">
-            <h2 class="gs-quiz-question" id="quizQuestionText"></h2>
+            @* tabindex="-1" so the script can move focus here when a new question appears *@
+            <h2 class="gs-quiz-question" id="quizQuestionText" tabindex="-1"></h2>
             <div class="gs-quiz-options" id="quizOptions"></div>
+            @* read out after answering ("Correct!" / "Wrong, the correct answer is ..."), hidden on screen *@
+            <p class="gs-sr-only" id="quizFeedback" aria-live="polite"></p>
             @* shown after answering: why the correct answer is right *@
             <p class="gs-quiz-explanation" id="quizExplanation" hidden></p>
             <button type="button" class="gs-btn gs-btn--primary gs-quiz-next" id="quizNextBtn" hidden>
@@ -29,7 +34,7 @@
         </div>
 
         <div id="quizCompleteArea" class="gs-quiz-complete" hidden>
-            <h2>Practice complete!</h2>
+            <h2 id="quizCompleteTitle" tabindex="-1">Practice complete!</h2>
             <p id="quizScoreText"></p>
             <div class="gs-quiz-complete-actions">
                 @* reloads the page with 10 new random questions *@
@@ -67,6 +72,8 @@
         const nextBtn = document.getElementById("quizNextBtn");
         const progressLabel = document.getElementById("quizProgressLabel");
         const progressFill = document.getElementById("quizProgressFill");
+        const progressBar = document.getElementById("quizProgressBar");
+        const feedbackText = document.getElementById("quizFeedback");
         const questionArea = document.getElementById("quizQuestionArea");
         const completeArea = document.getElementById("quizCompleteArea");
         const scoreText = document.getElementById("quizScoreText");
@@ -78,9 +85,11 @@
 
             progressLabel.textContent = "Question " + (currentIndex + 1) + " of " + quizQuestions.length;
             progressFill.style.width = Math.round((currentIndex / quizQuestions.length) * 100) + "%";
+            progressBar.setAttribute("aria-valuenow", currentIndex);
 
             questionText.textContent = q.question;
             optionsContainer.innerHTML = "";
+            feedbackText.textContent = "";
             explanationText.hidden = true;
             nextBtn.hidden = true;
 
@@ -94,9 +103,15 @@
                 });
                 optionsContainer.appendChild(btn);
             });
+
+            // keyboard and screen reader users start at the new question (not on the first one,
+            // so the page doesn't jump when it opens)
+            if (currentIndex > 0) {
+                questionText.focus();
+            }
         }
 
-        // locks the answers, marks right (green) and wrong (red), counts the score and shows the explanation
+        // locks the answers, marks right (green ✓) and wrong (red ✗), counts the score and shows the explanation
         function selectAnswer(selectedIndex) {
             if (answered) {
                 return;
@@ -106,17 +121,23 @@
             const q = quizQuestions[currentIndex];
             const optionButtons = optionsContainer.querySelectorAll(".gs-quiz-option");
 
+            // ✓ and ✗ next to the color, so right and wrong don't depend on seeing green and red
             optionButtons.forEach(function (btn, index) {
                 btn.disabled = true;
                 if (index === q.correctIndex) {
                     btn.classList.add("gs-quiz-option--correct");
+                    btn.textContent = "✓ " + btn.textContent;
                 } else if (index === selectedIndex) {
                     btn.classList.add("gs-quiz-option--incorrect");
+                    btn.textContent = "✗ " + btn.textContent;
                 }
             });
 
             if (selectedIndex === q.correctIndex) {
                 correctCount++;
+                feedbackText.textContent = "Correct!";
+            } else {
+                feedbackText.textContent = "Wrong. The correct answer is: " + q.options[q.correctIndex];
             }
 
             if (q.explanation) {
@@ -126,6 +147,9 @@
 
             nextBtn.hidden = false;
             nextBtn.textContent = currentIndex === quizQuestions.length - 1 ? "See results" : "Next question";
+
+            // the clicked option is now disabled, so move focus to the button that continues
+            nextBtn.focus();
         }
 
         // go to the next question, or show the score after the last one
@@ -142,9 +166,13 @@
         function showComplete() {
             progressFill.style.width = "100%";
             progressLabel.textContent = "Question " + quizQuestions.length + " of " + quizQuestions.length;
+            progressBar.setAttribute("aria-valuenow", quizQuestions.length);
             questionArea.hidden = true;
             completeArea.hidden = false;
             scoreText.textContent = "You got " + correctCount + " out of " + quizQuestions.length + " correct.";
+
+            // move focus to the result, so it's read out and Tab continues to its buttons
+            document.getElementById("quizCompleteTitle").focus();
         }
 
         renderQuestion();

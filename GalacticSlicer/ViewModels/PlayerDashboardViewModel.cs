@@ -24,6 +24,19 @@ public class PlayerDashboardViewModel
     public int XpForCurrentRank { get; set; }
     public int XpForNextRank { get; set; }
 
+    // All planets with locked / unlocked / completed status, for the pilot panel's mini starchart
+    public List<PlanetViewModel> Planets { get; set; } = new();
+
+    // First unlocked planet that isn't completed yet: the "Continue" button (null if there is none)
+    public PlanetViewModel? NextPlanet { get; set; }
+
+    // Last unlocked planet, for "Replay" when every unlocked mission is completed
+    public PlanetViewModel? LastUnlockedPlanet { get; set; }
+
+    // Next locked planet and the XP it needs, e.g. "Kamino unlocks at 3000 XP"
+    public PlanetViewModel? NextLockedPlanet { get; set; }
+    public int NextLockedPlanetXp { get; set; }
+
     // Percentages for progress bars
     public int PlanetPercent =>
         PlanetsTotal == 0 ? 0 :
