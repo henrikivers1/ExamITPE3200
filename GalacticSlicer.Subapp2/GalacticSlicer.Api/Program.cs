@@ -1,4 +1,18 @@
+using GalacticSlicer.Api.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Register EF Core with the API's own SQLite database
+builder.Services.AddDbContext<GalacticSlicerDbContext>(options =>
+    options.UseSqlite(
+        builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Register ASP.NET Core Identity with the same database
+builder.Services
+    .AddIdentityCore<IdentityUser>()
+    .AddEntityFrameworkStores<GalacticSlicerDbContext>();
 
 // Add services to the container.
 
@@ -7,6 +21,17 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+
+ // Seed initial planet data
+ using (var scope = app.Services.CreateScope())
+ {
+     var context = scope.ServiceProvider
+         .GetRequiredService<GalacticSlicerDbContext>();
+
+     await DBInit.SeedAsync(context);
+ }
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
