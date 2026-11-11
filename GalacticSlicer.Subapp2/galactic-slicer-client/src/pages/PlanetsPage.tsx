@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import type { Planet } from "../types/Planet";
 import { getPlanets } from "../services/planetService";
+import PlanetCard from "../components/PlanetCard";
 
-// Moved here from App.tsx: loads the planets from GET /api/planets
+// Loads the planets from GET /api/planets and shows them as a starchart
 function PlanetsPage() {
     const [planets, setPlanets] = useState<Planet[]>([]);
     const [loading, setLoading] = useState(true);
@@ -27,31 +28,35 @@ function PlanetsPage() {
     return (
         <>
             <section className="gs-page-intro">
-                <h1>Galaxy</h1>
-                <p>Every planet is a mission. Pick a world and start slicing.</p>
+                <h1>The Starchart</h1>
+                <p>Follow the path from world to world. Every planet is a mission.</p>
+                {planets.length > 0 && (
+                    <p className="gs-starchart-progress">
+                        {planets.length} {planets.length === 1 ? "planet" : "planets"} charted
+                    </p>
+                )}
             </section>
 
-            {loading && <p className="gs-page-intro">Loading planets...</p>}
+            {/* aria-live: screen readers hear when loading ends or an error appears */}
+            <div aria-live="polite">
+                {loading && <p className="gs-page-intro">Loading planets...</p>}
 
-            {error && <p className="gs-page-intro" role="alert">{error}</p>}
+                {error && <p className="gs-page-intro" role="alert">{error}</p>}
 
-            {!loading && !error && planets.length === 0 && (
-                <p className="gs-page-intro">No planets found.</p>
-            )}
+                {!loading && !error && planets.length === 0 && (
+                    <p className="gs-page-intro">No planets found.</p>
+                )}
+            </div>
 
-            {/* simple list for now; Step 3 turns this into the starchart with PlanetCard */}
             {planets.length > 0 && (
-                <ul className="planet-list">
-                    {planets.map(planet => (
-                        <li key={planet.planetId} className="gs-feature-card planet-list-item">
-                            <span className={`gs-planet gs-planet--${planet.cssClass}`} aria-hidden="true"></span>
-                            <div>
-                                <h2 className="gs-feature-title">{planet.name}</h2>
-                                <p className="gs-feature-text">{planet.description}</p>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
+                <section className="gs-starchart" aria-label="Planets">
+                    {/* --gs-count lets the CSS use fewer columns when there are fewer than 6 planets */}
+                    <ol className="gs-starchart-path" style={{ "--gs-count": planets.length } as CSSProperties}>
+                        {planets.map(planet => (
+                            <PlanetCard key={planet.planetId} planet={planet} />
+                        ))}
+                    </ol>
+                </section>
             )}
         </>
     );

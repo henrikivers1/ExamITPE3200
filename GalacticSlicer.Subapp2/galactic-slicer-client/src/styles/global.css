@@ -27,24 +27,23 @@
     margin-inline: auto;
 }
 
-/* temporary planet list on the Galaxy page (becomes the starchart in Step 3) */
-.planet-list {
-    display: grid;
-    gap: 1rem;
-    max-width: 720px;
-    margin: 1.5rem auto 0;
-    padding: 0;
-    list-style: none;
+/* Subapp 1 always has 6 planets, so its starchart has fixed columns (6, 3 on tablets, 2 on phones).
+   Here the number comes from the API, so use fewer columns when there are fewer planets
+   (PlanetsPage sets --gs-count). */
+.gs-starchart-path {
+    --gs-cols: min(6, var(--gs-count, 6));
 }
 
-.planet-list-item {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
+@media (max-width: 900px) {
+    .gs-starchart-path {
+        --gs-cols: min(3, var(--gs-count, 6));
+    }
 }
 
-.planet-list-item .gs-feature-text {
-    margin: 0;
+@media (max-width: 560px) {
+    .gs-starchart-path {
+        --gs-cols: min(2, var(--gs-count, 6));
+    }
 }
 
 /* buttons under the page intro (Not found page) */
