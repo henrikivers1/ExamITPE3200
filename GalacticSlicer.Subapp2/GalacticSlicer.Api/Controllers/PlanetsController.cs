@@ -1,32 +1,40 @@
+using GalacticSlicer.Api.DAL;
 using Microsoft.AspNetCore.Mvc;
-using GalacticSlicer.Api.Models;
-using Microsoft.EntityFrameworkCore;
+using GalacticSlicer.Api.DTOs;
 
 namespace GalacticSlicer.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/planets")]
 public class PlanetsController : ControllerBase
 {
+    private readonly IPlanetRepository _planetRepository;
 
-    private readonly GalacticSlicerDbContext _context;
-
-    public PlanetsController(GalacticSlicerDbContext context)
+    public PlanetsController(IPlanetRepository planetRepository)
     {
-        _context = context;
+        _planetRepository = planetRepository;
     }
-
 
     [HttpGet]
     public async Task<IActionResult> GetPlanets()
     {
-        var planets = await _context.Planets
-            .AsNoTracking()
-            .ToListAsync();
+        var planets = await _planetRepository.GetAll();
 
-        return Ok(planets);
+        if (planets == null)
+        {
+            return Ok(new List<PlanetDto>());
+        }
+
+        var planetDtos = planets.Select(p => new PlanetDto
+        {
+            PlanetId = p.PlanetId,
+            Name = p.Name,
+            Description = p.Description,
+            Order = p.Order,
+            CssClass = p.CssClass,
+            Subject = p.Subject
+        }).ToList();
+
+        return Ok(planetDtos);
     }
-
-
-
 }

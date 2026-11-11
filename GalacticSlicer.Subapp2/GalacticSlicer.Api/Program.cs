@@ -1,4 +1,5 @@
 using GalacticSlicer.Api.Models;
+using GalacticSlicer.Api.DAL;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,7 +16,8 @@ builder.Services
     .AddEntityFrameworkStores<GalacticSlicerDbContext>();
 
 // Add services to the container.
-
+// Register the planet repository for dependency injection
+builder.Services.AddScoped<IPlanetRepository, PlanetRepository>();
 builder.Services.AddControllers();
 
 // Allow requests from the React frontend
