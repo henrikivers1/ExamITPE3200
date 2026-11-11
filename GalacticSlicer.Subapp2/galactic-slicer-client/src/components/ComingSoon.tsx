@@ -1,11 +1,18 @@
+import { Link } from "react-router-dom";
+import { usePageTitle } from "../hooks/usePageTitle";
+
 interface ComingSoonProps {
     title: string;
     text: string;
+    // what the page will have once the API endpoints exist
+    features: string[];
 }
 
 // Placeholder for pages that need API endpoints that don't exist yet.
 // Shows no fake Credits, progress or login data.
-function ComingSoon({ title, text }: ComingSoonProps) {
+function ComingSoon({ title, text, features }: ComingSoonProps) {
+    usePageTitle(title);
+
     return (
         <>
             <section className="gs-page-intro">
@@ -22,7 +29,18 @@ function ComingSoon({ title, text }: ComingSoonProps) {
                     </svg>
                 </div>
                 <h2 className="gs-feature-title">Coming soon</h2>
-                <p className="gs-feature-text">This part of the galaxy is still under construction.</p>
+                <p className="gs-feature-text">This part of the galaxy is still under construction. It will let you:</p>
+
+                <ul className="gs-coming-soon-list">
+                    {features.map(feature => (
+                        <li key={feature}>{feature}</li>
+                    ))}
+                </ul>
+
+                <div className="gs-page-actions">
+                    <Link to="/planets" className="gs-btn gs-btn--primary">View galaxy</Link>
+                    <Link to="/" className="gs-btn gs-btn--outline">Back to Home</Link>
+                </div>
             </div>
         </>
     );

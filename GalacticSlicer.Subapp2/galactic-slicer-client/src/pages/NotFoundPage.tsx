@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 // Shown for any URL that doesn't match a route
 function NotFoundPage() {
+    usePageTitle("Page not found");
+
     return (
         <section className="gs-page-intro">
             <h1>Page not found</h1>

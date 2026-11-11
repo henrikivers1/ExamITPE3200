@@ -6,6 +6,11 @@ function ChallengesPage() {
         <ComingSoon
             title="Challenges"
             text="Create your own challenges and practice cybersecurity questions."
+            features={[
+                "Practice questions by subject, with explanations",
+                "Create, edit and delete your own challenges",
+                "Search your challenges by text and subject",
+            ]}
         />
     );
 }

@@ -27,6 +27,24 @@
     margin-inline: auto;
 }
 
+/* what the page will have, left-aligned so the lines are easy to read */
+.gs-coming-soon-list {
+    display: inline-block;
+    margin: 0 0 1.5rem;
+    padding-left: 1.25rem;
+    text-align: left;
+    color: var(--gs-text-muted);
+    font-size: 0.925rem;
+}
+
+.gs-coming-soon-list li + li {
+    margin-top: 0.35rem;
+}
+
+.gs-coming-soon-list li::marker {
+    color: var(--gs-accent);
+}
+
 /* Subapp 1 always has 6 planets, so its starchart has fixed columns (6, 3 on tablets, 2 on phones).
    Here the number comes from the API, so use fewer columns when there are fewer planets
    (PlanetsPage sets --gs-count). */

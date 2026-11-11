@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 // Same hero and feature cards as the Subapp 1 Home page (visitor version: there is no login yet)
 function HomePage() {
+    usePageTitle("Home");
+
     return (
         <>
             <section className="gs-hero">

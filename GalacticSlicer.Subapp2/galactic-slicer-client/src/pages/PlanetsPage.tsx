@@ -2,9 +2,12 @@ import { useEffect, useState, type CSSProperties } from "react";
 import type { Planet } from "../types/Planet";
 import { getPlanets } from "../services/planetService";
 import PlanetCard from "../components/PlanetCard";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 // Loads the planets from GET /api/planets and shows them as a starchart
 function PlanetsPage() {
+    usePageTitle("Galaxy");
+
     const [planets, setPlanets] = useState<Planet[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

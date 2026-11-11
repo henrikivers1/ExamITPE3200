@@ -6,6 +6,11 @@ function CharactersPage() {
         <ComingSoon
             title="Shop"
             text="Spend your Credits on character badges."
+            features={[
+                "Browse character badges and their prices",
+                "Buy characters with the Credits you earn in missions",
+                "Equip or unequip the badge shown next to your name",
+            ]}
         />
     );
 }
