@@ -25,28 +25,35 @@ function PlanetsPage() {
     }, []);
 
     return (
-        <section className="page">
-            <h1>Galaxy</h1>
+        <>
+            <section className="gs-page-intro">
+                <h1>Galaxy</h1>
+                <p>Every planet is a mission. Pick a world and start slicing.</p>
+            </section>
 
-            {loading && <p>Loading planets...</p>}
+            {loading && <p className="gs-page-intro">Loading planets...</p>}
 
-            {error && <p role="alert">{error}</p>}
+            {error && <p className="gs-page-intro" role="alert">{error}</p>}
 
             {!loading && !error && planets.length === 0 && (
-                <p>No planets found.</p>
+                <p className="gs-page-intro">No planets found.</p>
             )}
 
+            {/* simple list for now; Step 3 turns this into the starchart with PlanetCard */}
             {planets.length > 0 && (
                 <ul className="planet-list">
                     {planets.map(planet => (
-                        <li key={planet.planetId}>
-                            <h2>{planet.name}</h2>
-                            <p>{planet.description}</p>
+                        <li key={planet.planetId} className="gs-feature-card planet-list-item">
+                            <span className={`gs-planet gs-planet--${planet.cssClass}`} aria-hidden="true"></span>
+                            <div>
+                                <h2 className="gs-feature-title">{planet.name}</h2>
+                                <p className="gs-feature-text">{planet.description}</p>
+                            </div>
                         </li>
                     ))}
                 </ul>
             )}
-        </section>
+        </>
     );
 }
 
