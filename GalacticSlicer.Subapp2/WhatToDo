@@ -1,0 +1,53 @@
+# Galactic Slicer – Subapp 2 TODO
+
+## Completed
+
+- [x] Create ASP.NET Core 10 Web API project.
+- [x] Create React + TypeScript frontend using Vite.
+- [x] Verify that the API and React projects run.
+- [x] Copy seven domain models from Subapp 1.
+- [x] Configure EF Core, Identity and SQLite.
+- [x] Create `GalacticSlicerDbContext`.
+- [x] Create and apply the `InitialCreate` migration.
+- [x] Create `PlanetsController` with `GET /api/planets`.
+- [x] Create `DBInit` with Tatooine and Coruscant.
+- [x] Verify that the API returns planets as JSON.
+- [x] Create `src/services/planetService.ts`.
+
+## Next session
+
+- [ ] Finish and verify CORS configuration in `Program.cs`.
+- [ ] Connect React to `GET /api/planets`.
+- [ ] Display Tatooine and Coruscant in React.
+- [ ] Add TypeScript types for API responses.
+- [ ] Add loading and error handling in React.
+
+## Backend – Remaining tasks
+
+- [ ] Implement Repository Pattern and move EF Core queries out of controllers.
+- [ ] Create DTOs for API requests and responses.
+- [ ] Implement CRUD for Challenge, Planet and Character.
+- [ ] Add service layer for business logic.
+- [ ] Implement authentication and authorization.
+- [ ] Implement player progress, Credits and character purchases.
+- [ ] Add server-side validation, logging and error handling.
+- [ ] Add search and filtering with multiple parameters.
+- [ ] Test API endpoints and important business rules.
+
+## Frontend – Remaining tasks
+
+- [ ] Replace the default Vite page with Galactic Slicer UI.
+- [ ] Create navigation, planet overview and mission pages.
+- [ ] Connect React components to API service functions.
+- [ ] Implement forms for CRUD operations.
+- [ ] Add client-side validation and conditional rendering.
+- [ ] Implement login and player dashboard.
+- [ ] Add responsive styling.
+
+## Before submission
+
+- [ ] Verify that Subapp 1 and Subapp 2 run independently.
+- [ ] Test installation from a clean checkout.
+- [ ] Update README with setup instructions.
+- [ ] Complete exam documentation and requirements checklist.
+- [ ] Perform final build, lint and functional testing.

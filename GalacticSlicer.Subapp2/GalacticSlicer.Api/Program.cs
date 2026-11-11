@@ -17,6 +17,17 @@ builder.Services
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+// Allow requests from the React frontend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactClient", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -41,8 +52,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("ReactClient");
+
 app.UseAuthorization();
 
 app.MapControllers();
-
 app.Run();
