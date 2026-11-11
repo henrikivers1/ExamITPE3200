@@ -1,48 +1,25 @@
+import { Route, Routes } from "react-router-dom";
+import Layout from "./components/Layout";
+import HomePage from "./pages/HomePage";
+import PlanetsPage from "./pages/PlanetsPage";
+import ChallengesPage from "./pages/ChallengesPage";
+import CharactersPage from "./pages/CharactersPage";
+import ProgressPage from "./pages/ProgressPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
-import { useEffect, useState } from "react";
-import type { Planet } from "./types/Planet";
-import { getPlanets } from "./services/planetService";
-
+// Every page is rendered inside Layout (navbar, main content and footer)
 function App() {
-    const [planets, setPlanets] = useState<Planet[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        async function loadPlanets() {
-            try {
-                const data = await getPlanets();
-                setPlanets(data);
-            } catch {
-                setError("Could not load planets.");
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        loadPlanets();
-    }, []);
-
-    if (loading) {
-        return <p>Loading planets...</p>;
-    }
-
-    if (error) {
-        return <p>{error}</p>;
-    }
-
     return (
-        <main>
-            <h1>Galactic Slicer</h1>
-            <h2>Planets</h2>
-
-            {planets.map(planet => (
-                <div key={planet.planetId}>
-                    <h3>{planet.name}</h3>
-                    <p>{planet.description}</p>
-                </div>
-            ))}
-        </main>
+        <Routes>
+            <Route element={<Layout />}>
+                <Route index element={<HomePage />} />
+                <Route path="planets" element={<PlanetsPage />} />
+                <Route path="challenges" element={<ChallengesPage />} />
+                <Route path="characters" element={<CharactersPage />} />
+                <Route path="progress" element={<ProgressPage />} />
+                <Route path="*" element={<NotFoundPage />} />
+            </Route>
+        </Routes>
     );
 }
 
