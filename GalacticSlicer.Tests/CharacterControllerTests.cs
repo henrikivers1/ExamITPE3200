@@ -5,13 +5,14 @@ using GalacticSlicer.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 
 namespace GalacticSlicer.Tests;
 
 // Unit tests for CharacterController (Manage / Create / Edit / Delete).
-// Same pattern as the course's ItemController tests: the repository is a Moq mock,
+// Same pattern as the course's ItemController tests: the repository is faked with NSubstitute (Substitute.For),
 // so no database is used and only the controller's own logic is tested.
 public class CharacterControllerTests
 {
@@ -24,16 +25,16 @@ public class CharacterControllerTests
 
     // The services and UserManager are not used by the CRUD actions, so they are null here.
     // TempData is needed because the actions set success/error messages.
-    private static CharacterController CreateController(Mock<ICharacterRepository> repo)
+    private static CharacterController CreateController(ICharacterRepository repo)
     {
         var controller = new CharacterController(
-            repo.Object,
-            NullLogger<CharacterController>.Instance,
+            repo,
+            Substitute.For<ILogger<CharacterController>>(),
             null!,   // CharacterService
             null!,   // UserManager
             null!);  // PlayerProgressService
 
-        controller.TempData = new TempDataDictionary(new DefaultHttpContext(), Mock.Of<ITempDataProvider>());
+        controller.TempData = new TempDataDictionary(new DefaultHttpContext(), Substitute.For<ITempDataProvider>());
         return controller;
     }
 
@@ -42,58 +43,58 @@ public class CharacterControllerTests
     [Fact]
     public async Task Create_ValidCharacter_SavesAndRedirectsToManage()
     {
-        var repo = new Mock<ICharacterRepository>();
-        repo.Setup(r => r.GetAll()).ReturnsAsync(SampleCharacters());
-        repo.Setup(r => r.Create(It.IsAny<Character>())).ReturnsAsync(true);
+        var repo = Substitute.For<ICharacterRepository>();
+        repo.GetAll().Returns(SampleCharacters());
+        repo.Create(Arg.Any<Character>()).Returns(true);
         var controller = CreateController(repo);
 
         var result = await controller.Create(new Character { Name = "Bounty Hunter", Price = 500 });
 
         var redirect = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal("Manage", redirect.ActionName);
-        repo.Verify(r => r.Create(It.IsAny<Character>()), Times.Once);
+        await repo.Received(1).Create(Arg.Any<Character>());
     }
 
     [Fact]
     public async Task Edit_ValidCharacter_UpdatesAndRedirectsToManage()
     {
-        var repo = new Mock<ICharacterRepository>();
+        var repo = Substitute.For<ICharacterRepository>();
         var characters = SampleCharacters();
-        repo.Setup(r => r.GetAll()).ReturnsAsync(characters);
-        repo.Setup(r => r.GetCharacterById(2)).ReturnsAsync(characters[1]);
-        repo.Setup(r => r.Update(It.IsAny<Character>())).ReturnsAsync(true);
+        repo.GetAll().Returns(characters);
+        repo.GetCharacterById(2).Returns(characters[1]);
+        repo.Update(Arg.Any<Character>()).Returns(true);
         var controller = CreateController(repo);
 
         var result = await controller.Edit(2, new Character { CharacterId = 2, Name = "Smuggler", Price = 350 });
 
         var redirect = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal("Manage", redirect.ActionName);
-        repo.Verify(r => r.Update(It.Is<Character>(c => c.Price == 350)), Times.Once);
+        await repo.Received(1).Update(Arg.Is<Character>(c => c.Price == 350));
     }
 
     [Fact]
     public async Task DeleteConfirmed_UnownedCharacter_DeletesIt()
     {
-        var repo = new Mock<ICharacterRepository>();
+        var repo = Substitute.For<ICharacterRepository>();
         var characters = SampleCharacters();
-        repo.Setup(r => r.GetCharacterById(2)).ReturnsAsync(characters[1]);
-        repo.Setup(r => r.GetAll()).ReturnsAsync(characters);
-        repo.Setup(r => r.CountOwners(2)).ReturnsAsync(0);
-        repo.Setup(r => r.Delete(2)).ReturnsAsync(true);
+        repo.GetCharacterById(2).Returns(characters[1]);
+        repo.GetAll().Returns(characters);
+        repo.CountOwners(2).Returns(0);
+        repo.Delete(2).Returns(true);
         var controller = CreateController(repo);
 
         var result = await controller.DeleteConfirmed(2);
 
         Assert.IsType<RedirectToActionResult>(result);
-        repo.Verify(r => r.Delete(2), Times.Once);
+        await repo.Received(1).Delete(2);
     }
 
     [Fact]
     public async Task Manage_ReturnsViewWithOneRowPerCharacter()
     {
-        var repo = new Mock<ICharacterRepository>();
-        repo.Setup(r => r.GetAll()).ReturnsAsync(SampleCharacters());
-        repo.Setup(r => r.CountOwners(It.IsAny<int>())).ReturnsAsync(0);
+        var repo = Substitute.For<ICharacterRepository>();
+        repo.GetAll().Returns(SampleCharacters());
+        repo.CountOwners(Arg.Any<int>()).Returns(0);
         var controller = CreateController(repo);
 
         var result = await controller.Manage();
@@ -111,8 +112,8 @@ public class CharacterControllerTests
     [Fact]
     public async Task Create_DuplicateName_ReturnsViewAndDoesNotSave()
     {
-        var repo = new Mock<ICharacterRepository>();
-        repo.Setup(r => r.GetAll()).ReturnsAsync(SampleCharacters());
+        var repo = Substitute.For<ICharacterRepository>();
+        repo.GetAll().Returns(SampleCharacters());
         var controller = CreateController(repo);
 
         // "smuggler" already exists (the check ignores upper/lower case)
@@ -120,16 +121,16 @@ public class CharacterControllerTests
 
         Assert.IsType<ViewResult>(result);
         Assert.False(controller.ModelState.IsValid);
-        repo.Verify(r => r.Create(It.IsAny<Character>()), Times.Never);
+        await repo.DidNotReceive().Create(Arg.Any<Character>());
     }
 
     [Fact]
     public async Task Edit_LastFreeCharacterGetsAPrice_ReturnsViewAndDoesNotSave()
     {
-        var repo = new Mock<ICharacterRepository>();
+        var repo = Substitute.For<ICharacterRepository>();
         var characters = SampleCharacters();
-        repo.Setup(r => r.GetAll()).ReturnsAsync(characters);
-        repo.Setup(r => r.GetCharacterById(1)).ReturnsAsync(characters[0]);
+        repo.GetAll().Returns(characters);
+        repo.GetCharacterById(1).Returns(characters[0]);
         var controller = CreateController(repo);
 
         // Domain rule: at least one character must stay free for new players
@@ -137,13 +138,13 @@ public class CharacterControllerTests
 
         Assert.IsType<ViewResult>(result);
         Assert.True(controller.ModelState.ContainsKey(nameof(Character.Price)));
-        repo.Verify(r => r.Update(It.IsAny<Character>()), Times.Never);
+        await repo.DidNotReceive().Update(Arg.Any<Character>());
     }
 
     [Fact]
     public async Task Edit_IdMismatch_ReturnsBadRequest()
     {
-        var repo = new Mock<ICharacterRepository>();
+        var repo = Substitute.For<ICharacterRepository>();
         var controller = CreateController(repo);
 
         var result = await controller.Edit(1, new Character { CharacterId = 2, Name = "Smuggler" });
@@ -154,26 +155,26 @@ public class CharacterControllerTests
     [Fact]
     public async Task DeleteConfirmed_OwnedCharacter_IsBlocked()
     {
-        var repo = new Mock<ICharacterRepository>();
+        var repo = Substitute.For<ICharacterRepository>();
         var characters = SampleCharacters();
-        repo.Setup(r => r.GetCharacterById(2)).ReturnsAsync(characters[1]);
-        repo.Setup(r => r.GetAll()).ReturnsAsync(characters);
-        repo.Setup(r => r.CountOwners(2)).ReturnsAsync(3);   // three players own it
+        repo.GetCharacterById(2).Returns(characters[1]);
+        repo.GetAll().Returns(characters);
+        repo.CountOwners(2).Returns(3);   // three players own it
         var controller = CreateController(repo);
 
         var result = await controller.DeleteConfirmed(2);
 
         Assert.IsType<RedirectToActionResult>(result);
         Assert.NotNull(controller.TempData["ErrorMessage"]);
-        repo.Verify(r => r.Delete(It.IsAny<int>()), Times.Never);
+        await repo.DidNotReceive().Delete(Arg.Any<int>());
     }
 
     [Fact]
     public async Task Create_RepositoryThrows_ShowsErrorInsteadOfCrashing()
     {
-        var repo = new Mock<ICharacterRepository>();
-        repo.Setup(r => r.GetAll()).ReturnsAsync(SampleCharacters());
-        repo.Setup(r => r.Create(It.IsAny<Character>())).ThrowsAsync(new Exception("database down"));
+        var repo = Substitute.For<ICharacterRepository>();
+        repo.GetAll().Returns(SampleCharacters());
+        repo.Create(Arg.Any<Character>()).ThrowsAsync(new Exception("database down"));
         var controller = CreateController(repo);
 
         var result = await controller.Create(new Character { Name = "Bounty Hunter", Price = 500 });
