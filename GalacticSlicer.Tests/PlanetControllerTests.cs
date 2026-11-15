@@ -6,8 +6,8 @@ using GalacticSlicer.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 
 namespace GalacticSlicer.Tests;
 
@@ -21,11 +21,11 @@ public class PlanetControllerTests
     };
 
     // Only the repository is used by these actions; the other services are not needed
-    private static PlanetController CreateController(Mock<IPlanetRepository> repo)
+    private static PlanetController CreateController(IPlanetRepository repo)
     {
         var controller = new PlanetController(
-            repo.Object,
-            NullLogger<PlanetController>.Instance,
+            repo,
+            Substitute.For<ILogger<PlanetController>>(),
             null!,                        // ChallengeCompletionService
             null!,                        // UserManager
             new PlanetProgressService(),  // no database, safe to create
@@ -33,7 +33,7 @@ public class PlanetControllerTests
             null!,                        // QuestionService
             new RankService());           // no database, safe to create
 
-        controller.TempData = new TempDataDictionary(new DefaultHttpContext(), Mock.Of<ITempDataProvider>());
+        controller.TempData = new TempDataDictionary(new DefaultHttpContext(), Substitute.For<ITempDataProvider>());
         return controller;
     }
 
@@ -42,8 +42,8 @@ public class PlanetControllerTests
     [Fact]
     public async Task Manage_ReturnsViewWithOneRowPerPlanet()
     {
-        var repo = new Mock<IPlanetRepository>();
-        repo.Setup(r => r.GetAll()).ReturnsAsync(SamplePlanets());
+        var repo = Substitute.For<IPlanetRepository>();
+        repo.GetAll().Returns(SamplePlanets());
         var controller = CreateController(repo);
 
         var result = await controller.Manage();
@@ -56,16 +56,16 @@ public class PlanetControllerTests
     [Fact]
     public async Task DeleteConfirmed_EmptyPlanetThatIsNotFirst_DeletesIt()
     {
-        var repo = new Mock<IPlanetRepository>();
-        repo.Setup(r => r.GetPlanetById(2)).ReturnsAsync(SamplePlanets()[1]);
-        repo.Setup(r => r.Delete(2)).ReturnsAsync(true);
+        var repo = Substitute.For<IPlanetRepository>();
+        repo.GetPlanetById(2).Returns(SamplePlanets()[1]);
+        repo.Delete(2).Returns(true);
         var controller = CreateController(repo);
 
         var result = await controller.DeleteConfirmed(2);
 
         var redirect = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal("Manage", redirect.ActionName);
-        repo.Verify(r => r.Delete(2), Times.Once);
+        await repo.Received(1).Delete(2);
     }
 
     // ---------- Negative tests ----------
@@ -73,8 +73,8 @@ public class PlanetControllerTests
     [Fact]
     public async Task DeleteConfirmed_FirstPlanet_IsBlocked()
     {
-        var repo = new Mock<IPlanetRepository>();
-        repo.Setup(r => r.GetPlanetById(1)).ReturnsAsync(SamplePlanets()[0]);
+        var repo = Substitute.For<IPlanetRepository>();
+        repo.GetPlanetById(1).Returns(SamplePlanets()[0]);
         var controller = CreateController(repo);
 
         // Domain rule: chapter 1 can never be deleted, or new players have nothing to play
@@ -82,14 +82,14 @@ public class PlanetControllerTests
 
         Assert.IsType<RedirectToActionResult>(result);
         Assert.NotNull(controller.TempData["ErrorMessage"]);
-        repo.Verify(r => r.Delete(It.IsAny<int>()), Times.Never);
+        await repo.DidNotReceive().Delete(Arg.Any<int>());
     }
 
     [Fact]
     public async Task Edit_UnknownPlanet_ReturnsNotFound()
     {
-        var repo = new Mock<IPlanetRepository>();
-        repo.Setup(r => r.GetPlanetById(99)).ReturnsAsync((Planet?)null);
+        var repo = Substitute.For<IPlanetRepository>();
+        repo.GetPlanetById(99).Returns((Planet?)null);
         var controller = CreateController(repo);
 
         var result = await controller.Edit(99);
