@@ -6,6 +6,10 @@ namespace GalacticSlicer.Services;
 
 public class ChallengeCompletionService
 {
+    // Game rules in one place, so the controller, the view and this service always agree
+    public const int PassPercent = 80;          // % correct needed to pass a mission
+    public const int XpPerCorrectAnswer = 150;  // XP for each correctly answered official question
+
     private readonly GalacticSlicerDbContext _context;
     private readonly PlayerProgressService _progressService;
     private readonly RankService _rankService;
@@ -83,7 +87,7 @@ public class ChallengeCompletionService
 
             // Award Credits and XP
             progress.Credits += challenge.CreditReward;
-            progress.ExperiencePoints += 150;
+            progress.ExperiencePoints += XpPerCorrectAnswer;
             progress.Rank = _rankService.GetRank(progress.ExperiencePoints);
 
             // Save completion and rewards together
@@ -94,7 +98,7 @@ public class ChallengeCompletionService
                 "Challenge {ChallengeId} completed. Awarded {Credits} Credits and {XP} XP",
                 challengeId,
                 challenge.CreditReward,
-                150);
+                XpPerCorrectAnswer);
 
             return true;
         }
@@ -253,7 +257,7 @@ public class ChallengeCompletionService
                 correctChallenges.Count * 100.0 / challenges.Count;
 
             // Failed missions must not award permanent rewards
-            if (percent < 80)
+            if (percent < PassPercent)
             {
                 _logger.LogInformation(
                     "Mission failed on Planet {PlanetId}: {Correct}/{Total} correct",
@@ -298,13 +302,13 @@ public class ChallengeCompletionService
                 {
                     // Final exam rewards are independent of previous planet rewards
                     awardedCredits += challenge.CreditReward;
-                    awardedXp += 150;
+                    awardedXp += XpPerCorrectAnswer;
                 }
                 else if (!alreadyRewarded)
                 {
                     // Normal planets reward each challenge only once
                     awardedCredits += challenge.CreditReward;
-                    awardedXp += 150;
+                    awardedXp += XpPerCorrectAnswer;
                 }
 
                 // Never insert duplicate CompletedChallenge records

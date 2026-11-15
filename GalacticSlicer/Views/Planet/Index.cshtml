@@ -12,7 +12,10 @@
     </p>
     <p class="gs-starchart-progress">@unlockedCount of @Model.Count planets unlocked</p>
 </section>
-
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="gs-delete-warning text-center" role="alert">@TempData["ErrorMessage"]</div>
+}
 <section class="gs-starchart">
     <ol class="gs-starchart-path">
         @foreach (var planet in Model)

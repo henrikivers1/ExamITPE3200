@@ -30,7 +30,8 @@ public class PlanetControllerTests
             null!,                        // UserManager
             new PlanetProgressService(),  // no database, safe to create
             null!,                        // PlayerProgressService
-            null!);                       // QuestionService
+            null!,                        // QuestionService
+            new RankService());           // no database, safe to create
 
         controller.TempData = new TempDataDictionary(new DefaultHttpContext(), Mock.Of<ITempDataProvider>());
         return controller;
