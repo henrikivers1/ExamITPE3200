@@ -381,7 +381,7 @@ public class PlanetController : Controller
         CanDelete = CanDeletePlanet(planet)
     };
         // GET: /Planet/Manage - table of all planets with Edit and Delete buttons
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Manage()
     {
         var planets = await _planetRepository.GetAll();
@@ -395,7 +395,7 @@ public class PlanetController : Controller
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create()
     {
         // Suggest the next free chapter and a default look
@@ -411,7 +411,7 @@ public class PlanetController : Controller
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Planet planet)
     {
@@ -442,7 +442,7 @@ public class PlanetController : Controller
         return View(planet);
     }
         [HttpGet]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Edit(int id)
     {
         var planet = await _planetRepository.GetPlanetById(id);
@@ -457,7 +457,7 @@ public class PlanetController : Controller
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, Planet planet)
     {
@@ -508,7 +508,7 @@ public class PlanetController : Controller
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
         var planet = await _planetRepository.GetPlanetById(id);
@@ -522,7 +522,7 @@ public class PlanetController : Controller
     }
 
     [HttpPost, ActionName("Delete")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {

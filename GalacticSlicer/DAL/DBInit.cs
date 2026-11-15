@@ -1,6 +1,7 @@
 using System.Text.Json;
 using GalacticSlicer.Models;
 using GalacticSlicer.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace GalacticSlicer.DAL;
@@ -65,17 +66,53 @@ public static class DBInit
         }
     }
 
+    // Creates the Admin role and one admin user (login for the examiner, also written in the documentation).
+    // UserManager and RoleManager are async, so this is a separate async method.
+    public static async Task SeedAdminAsync(IApplicationBuilder app)
+    {
+        using var serviceScope = app.ApplicationServices.CreateScope();
+        var roleManager = serviceScope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+
+        const string adminRole = "Admin";
+        const string adminName = "admin";
+        const string adminPassword = "Admin123!";
+
+        if (!await roleManager.RoleExistsAsync(adminRole))
+        {
+            await roleManager.CreateAsync(new IdentityRole(adminRole));
+        }
+
+        var admin = await userManager.FindByNameAsync(adminName);
+        if (admin == null)
+        {
+            admin = new IdentityUser { UserName = adminName };
+            var result = await userManager.CreateAsync(admin, adminPassword);
+            if (!result.Succeeded)
+            {
+                Serilog.Log.Error("[DBInit] Could not create admin user: {Errors}",
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
+                return;
+            }
+        }
+
+        if (!await userManager.IsInRoleAsync(admin, adminRole))
+        {
+            await userManager.AddToRoleAsync(admin, adminRole);
+        }
+    }
+
     // Imports questions.json into the Challenges table.
     // New questions are added and changed ones updated (matched by SourceId), so editing the
     // JSON file is enough: everyone gets the changes the next time they start the app.
     private static void SeedQuestions(GalacticSlicerDbContext context, string path)
     {
         if (!File.Exists(path))
-{
-    
-    Serilog.Log.Warning("[DBInit] Seed file not found: {Path}", path);
-    return;
-}
+        {
+            // Without this log a missing file just gives empty missions, with no clue why
+            Serilog.Log.Warning("[DBInit] Seed file not found: {Path}", path);
+            return;
+        }
 
         var seeds = JsonSerializer.Deserialize<List<QuestionSeed>>(
             File.ReadAllText(path),

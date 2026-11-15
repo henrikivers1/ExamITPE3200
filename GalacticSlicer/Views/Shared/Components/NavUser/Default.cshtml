@@ -1,0 +1,18 @@
+@model GalacticSlicer.ViewModels.NavUserViewModel
+
+@* Moved here from _Layout.cshtml. The data comes from NavUserViewComponent. *@
+<div class="gs-nav-user">
+    @* the equipped character's badge, or an empty circle if nothing is equipped *@
+    <span class="gs-user-badge" title="@(Model.ActiveCharacter?.Name ?? "No badge equipped")">
+        <partial name="_CharacterBadge" model="Model.ActiveCharacter" />
+    </span>
+    <span class="gs-user-name">@Model.Username</span>
+    <span class="gs-user-credits">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v10M9.5 9.5h4a1.8 1.8 0 0 1 0 3.6h-3a1.8 1.8 0 0 0 0 3.6h4.5" />
+        </svg>
+        @Model.Credits
+    </span>
+</div>

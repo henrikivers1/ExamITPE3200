@@ -11,13 +11,15 @@
     <p>Spend the Credits you earn on missions to unlock new slicers. Characters are cosmetic, so pick your favorite.</p>
 
     @* the player's balance, or a hint to log in *@
-    @if (isLoggedIn)
+       @if (isLoggedIn)
     {
         <div class="shop-balance">
-            <span class="shop-coin" aria-hidden="true">&#9679;</span>
-            <span><strong>@Model.PlayerCredits</strong> Credits</span>
+            ...
         </div>
-                <a asp-action="Manage" class="gs-btn gs-btn--outline gs-btn--sm mt-2">Manage characters</a>
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-action="Manage" class="gs-btn gs-btn--outline gs-btn--sm mt-2">Manage characters</a>
+        }
     }
     else
     {

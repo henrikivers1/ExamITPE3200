@@ -206,7 +206,7 @@ public class CharacterController : Controller
         };
     }
         // GET: /Character/Manage - table of all characters with Edit and Delete buttons
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Manage()
     {
         var characters = await _characterRepository.GetAll();
@@ -227,14 +227,14 @@ public class CharacterController : Controller
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public IActionResult Create()
     {
         return View();
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Character character)
     {
@@ -262,7 +262,7 @@ public class CharacterController : Controller
         return View(character);
     }
         [HttpGet]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Edit(int id)
     {
         var character = await _characterRepository.GetCharacterById(id);
@@ -276,7 +276,7 @@ public class CharacterController : Controller
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, Character character)
     {
@@ -317,7 +317,7 @@ public class CharacterController : Controller
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
         var character = await _characterRepository.GetCharacterById(id);
@@ -332,7 +332,7 @@ public class CharacterController : Controller
     }
 
     [HttpPost, ActionName("Delete")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
