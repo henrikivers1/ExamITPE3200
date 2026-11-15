@@ -167,7 +167,7 @@ public class CharacterController : Controller
 
         return RedirectToAction(nameof(Shop));
     }
-        // ---------- Manage characters (CRUD) ----------
+    // ---------- Manage characters (CRUD) ----------
 
     // Domain rules for characters, checked on the server for both Create and Edit
     private async Task ValidateCharacterRules(Character character)
@@ -205,7 +205,7 @@ public class CharacterController : Controller
             CanDelete = owners == 0 && !isLastFree
         };
     }
-        // GET: /Character/Manage - table of all characters with Edit and Delete buttons
+    // GET: /Character/Manage - table of all characters with Edit and Delete buttons
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Manage()
     {
@@ -261,7 +261,7 @@ public class CharacterController : Controller
         _logger.LogWarning("[CharacterController] Character creation failed for {Name}", character.Name);
         return View(character);
     }
-        [HttpGet]
+    [HttpGet]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Edit(int id)
     {

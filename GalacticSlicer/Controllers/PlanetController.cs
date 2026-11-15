@@ -340,7 +340,7 @@ public class PlanetController : Controller
             xpForNextRank = xpRange.Next
         });
     }
-        // ---------- Manage planets (CRUD) ----------
+    // ---------- Manage planets (CRUD) ----------
 
     // The planet looks Filip has CSS for (.gs-planet--tatooine etc. in site.css)
     private static readonly string[] PlanetStyles =
@@ -405,7 +405,7 @@ public class PlanetController : Controller
         QuestionCount = planet.Challenges?.Count ?? 0,
         CanDelete = CanDeletePlanet(planet)
     };
-        // GET: /Planet/Manage - table of all planets with Edit and Delete buttons
+    // GET: /Planet/Manage - table of all planets with Edit and Delete buttons
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Manage()
     {
@@ -466,7 +466,7 @@ public class PlanetController : Controller
         await LoadPlanetDropdowns(planet);
         return View(planet);
     }
-        [HttpGet]
+    [HttpGet]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Edit(int id)
     {

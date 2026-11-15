@@ -12,7 +12,7 @@ namespace GalacticSlicer.Controllers;
 [Authorize]
 public class ProgressController : Controller
 {
-     private readonly IChallengeRepository _challengeRepository;
+    private readonly IChallengeRepository _challengeRepository;
     private readonly ICharacterRepository _characterRepository;
     private readonly IPlanetRepository _planetRepository;
     private readonly ILogger<ProgressController> _logger;
@@ -38,7 +38,7 @@ public class ProgressController : Controller
         _logger = logger;
         _progressService = progressService;
         _userManager = userManager;
-                _characterRepository = characterRepository;
+        _characterRepository = characterRepository;
         _planetProgressService = planetProgressService;
         _completionService = completionService;
         _rankService = rankService;
@@ -70,7 +70,7 @@ public class ProgressController : Controller
         }
 
         // Count the logged-in player's completed challenges
-                var completedCount = await _challengeRepository.CountCompletedByUser(userId);
+        var completedCount = await _challengeRepository.CountCompletedByUser(userId);
 
         // Locked / unlocked / completed status for every planet (same rules as the Galaxy page)
         var completedPlanetIds = await _completionService.GetCompletedPlanetIdsAsync(userId);
