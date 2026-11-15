@@ -5,7 +5,7 @@ using GalacticSlicer.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace GalacticSlicer.Controllers;
 
@@ -13,11 +13,11 @@ namespace GalacticSlicer.Controllers;
 public class ProgressController : Controller
 {
     private readonly IChallengeRepository _challengeRepository;
+    private readonly ICharacterRepository _characterRepository;
     private readonly IPlanetRepository _planetRepository;
     private readonly ILogger<ProgressController> _logger;
     private readonly PlayerProgressService _progressService;
     private readonly UserManager<IdentityUser> _userManager;
-    private readonly GalacticSlicerDbContext _context;
     private readonly PlanetProgressService _planetProgressService;
     private readonly ChallengeCompletionService _completionService;
     private readonly RankService _rankService;
@@ -28,7 +28,7 @@ public class ProgressController : Controller
         ILogger<ProgressController> logger,
         PlayerProgressService progressService,
         UserManager<IdentityUser> userManager,
-        GalacticSlicerDbContext context,
+                ICharacterRepository characterRepository,
         PlanetProgressService planetProgressService,
         ChallengeCompletionService completionService,
         RankService rankService)
@@ -38,7 +38,7 @@ public class ProgressController : Controller
         _logger = logger;
         _progressService = progressService;
         _userManager = userManager;
-        _context = context;
+        _characterRepository = characterRepository;
         _planetProgressService = planetProgressService;
         _completionService = completionService;
         _rankService = rankService;
@@ -70,8 +70,7 @@ public class ProgressController : Controller
         }
 
         // Count the logged-in player's completed challenges
-        var completedCount = await _context.CompletedChallenges
-            .CountAsync(c => c.UserId == userId);
+        var completedCount = await _challengeRepository.CountCompletedByUser(userId);
 
         // Locked / unlocked / completed status for every planet (same rules as the Galaxy page)
         var completedPlanetIds = await _completionService.GetCompletedPlanetIdsAsync(userId);
@@ -81,7 +80,7 @@ public class ProgressController : Controller
         // The equipped character, for the badge next to the username
         var activeCharacter = progress.ActiveCharacterId == null
             ? null
-            : await _context.Characters.FindAsync(progress.ActiveCharacterId);
+                        : await _characterRepository.GetCharacterById(progress.ActiveCharacterId.Value);
 
         var xpRange = _rankService.GetXpRange(progress.ExperiencePoints);
 

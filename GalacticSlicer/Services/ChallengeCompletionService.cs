@@ -6,6 +6,10 @@ namespace GalacticSlicer.Services;
 
 public class ChallengeCompletionService
 {
+    // Game rules in one place, so the controller, the view and this service always agree
+    public const int PassPercent = 80;          // % correct needed to pass a mission
+    public const int XpPerCorrectAnswer = 150;  // XP for each correctly answered official question
+
     private readonly GalacticSlicerDbContext _context;
     private readonly PlayerProgressService _progressService;
     private readonly RankService _rankService;
@@ -21,140 +25,6 @@ public class ChallengeCompletionService
         _progressService = progressService;
         _rankService = rankService;
         _logger = logger;
-    }
-
-    public async Task<bool> CompleteChallengeAsync(
-        string userId,
-        int challengeId)
-    {
-        try
-        {
-            // Find the challenge
-            var challenge = await _context.Challenges
-                .FirstOrDefaultAsync(c => c.ChallengeId == challengeId);
-
-            if (challenge == null)
-            {
-                _logger.LogWarning(
-                    "Challenge {ChallengeId} does not exist",
-                    challengeId);
-
-                return false;
-            }
-
-            // Only official questions imported from questions.json
-            // and assigned to a planet are eligible for Credits and XP.
-            if (string.IsNullOrWhiteSpace(challenge.SourceId) ||
-                !challenge.PlanetId.HasValue ||
-                challenge.CreatedByUserId != null)
-            {
-                _logger.LogWarning(
-                    "Reward rejected: Challenge {ChallengeId} is not an official planet question",
-                    challengeId);
-
-                return false;
-            }
-
-            // Check whether the player has already completed it
-            bool alreadyCompleted = await _context.CompletedChallenges
-                .AnyAsync(c => c.UserId == userId &&
-                               c.ChallengeId == challengeId);
-
-            if (alreadyCompleted)
-            {
-                _logger.LogInformation(
-                    "Challenge {ChallengeId} has already been completed",
-                    challengeId);
-
-                return false;
-            }
-
-            // Get the player's progress
-            var progress = await _progressService
-                .GetOrCreateProgressAsync(userId);
-
-            // Register completion
-            _context.CompletedChallenges.Add(new CompletedChallenge
-            {
-                UserId = userId,
-                ChallengeId = challengeId,
-                CompletedAt = DateTime.UtcNow
-            });
-
-            // Award Credits and XP
-            progress.Credits += challenge.CreditReward;
-            progress.ExperiencePoints += 150;
-            progress.Rank = _rankService.GetRank(progress.ExperiencePoints);
-
-            // Save completion and rewards together
-            await _context.SaveChangesAsync();
-
-            // Log the successful completion and awarded rewards
-            _logger.LogInformation(
-                "Challenge {ChallengeId} completed. Awarded {Credits} Credits and {XP} XP",
-                challengeId,
-                challenge.CreditReward,
-                150);
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            // Log unexpected errors with their exception details
-            _logger.LogError(
-                ex,
-                "Failed to complete Challenge {ChallengeId}",
-                challengeId);
-
-            // Remove any tracked changes left after the failed operation
-            _context.ChangeTracker.Clear();
-
-            return false;
-        }
-    }
-
-    public async Task<bool> CompleteMissionAsync(
-        string userId,
-        int planetId)
-    {
-        try
-        {
-            // Only the first pass is recorded
-            bool alreadyCompleted = await _context.CompletedMissions
-                .AnyAsync(m => m.UserId == userId &&
-                               m.PlanetId == planetId);
-
-            if (alreadyCompleted)
-            {
-                return false;
-            }
-
-            _context.CompletedMissions.Add(new CompletedMission
-            {
-                UserId = userId,
-                PlanetId = planetId,
-                CompletedAt = DateTime.UtcNow
-            });
-
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation(
-                "Mission on Planet {PlanetId} completed",
-                planetId);
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(
-                ex,
-                "Failed to complete mission on Planet {PlanetId}",
-                planetId);
-
-            _context.ChangeTracker.Clear();
-
-            return false;
-        }
     }
 
     public async Task<bool> CompletePassedMissionAsync(
@@ -253,7 +123,7 @@ public class ChallengeCompletionService
                 correctChallenges.Count * 100.0 / challenges.Count;
 
             // Failed missions must not award permanent rewards
-            if (percent < 80)
+            if (percent < PassPercent)
             {
                 _logger.LogInformation(
                     "Mission failed on Planet {PlanetId}: {Correct}/{Total} correct",
@@ -298,13 +168,13 @@ public class ChallengeCompletionService
                 {
                     // Final exam rewards are independent of previous planet rewards
                     awardedCredits += challenge.CreditReward;
-                    awardedXp += 150;
+                    awardedXp += XpPerCorrectAnswer;
                 }
                 else if (!alreadyRewarded)
                 {
                     // Normal planets reward each challenge only once
                     awardedCredits += challenge.CreditReward;
-                    awardedXp += 150;
+                    awardedXp += XpPerCorrectAnswer;
                 }
 
                 // Never insert duplicate CompletedChallenge records

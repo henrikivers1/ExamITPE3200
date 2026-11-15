@@ -189,4 +189,17 @@ public class ChallengeRepository : IChallengeRepository
             throw;
         }
     }
+        public async Task<int> CountCompletedByUser(string userId)
+    {
+        try
+        {
+            return await _db.CompletedChallenges
+                .CountAsync(cc => cc.UserId == userId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to count completed challenges for User {UserId}", userId);
+            throw;
+        }
+    }
 }

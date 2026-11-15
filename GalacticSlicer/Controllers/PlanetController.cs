@@ -18,13 +18,15 @@ public class PlanetController : Controller
     private readonly PlanetProgressService _planetProgressService;
     private readonly PlayerProgressService _progressService;
     private readonly QuestionService _questionService;
+    private readonly RankService _rankService;
 
     public PlanetController(IPlanetRepository planetRepository, ILogger<PlanetController>
     logger, ChallengeCompletionService completionService, UserManager<IdentityUser>
     userManager, PlanetProgressService planetProgressService, PlayerProgressService progressService,
-    QuestionService questionService)
+    QuestionService questionService, RankService rankService)
     {
         _questionService = questionService;
+        _rankService = rankService;
         _planetRepository = planetRepository;
         _logger = logger;
         _completionService = completionService;
@@ -105,28 +107,27 @@ public class PlanetController : Controller
             return NotFound();
         }
 
-        // The first planet is always available
+        // Visitors have no progress; logged-in players get their saved XP and rank
+        var userId = _userManager.GetUserId(User);
+        PlayerProgress? progress = userId == null
+            ? null
+            : await _progressService.GetOrCreateProgressAsync(userId);
+
+        // The first planet is always available, the others need a login and enough XP
         if (planet.Order != 1)
         {
-            // Other planets require the player to be logged in
-            var userId = _userManager.GetUserId(User);
-
-            if (userId == null)
+            if (progress == null)
             {
                 return Challenge();
             }
 
-            // Retrieve the player's saved XP and progression
-            var progress = await _progressService
-                .GetOrCreateProgressAsync(userId);
-
-            // Prevent access if the player has not earned enough XP
             if (!_planetProgressService.IsPlanetUnlocked(planet, progress))
             {
                 _logger.LogWarning(
                     "[PlanetController] User {UserId} attempted to access locked Planet {PlanetId}",
                     userId, id);
 
+                TempData["ErrorMessage"] = $"{planet.Name} is still locked. Earn more XP to unlock it.";
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -139,10 +140,17 @@ public class PlanetController : Controller
         TempData[MissionKey(planet.PlanetId)] =
             string.Join(",", questions.Select(q => q.ChallengeId));
 
+        var xpRange = _rankService.GetXpRange(progress?.ExperiencePoints ?? 0);
+
         var model = new MissionViewModel
         {
             Planet = planet,
-            PassPercent = 80,
+            PassPercent = ChallengeCompletionService.PassPercent,
+            MaxXpReward = questions.Count * ChallengeCompletionService.XpPerCorrectAnswer,
+            Rank = progress?.Rank ?? "Outsider",
+            ExperiencePoints = progress?.ExperiencePoints ?? 0,
+            XpForCurrentRank = xpRange.Current,
+            XpForNextRank = xpRange.Next,
 
             // Total Credits available for completing the mission
             TotalCreditReward = questions.Sum(c => c.CreditReward),
@@ -257,12 +265,17 @@ public class PlanetController : Controller
         });
 
         double percent = correctCount * 100.0 / challenges.Count;
-        bool passed = percent >= 80;
+        bool passed = percent >= ChallengeCompletionService.PassPercent;
 
         _logger.LogInformation(
             "[PlanetController] User {UserId} submitted Planet {PlanetId}: {Correct}/{Total}, passed {Passed}",
             userId, planet.PlanetId, correctCount, challenges.Count, passed);
 
+
+        // Remember the values before the rewards, so the result screen can show what was earned
+        int xpBefore = progress.ExperiencePoints;
+        int creditsBefore = progress.Credits;
+        string rankBefore = progress.Rank;
 
         // Award rewards only when the mission is passed
         if (passed)
@@ -306,16 +319,28 @@ public class PlanetController : Controller
             };
         });
 
+        // The service saved the rewards on the same tracked PlayerProgress object,
+        // so progress now holds the new XP, Credits and rank
+        var xpRange = _rankService.GetXpRange(progress.ExperiencePoints);
+
         return Json(new
         {
             passed,
             correctCount,
             totalQuestions = challenges.Count,
             percent = Math.Round(percent, 1),
-            review
+            review,
+            // Real rewards (0 when the mission was already completed before)
+            awardedXp = progress.ExperiencePoints - xpBefore,
+            awardedCredits = progress.Credits - creditsBefore,
+            experiencePoints = progress.ExperiencePoints,
+            rank = progress.Rank,
+            rankedUp = progress.Rank != rankBefore,
+            xpForCurrentRank = xpRange.Current,
+            xpForNextRank = xpRange.Next
         });
     }
-        // ---------- Manage planets (CRUD) ----------
+    // ---------- Manage planets (CRUD) ----------
 
     // The planet looks Filip has CSS for (.gs-planet--tatooine etc. in site.css)
     private static readonly string[] PlanetStyles =
@@ -380,8 +405,8 @@ public class PlanetController : Controller
         QuestionCount = planet.Challenges?.Count ?? 0,
         CanDelete = CanDeletePlanet(planet)
     };
-        // GET: /Planet/Manage - table of all planets with Edit and Delete buttons
-    [Authorize]
+    // GET: /Planet/Manage - table of all planets with Edit and Delete buttons
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Manage()
     {
         var planets = await _planetRepository.GetAll();
@@ -395,7 +420,7 @@ public class PlanetController : Controller
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create()
     {
         // Suggest the next free chapter and a default look
@@ -411,7 +436,7 @@ public class PlanetController : Controller
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Planet planet)
     {
@@ -441,8 +466,8 @@ public class PlanetController : Controller
         await LoadPlanetDropdowns(planet);
         return View(planet);
     }
-        [HttpGet]
-    [Authorize]
+    [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Edit(int id)
     {
         var planet = await _planetRepository.GetPlanetById(id);
@@ -457,7 +482,7 @@ public class PlanetController : Controller
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, Planet planet)
     {
@@ -508,7 +533,7 @@ public class PlanetController : Controller
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
         var planet = await _planetRepository.GetPlanetById(id);
@@ -522,7 +547,7 @@ public class PlanetController : Controller
     }
 
     [HttpPost, ActionName("Delete")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {

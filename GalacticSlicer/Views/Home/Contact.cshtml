@@ -1,5 +1,4 @@
-@model GalacticSlicer.Models.ContactMessageViewModel
-
+@model GalacticSlicer.ViewModels.ContactMessageViewModel
 @{
     ViewData["Title"] = "Contact";
 }
@@ -13,7 +12,7 @@
         @* Conditional rendering: thank-you message after a successful POST (set with TempData in HomeController) *@
         @if (TempData["ContactSuccess"] != null)
         {
-            <div class="shop-alert shop-alert--success" role="status">Thanks! Your message was sent.</div>
+            <div class="gs-form-success text-center" role="status">Thanks! Your message was sent.</div>
         }
 
         @* asp-action + method="post" makes the form tag helper add the antiforgery token *@

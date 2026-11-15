@@ -3,13 +3,16 @@
     ViewData["Title"] = Model.Planet.Name + " mission";
     var passPercent = Model.PassPercent;
 
-    // PLACEHOLDER rewards and rank: replace with real values once player progress is stored
+    // Rewards and the player's current rank/XP come from the server (MissionViewModel)
     var creditReward = Model.TotalCreditReward;
-    var xpReward = 150;
-    var xpBefore = 300;
-    var xpForNextRank = 500;
-    var currentRank = "Slicer";
-    var nextRank = "Rogue Slicer";
+    var xpReward = Model.MaxXpReward;
+    var xpBefore = Model.ExperiencePoints;
+    var xpForCurrentRank = Model.XpForCurrentRank;
+    var xpForNextRank = Model.XpForNextRank;
+    // Width of the XP bar inside the current rank (full at the top rank)
+    var xpPercent = xpForNextRank > xpForCurrentRank
+        ? (xpBefore - xpForCurrentRank) * 100 / (xpForNextRank - xpForCurrentRank)
+        : 100;
 }
 
 @* the planet itself, huge and dimmed, filling the background behind the mission *@
@@ -38,8 +41,8 @@
             </p>
             @* what the player earns if they pass *@
             <div class="mission-rewards">
-                <span class="mission-reward">+@creditReward credits</span>
-                <span class="mission-reward mission-reward--xp">+@xpReward XP</span>
+                <span class="mission-reward">up to +@creditReward credits</span>
+                <span class="mission-reward mission-reward--xp">up to +@xpReward XP</span>
             </div>
             @* no questions in the database for this planet yet: nothing to start *@
             @if (!Model.Questions.Any())
@@ -90,21 +93,22 @@
             <h2 id="missionCompleteTitle" tabindex="-1">Mission complete!</h2>
             <p class="mission-score" id="missionCompleteScore"></p>
             <div class="mission-rewards">
-                <span class="mission-reward">+@creditReward credits</span>
-                <span class="mission-reward mission-reward--xp">+@xpReward XP</span>
+                @* filled in by finishMission() with what the server actually awarded *@
+                <span class="mission-reward" id="missionCreditsEarned"></span>
+                <span class="mission-reward mission-reward--xp" id="missionXpEarned"></span>
             </div>
 
             @* rank and XP bar: starts at the old XP, then fillXpBar() animates in the reward *@
             <div class="mission-rank">
                 <div class="gs-progress-block-header">
-                    <span>Rank: <strong id="missionRankName">@currentRank</strong></span>
+                    <span>Rank: <strong id="missionRankName">@Model.Rank</strong></span>
                     <span id="missionXpLabel">@xpBefore / @xpForNextRank XP</span>
                 </div>
                 <div class="gs-progress-bar">
                     <div class="gs-progress-bar-fill mission-xp-fill" id="missionXpFill"
-                         style="width: @(xpBefore * 100 / xpForNextRank)%;"></div>
+                         style="width: @(xpPercent)%;"></div>
                 </div>
-                <p class="mission-rank-up" id="missionRankUp" hidden>Rank up! You are now an @nextRank.</p>
+                <p class="mission-rank-up" id="missionRankUp" hidden>Rank up! You are now <span id="missionNewRank"></span>.</p>
             </div>
 
             <div class="gs-quiz-complete-actions">
@@ -157,10 +161,6 @@
 
         // values from the server (C# variables at the top of this file)
         const passPercent = @passPercent;
-        const xpBefore = @xpBefore;
-        const xpReward = @xpReward;
-        const xpForNextRank = @xpForNextRank;
-        const nextRank = "@nextRank";
 
         // quiz state: which question we're on, how many are right, and whether this one is answered
         let currentIndex = 0;
@@ -298,7 +298,14 @@
                         "missionCompleteScore"
                     ).textContent = scoreLine;
 
+                    // the real rewards from the server (0 if this mission was already completed)
+                    document.getElementById("missionCreditsEarned").textContent =
+                        "+" + result.awardedCredits + " credits";
+                    document.getElementById("missionXpEarned").textContent =
+                        "+" + result.awardedXp + " XP";
+
                     completeArea.hidden = false;
+                    fillXpBar(result);
                 } else {
                     document.getElementById(
                         "missionFailedScore"
@@ -360,21 +367,23 @@
             document.getElementById("missionReview").hidden = false;
         }
 
-        // PLACEHOLDER: animates the XP bar from the old value to the new one, ranking up if it overflows
-        function fillXpBar() {
-            const xpAfter = xpBefore + xpReward;
+        // Animates the XP bar to the player's new XP (saved on the server) and shows a rank-up
+        function fillXpBar(result) {
             const xpFill = document.getElementById("missionXpFill");
             const xpLabel = document.getElementById("missionXpLabel");
+            const rankSize = result.xpForNextRank - result.xpForCurrentRank;
+            const percent = rankSize > 0
+                ? Math.round(((result.experiencePoints - result.xpForCurrentRank) / rankSize) * 100)
+                : 100;
 
             setTimeout(function () {
-                if (xpAfter >= xpForNextRank) {
-                    xpFill.style.width = "100%";
-                    xpLabel.textContent = xpForNextRank + " / " + xpForNextRank + " XP";
-                    document.getElementById("missionRankName").textContent = nextRank;
+                xpFill.style.width = percent + "%";
+                xpLabel.textContent = result.experiencePoints + " / " + result.xpForNextRank + " XP";
+                document.getElementById("missionRankName").textContent = result.rank;
+
+                if (result.rankedUp) {
+                    document.getElementById("missionNewRank").textContent = result.rank;
                     document.getElementById("missionRankUp").hidden = false;
-                } else {
-                    xpFill.style.width = Math.round((xpAfter / xpForNextRank) * 100) + "%";
-                    xpLabel.textContent = xpAfter + " / " + xpForNextRank + " XP";
                 }
             }, 400);
         }

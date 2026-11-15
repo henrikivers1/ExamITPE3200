@@ -12,7 +12,10 @@
     </p>
     <p class="gs-starchart-progress">@unlockedCount of @Model.Count planets unlocked</p>
 </section>
-
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="gs-delete-warning text-center" role="alert">@TempData["ErrorMessage"]</div>
+}
 <section class="gs-starchart">
     <ol class="gs-starchart-path">
         @foreach (var planet in Model)
@@ -54,8 +57,8 @@
         }
     </ol>
 </section>
-@* Only logged-in users can manage planets (later: admins only) *@
-@if (User.Identity?.IsAuthenticated == true)
+@* Only admins can manage planets *@
+@if (User.IsInRole("Admin"))
 {
     <div class="text-center mb-3">
         <a asp-controller="Planet" asp-action="Manage" class="gs-btn gs-btn--outline gs-btn--sm">Manage planets</a>

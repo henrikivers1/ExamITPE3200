@@ -10,4 +10,5 @@ public interface IChallengeRepository
     Task<bool> Update(Challenge challenge);
     Task<bool> Delete(int id);
     Task<IEnumerable<Challenge>?> Search(string? searchString, string? subject, string createdByUserId);
+    Task<int> CountCompletedByUser(string userId);
 }

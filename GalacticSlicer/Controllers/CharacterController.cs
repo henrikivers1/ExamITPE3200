@@ -167,7 +167,7 @@ public class CharacterController : Controller
 
         return RedirectToAction(nameof(Shop));
     }
-        // ---------- Manage characters (CRUD) ----------
+    // ---------- Manage characters (CRUD) ----------
 
     // Domain rules for characters, checked on the server for both Create and Edit
     private async Task ValidateCharacterRules(Character character)
@@ -205,8 +205,8 @@ public class CharacterController : Controller
             CanDelete = owners == 0 && !isLastFree
         };
     }
-        // GET: /Character/Manage - table of all characters with Edit and Delete buttons
-    [Authorize]
+    // GET: /Character/Manage - table of all characters with Edit and Delete buttons
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Manage()
     {
         var characters = await _characterRepository.GetAll();
@@ -227,14 +227,14 @@ public class CharacterController : Controller
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public IActionResult Create()
     {
         return View();
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Character character)
     {
@@ -261,8 +261,8 @@ public class CharacterController : Controller
         _logger.LogWarning("[CharacterController] Character creation failed for {Name}", character.Name);
         return View(character);
     }
-        [HttpGet]
-    [Authorize]
+    [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Edit(int id)
     {
         var character = await _characterRepository.GetCharacterById(id);
@@ -276,7 +276,7 @@ public class CharacterController : Controller
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, Character character)
     {
@@ -317,7 +317,7 @@ public class CharacterController : Controller
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
         var character = await _characterRepository.GetCharacterById(id);
@@ -332,7 +332,7 @@ public class CharacterController : Controller
     }
 
     [HttpPost, ActionName("Delete")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
