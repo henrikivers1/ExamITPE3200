@@ -47,7 +47,7 @@ public static class DBInit
         }
         context.SaveChanges();
 
-        SeedQuestions(context, Path.Combine(env.ContentRootPath, "DAL", "SeedData", "questions.json"));
+        SeedQuestions(context, Path.Combine(env.ContentRootPath, "DAL", "SeedData", "Questions.json"));
 
         // Only add characters if the table is empty, so we never create duplicates
         if (!context.Characters.Any())
@@ -71,9 +71,11 @@ public static class DBInit
     private static void SeedQuestions(GalacticSlicerDbContext context, string path)
     {
         if (!File.Exists(path))
-        {
-            return;
-        }
+{
+    
+    Serilog.Log.Warning("[DBInit] Seed file not found: {Path}", path);
+    return;
+}
 
         var seeds = JsonSerializer.Deserialize<List<QuestionSeed>>(
             File.ReadAllText(path),

@@ -54,3 +54,10 @@
         }
     </ol>
 </section>
+@* Only logged-in users can manage planets (later: admins only) *@
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <div class="text-center mb-3">
+        <a asp-controller="Planet" asp-action="Manage" class="gs-btn gs-btn--outline gs-btn--sm">Manage planets</a>
+    </div>
+}

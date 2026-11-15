@@ -1,0 +1,44 @@
+@model GalacticSlicer.Models.ContactMessageViewModel
+
+@{
+    ViewData["Title"] = "Contact";
+}
+
+@* Same card layout as Login and Sign up, so the form looks like the rest of the site *@
+<section class="gs-auth-wrapper">
+    <div class="gs-auth-card">
+        <h1 class="gs-auth-title">Contact us</h1>
+        <p class="gs-auth-subtitle">Found a bug or a wrong answer in a mission? Tell us.</p>
+
+        @* Conditional rendering: thank-you message after a successful POST (set with TempData in HomeController) *@
+        @if (TempData["ContactSuccess"] != null)
+        {
+            <div class="shop-alert shop-alert--success" role="status">Thanks! Your message was sent.</div>
+        }
+
+        @* asp-action + method="post" makes the form tag helper add the antiforgery token *@
+        <form asp-action="Contact" method="post" class="gs-form">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="gs-form-group">
+                <label class="gs-label" asp-for="Title"></label>
+                <input class="gs-input" asp-for="Title" placeholder="Short summary" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="gs-form-group">
+                <label class="gs-label" asp-for="Description"></label>
+                <textarea class="gs-input gs-textarea" asp-for="Description" rows="5"
+                          placeholder="What happened, and on which page?"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="gs-btn gs-btn--primary gs-btn--lg gs-form-submit">Send message</button>
+        </form>
+    </div>
+</section>
+
+@* Client-side validation (jQuery Validate): errors show before the form is sent *@
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
