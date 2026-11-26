@@ -413,6 +413,12 @@ a:hover {
 .gs-badge--legendary { --tier: var(--gs-accent); }
 .gs-badge--empty { --tier: transparent; }
 
+/* bigger badge on the Delete character page */
+.gs-badge-preview {
+  display: block;
+  width: 90px;
+}
+
 /* empty badge slot when nothing is equipped: a faint dashed circle */
 .gs-badge-slot {
   fill: rgba(255, 255, 255, 0.04);

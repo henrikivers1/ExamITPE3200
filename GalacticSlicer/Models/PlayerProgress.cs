@@ -27,13 +27,3 @@ public class PlayerProgress
 }
 
 
-/*
- * Id                - Unique ID for the player's progress record.
- * UserId            - ID of the associated Identity user.
- * Credits           - Current Credits balance of the player.
- * Rank              - Current rank based on the player's experience.
- * ActiveCharacterId - Foreign key to the currently equipped character (nullable).
- * ActiveCharacter   - Navigation property to the equipped character.
- * ExperiencePoints  - Total XP earned by the player.
- * OwnedCharacters   - Collection of ownership records linking the player to characters (N:M).
- */

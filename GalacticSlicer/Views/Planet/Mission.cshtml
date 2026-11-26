@@ -150,15 +150,12 @@
 
 @section Scripts {
     <script>
-        const quizQuestions = @Html.Raw(
-                    System.Text.Json.JsonSerializer.Serialize(
-                    Model.Questions,
-                    new System.Text.Json.JsonSerializerOptions
-                    {
-                                        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
-                    }
-                    )
-                    );
+                const quizQuestions = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+            Model.Questions,
+            new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+            }));
 
         // values from the server (C# variables at the top of this file)
         const passPercent = @passPercent;
@@ -261,7 +258,7 @@
             nextBtn.focus();
         }
 
-                async function finishMission() {
+async function finishMission() {
             questionArea.hidden = true;
 
             const token = document.querySelector(
