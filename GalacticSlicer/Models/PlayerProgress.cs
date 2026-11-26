@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace GalacticSlicer.Models;
 
+// One per user: Credits, XP, rank and the equipped character
 public class PlayerProgress
 {
     public int Id { get; set; }

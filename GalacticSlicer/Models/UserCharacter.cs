@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace GalacticSlicer.Models;
 
+// Join table for the many-to-many relation: which characters each player owns
 public class UserCharacter
 {
     public int Id { get; set; }

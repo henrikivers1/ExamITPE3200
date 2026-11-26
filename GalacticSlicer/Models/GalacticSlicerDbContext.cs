@@ -6,8 +6,7 @@ namespace GalacticSlicer.Models;
 
 public class GalacticSlicerDbContext : IdentityDbContext
 {
-        public GalacticSlicerDbContext(DbContextOptions<GalacticSlicerDbContext> options) : base(options)
-    {
+    public GalacticSlicerDbContext(DbContextOptions<GalacticSlicerDbContext> options) : base(options)    {
     }
 
     public DbSet<Challenge> Challenges { get; set; }
