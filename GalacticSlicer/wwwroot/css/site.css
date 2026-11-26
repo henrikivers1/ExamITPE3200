@@ -83,10 +83,6 @@ body::after {
   background: radial-gradient(circle, rgba(120, 90, 255, 0.28), transparent 70%);
 }
 
-.gs-main {
-  flex: 1 0 auto;
-}
-
 h1, h2, h3, h4 {
   margin: 0 0 0.5rem;
   line-height: 1.15;
@@ -241,17 +237,6 @@ a:hover {
   --bs-btn-focus-shadow-rgb: 214, 170, 76;
 }
 
-.btn-outline-primary {
-  --bs-btn-color: var(--gs-accent);
-  --bs-btn-border-color: var(--gs-accent);
-  --bs-btn-hover-color: #03101d;
-  --bs-btn-hover-bg: var(--gs-accent);
-  --bs-btn-hover-border-color: var(--gs-accent);
-  --bs-btn-active-color: #03101d;
-  --bs-btn-active-bg: var(--gs-accent-strong);
-  --bs-btn-active-border-color: var(--gs-accent-strong);
-  --bs-btn-focus-shadow-rgb: 214, 170, 76;
-}
 
 /* ---------- header / navbar ---------- */
 
@@ -405,8 +390,8 @@ a:hover {
   overflow: visible;
 }
 
-/* tier colors (same as the Shop cards): starter grey-blue, uncommon teal, rare blue, epic violet, legendary gold */
-.gs-badge--starter { --tier: #8fa3c4; }
+/* tier colors (same as the Shop cards): common grey-blue, uncommon teal, rare blue, epic violet, legendary gold */
+.gs-badge--common { --tier: #8fa3c4; }
 .gs-badge--uncommon { --tier: #3ec9c0; }
 .gs-badge--rare { --tier: #4d8dff; }
 .gs-badge--epic { --tier: #8f73ff; }
@@ -465,6 +450,7 @@ a:hover {
 
 .gs-main {
   max-width: var(--gs-max-width);
+  flex: 1 0 auto;
   margin: 0 auto;
   padding: 0 1.5rem 4rem;
 }
@@ -1291,14 +1277,6 @@ a.gs-star-node-link:hover .gs-star-node-name {
 }
 
 /* ---------- challenge practice / quiz ---------- */
-
-.gs-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
 
 .gs-quiz-wrapper {
   max-width: 560px;

@@ -13,10 +13,12 @@ public class ChallengeCompletionService : IChallengeCompletionService
     // and all 6 missions give 12000 XP = the top rank "Galactic Slicer".
     public const int XpPerMission = 2000;
 
-    // Fixed Credits for passing a planet's mission the first time.
-    // Each pass pays for the next badge in the Shop (150, 300, 500, 1000):
-    // after 1/2/3/4 missions the player has 500/1000/1500/2000, and the badges cost 150/450/950/1950 in total.
-    public const int CreditsPerMission = 500;
+    // Credits for passing a planet's mission the first time: 500 per chapter
+    // (Tatooine 500, Naboo 1000, Coruscant 1500, Kamino 2000, Hoth 2500, Endor 3000).
+    // Each pass pays for the next badge in the Shop, which cost 500, 1000, 1500 and 2000.
+    public const int CreditsPerChapter = 500;
+
+    public static int CreditsForMission(int planetOrder) => CreditsPerChapter * planetOrder;
 
     private readonly GalacticSlicerDbContext _context;
     private readonly IRankService _rankService;
@@ -153,8 +155,8 @@ public class ChallengeCompletionService : IChallengeCompletionService
 
             var completedSet = completedIds.ToHashSet();
 
-            // Credits and XP are fixed per passed mission (this point is only reached on the first pass)
-            int awardedCredits = CreditsPerMission;
+            // Fixed XP and chapter-based Credits per passed mission (this point is only reached on the first pass)
+            int awardedCredits = CreditsForMission(planet.Order);
             int awardedXp = XpPerMission;
 
             // Remember which questions the player has answered correctly (for the Progress page)

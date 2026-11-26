@@ -148,14 +148,14 @@ public class PlanetController : Controller
         {
             Planet = planet,
             PassPercent = ChallengeCompletionService.PassPercent,
-            MaxXpReward = ChallengeCompletionService.XpPerMission,
+            XpReward = ChallengeCompletionService.XpPerMission,
             Rank = progress?.Rank ?? "Outsider",
             ExperiencePoints = progress?.ExperiencePoints ?? 0,
             XpForCurrentRank = xpRange.Current,
             XpForNextRank = xpRange.Next,
 
-            // Total Credits available for completing the mission
-            TotalCreditReward = ChallengeCompletionService.CreditsPerMission,
+            // Credits for passing the mission
+            CreditReward = ChallengeCompletionService.CreditsForMission(planet.Order),
 
             // Options are shuffled so the correct answer isn't always in the same place
             Questions = questions

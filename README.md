@@ -1,124 +1,103 @@
 # Galactic Slicer
 
-Galactic Slicer is a web application made for the ITPE3200 Web Applications course at OsloMet.
+Galactic Slicer is a web application made for the ITPE3200 Web Applications course at OsloMet (exam project, Task 2: Gamification Platform for Course Learning).
 
-The goal of the project is to make cybersecurity learning more interactive through a gamified web application. Users can go through different planets, complete challenges, earn credits and track progress.
+The goal of the project is to make cybersecurity learning more interactive. Players travel from planet to planet, pass a mission on each planet by answering questions, earn Credits and XP, rank up, and spend their Credits on character badges. They can also practice each subject and create their own practice challenges.
 
-This version is a basic MVP for the mandatory assignment and is meant to be developed further for the final exam project.
+The repository contains two sub-applications that work independently:
 
-## Technologies
+- **Subapp 1** (`GalacticSlicer/`): ASP.NET Core 10.0 MVC with Razor views
+- **Subapp 2** (`GalacticSlicer.Subapp2/`): ASP.NET Core 10.0 Web API with a React frontend
 
-The project uses:
+## Subapp 1 (MVC)
 
-- ASP.NET Core 10.0
-- C#
-- MVC
-- Entity Framework Core
-- SQLite
-- Razor Views
-- HTML
-- CSS
-- JavaScript
-- Bootstrap
-- Serilog
-- Node.js v24.19.0
+### Technologies
 
-## Project structure
+- .NET SDK 10.0 (developed with 10.0.402), ASP.NET Core 10.0 MVC, C#
+- Entity Framework Core 10.0 with SQLite
+- ASP.NET Core Identity with roles (cookie authentication)
+- Razor views, HTML, CSS, JavaScript, Bootstrap, jQuery Validation
+- Serilog (logging to file)
+- xUnit and NSubstitute (unit tests in `GalacticSlicer.Tests/`)
 
-The application follows the MVC structure.
+Node.js is not needed for Subapp 1.
 
-- `Models` contains the Challenge model, ViewModels and DbContext
-- `Controllers` contains the logic for the different pages
-- `Views` contains the Razor pages
-- `wwwroot` contains CSS, JavaScript, images and other static files
-- `Migrations` contains the Entity Framework migrations
+### How to run
 
-## Database
+Requirements: .NET SDK 10.0.
 
-The project uses SQLite together with Entity Framework Core.
+```
+cd GalacticSlicer
+dotnet run
+```
 
-The main entity in the current version is `Challenge`.
+Then open http://localhost:5187 (or use `dotnet run --launch-profile https` for https://localhost:7153).
 
-A Challenge contains:
+On startup in Development (the default for `dotnet run`), the app creates the SQLite database `GalacticSlicer.db` if it is missing, applies all migrations and seeds the planets, characters, the mission questions from `DAL/SeedData/Questions.json` and an admin account. There is no need to run `dotnet ef database update` by hand.
 
-- Title
-- Question
-- Correct answer
-- Credit reward
-- Planet name
+### Logging in
 
-`GalacticSlicerDbContext` is used to connect the application to the database.
+- **Admin:** username `admin`, password `Admin123!` (seeded on startup). The admin can create, edit and delete planets and characters.
+- **Players:** create an account with **Sign up**. New players start with 0 Credits and the Rookie Slicer badge available for free in the Shop.
 
-Entity Framework migrations are used to create and update the database structure.
+### Running the tests
 
-## Server-side validation
+From the repository root:
 
-Server-side validation is added to the Challenge model.
+```
+dotnet test GalacticSlicer.Tests/GalacticSlicer.Tests.csproj
+```
 
-We use Data Annotations such as:
+### Main features
 
-- `Required`
-- `StringLength`
-- `Range`
+- **Galaxy:** six planets in a fixed order. Each planet has a mission on one cybersecurity subject; Endor, the last planet, is a final exam with questions from every subject.
+- **Missions:** 10 random questions from the planet's subject with shuffled answers. Answers are graded on the server, and 80% correct is needed to pass. Passing a planet's mission the first time gives 2000 XP and 500 Credits per chapter (Tatooine 500, Naboo 1000, … Endor 3000), which is always enough to unlock the next planet and to buy the next badge.
+- **Practice:** practice any subject with instant feedback and explanations. Players' own challenges are included in practice.
+- **Own challenges:** players can create, read, edit and delete their own practice questions, and search them by text and subject.
+- **Shop:** buy, equip and unequip character badges, with search by text, maximum price, sorting and "owned only".
+- **Progress:** pilot panel with rank, Credits, the next mission, a mini starchart and progress bars.
+- **Admin:** manage planets and characters (create, edit, delete), with delete rules so the game can't be broken.
 
-The Create and Edit actions also check:
+### Project structure
 
-`ModelState.IsValid`
+- `Controllers/`: one controller per area (Account, Challenge, Character, Home, Planet, Progress)
+- `Models/`: the entity classes and `GalacticSlicerDbContext`
+- `ViewModels/`: the data passed to the views
+- `Views/`: the Razor views; `Views/Shared/` has the layout and shared partials
+- `ViewComponents/`: `NavUserViewComponent` (the player's name, Credits and badge in the navbar)
+- `Services/`: the game rules (mission rewards, purchases, planet unlocking, ranks, questions), each with an interface
+- `DAL/`: the repositories (Challenge, Character, Planet) and `DBInit` (seeding); `DAL/SeedData/` has the mission questions
+- `Helpers/`: `CharacterTier` (badge tier from the price)
+- `Migrations/`: the Entity Framework Core migrations
+- `wwwroot/`: CSS, JavaScript and libraries
 
-before changes are saved to the database.
+Controllers get data through the repositories and services (dependency injection); no controller or view uses the DbContext directly.
 
-Validation messages are shown in the Create and Edit views.
+### Database
 
-## Error handling
+SQLite with Entity Framework Core. Main tables:
 
-Error handling is added to the database operations in `ChallengeController`.
+- `Planets`, `Challenges` (mission questions and players' own questions), `Characters`
+- `PlayerProgresses`: each player's Credits, XP, rank and equipped badge
+- `UserCharacters`: which characters each player owns (the many-to-many relationship between players and characters)
+- `CompletedChallenges` and `CompletedMissions`: what each player has answered and passed
+- the ASP.NET Core Identity tables (users and roles)
 
-Create, Edit and Delete use `try/catch` blocks.
+### Validation, error handling and logging
 
-If an error happens while saving data, the user is returned to the view and an error message is added to `ModelState`.
+- **Server-side validation:** Data Annotations (`Required`, `StringLength`, `Range`, ...) on the models and ViewModels, checked with `ModelState.IsValid`, plus game rules in the controllers and services (for example a challenge's correct answer must be one of its options).
+- **Client-side validation:** jQuery Validation on all forms.
+- **Security:** antiforgery tokens on every form that changes data, `[Authorize]` on player actions and `[Authorize(Roles = "Admin")]` on admin pages, owner checks on players' own challenges, and missions are graded on the server.
+- **Error handling:** create, edit, delete and purchase actions use `try/catch` and show a friendly message instead of crashing. Unknown pages and pages without access show a friendly 404 or 403 page.
+- **Logging:** Serilog writes to `logs/log-<date>.txt` (configured in `Program.cs`). Controllers, services and repositories log errors and important game events with `ILogger`.
 
-## Logging
+## Subapp 2 (API + React)
 
-Serilog is used for server-side logging.
-
-Logging is configured in `Program.cs`.
-
-Errors in Create, Edit and Delete are logged using:
-
-`_logger.LogError(...)`
-
-The log files are stored in the `logs` folder.
-
-The `logs` folder is ignored by Git.
-
-## How to run the project
-
-Requirements:
-
-- .NET SDK 10.0
-- Node.js v24.19.0
-
-Go to the project folder:
-
-`cd GalacticSlicer`
-
-Restore the dependencies:
-
-`dotnet restore`
-
-Build the project:
-
-`dotnet build`
-
-Run the application:
-
-`dotnet run`
-
-Then open the localhost address shown in the terminal.
+See `GalacticSlicer.Subapp2/`. Run instructions for Subapp 2 will be added here.
 
 ## Sources and inspiration
 
-The main sources used for Jonas part of the project were course material and demos from ITPE3200 on Canvas.
+The main sources used for the project were course material and demos from ITPE3200 on Canvas.
 
 Examples used as reference:
 
@@ -147,23 +126,12 @@ The final code was reviewed and adjusted by the group to fit the project and the
 
 ## Git ignore
 
-The project ignores generated and temporary files such as:
+The project ignores generated and local files such as:
 
-- `bin/`
-- `obj/`
+- `bin/` and `obj/`
 - `node_modules/`
 - `logs/`
-- `*.db-shm`
-- `*.db-wal`
-
-
-## Dynamic content
-
-Challenge data is stored in the SQLite database and displayed dynamically through the Challenge views. Users can create, view, edit and delete challenges through the CRUD functionality.
-
-## Current MVP limitations
-
-Some parts of the application are still placeholders in this MVP version. Login and Sign Up do not yet include full authentication, and some progress and practice functionality will be expanded further in the final exam project.
+- the SQLite database files (`*.db`, `*.db-shm`, `*.db-wal`)
 
 ## Group work
 

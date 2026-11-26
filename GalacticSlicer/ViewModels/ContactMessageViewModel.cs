@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations;
 namespace GalacticSlicer.ViewModels;
 
 // Simple view-model for the Contact form.
-// Messages are only logged for now (no database table yet)
 
 public class ContactMessageViewModel
 {

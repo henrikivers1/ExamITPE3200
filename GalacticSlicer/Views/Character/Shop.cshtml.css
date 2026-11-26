@@ -80,8 +80,8 @@
   box-shadow: var(--gs-shadow), 0 0 28px -6px var(--tier);
 }
 
-/* rarity colors: starter grey-blue, uncommon teal, rare blue, epic violet, legendary gold */
-.shop-card--starter { --tier: #8fa3c4; }
+/* rarity colors: common grey-blue, uncommon teal, rare blue, epic violet, legendary gold */
+.shop-card--common { --tier: #8fa3c4; }
 .shop-card--uncommon { --tier: #3ec9c0; }
 .shop-card--rare { --tier: #4d8dff; }
 .shop-card--epic { --tier: #8f73ff; }
