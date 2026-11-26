@@ -1,48 +1,105 @@
+
+using System.Security.Claims;
+using System.Security.Cryptography;
 using GalacticSlicer.Api.Models;
 using GalacticSlicer.Api.DAL;
+using GalacticSlicer.Api.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using GalacticSlicer.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register EF Core with the API's own SQLite database
+// ============================================
+// DATABASE - Entity Framework Core + SQLite
+// ============================================
+
 builder.Services.AddDbContext<GalacticSlicerDbContext>(options =>
     options.UseSqlite(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Register ASP.NET Core Identity with the same database
+// ============================================
+// ASP.NET Core Identity
+// ============================================
+
 builder.Services
     .AddIdentityCore<IdentityUser>()
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<GalacticSlicerDbContext>();
 
-// Add services to the container.
-// Register the planet repository for dependency injection
-builder.Services.AddScoped<IPlanetRepository, PlanetRepository>();
-builder.Services.AddScoped<PlayerProgressService>();
-builder.Services.AddScoped<IPlanetService, PlanetService>();
+// ============================================
+// Controllers
+// ============================================
+
 builder.Services.AddControllers();
-builder.Services.AddScoped<IChallengeRepository, ChallengeRepository>();
-builder.Services.AddScoped<IChallengeService, ChallengeService>();
-builder.Services.AddScoped<ICharacterRepository, CharacterRepository>();
-builder.Services.AddScoped<ICharacterService, CharacterService>();
-builder.Services.AddScoped<CharacterGameplayService>();
-builder.Services
-    .AddIdentityCore<IdentityUser>()
-    .AddEntityFrameworkStores<GalacticSlicerDbContext>();
+builder.Services.AddOpenApi();
 
-var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException("JWT key is missing.");
+// ============================================
+// Repositories
+// ============================================
+
+builder.Services.AddScoped<IPlanetRepository, PlanetRepository>();
+builder.Services.AddScoped<IChallengeRepository, ChallengeRepository>();
+builder.Services.AddScoped<ICharacterRepository, CharacterRepository>();
+
+// ============================================
+// CRUD Services
+// ============================================
+
+builder.Services.AddScoped<IPlanetService, PlanetService>();
+builder.Services.AddScoped<IChallengeService, ChallengeService>();
+builder.Services.AddScoped<ICharacterService, CharacterService>();
+
+// ============================================
+// Gameplay Services
+// ============================================
+
+builder.Services.AddScoped<PlayerProgressService>();
+builder.Services.AddScoped<CharacterGameplayService>();
+builder.Services.AddScoped<ChallengeCompletionService>();
+builder.Services.AddScoped<PlanetProgressService>();
+builder.Services.AddScoped<RankService>();
+
+// ============================================
+// JWT Authentication
+// ============================================
+
+var jwtKey = builder.Configuration["Jwt:Key"];
+
+if (string.IsNullOrWhiteSpace(jwtKey))
+{
+    if (!builder.Environment.IsDevelopment())
+    {
+        throw new InvalidOperationException(
+            "JWT key is missing. Configure Jwt:Key using User Secrets or environment variables.");
+    }
+
+    // Generate a temporary development key if none is configured.
+    // Tokens become invalid when the API restarts.
+    jwtKey = Convert.ToBase64String(
+        RandomNumberGenerator.GetBytes(32));
+}
 
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]
-    ?? throw new InvalidOperationException("JWT issuer is missing.");
+    ?? throw new InvalidOperationException(
+        "JWT issuer is missing.");
 
 var jwtAudience = builder.Configuration["Jwt:Audience"]
-    ?? throw new InvalidOperationException("JWT audience is missing.");
+    ?? throw new InvalidOperationException(
+        "JWT audience is missing.");
 
-var keyBytes = Convert.FromBase64String(jwtKey);
+byte[] keyBytes;
+
+try
+{
+    keyBytes = Convert.FromBase64String(jwtKey);
+}
+catch (FormatException ex)
+{
+    throw new InvalidOperationException(
+        "Jwt:Key must be a Base64-encoded value.", ex);
+}
 
 if (keyBytes.Length < 32)
 {
@@ -72,40 +129,58 @@ builder.Services
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.Zero,
 
-                NameClaimType = "sub"
+                NameClaimType = "sub",
+                RoleClaimType = ClaimTypes.Role
             };
     });
 
 builder.Services.AddAuthorization();
 
+// ============================================
+// CORS - React Frontend
+// ============================================
 
-
-// Allow requests from the React frontend
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactClient", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        var origins = builder.Configuration
+            .GetSection("Cors:AllowedOrigins")
+            .Get<string[]>()
+            ?? new[] { "http://localhost:5173" };
+
+        policy.WithOrigins(origins)
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
-builder.Services.AddOpenApi();
+
+// ============================================
+// Build Application
+// ============================================
 
 var app = builder.Build();
 
+// ============================================
+// Database Migration + Seed Data
+// ============================================
 
-// Seed initial planet data
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider
         .GetRequiredService<GalacticSlicerDbContext>();
 
+    // Automatically create/update the database
+    await context.Database.MigrateAsync();
+
+    // Seed initial planets using the existing DBInit.cs
     await DBInit.SeedAsync(context);
 }
 
+// ============================================
+// HTTP Pipeline
+// ============================================
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -119,4 +194,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
 app.Run();

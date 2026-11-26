@@ -1,5 +1,7 @@
+
 import { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { clearToken, getToken } from "../services/api";
 
 const links = [
     { to: "/", label: "Home" },
@@ -10,10 +12,32 @@ const links = [
 ];
 
 function Navbar() {
-    // on small screens the links are hidden behind the menu button
+    const navigate = useNavigate();
+
+    // Mobile navigation
     const [menuOpen, setMenuOpen] = useState(false);
 
-    // Escape closes the open menu
+    // Current authentication state
+    const [isLoggedIn, setIsLoggedIn] = useState(
+        () => getToken() !== null
+    );
+
+    // Update navigation whenever authentication changes
+    useEffect(() => {
+        function updateAuth() {
+            setIsLoggedIn(getToken() !== null);
+        }
+
+        window.addEventListener("auth-changed", updateAuth);
+        window.addEventListener("storage", updateAuth);
+
+        return () => {
+            window.removeEventListener("auth-changed", updateAuth);
+            window.removeEventListener("storage", updateAuth);
+        };
+    }, []);
+
+    // Escape closes the mobile menu
     useEffect(() => {
         if (!menuOpen) {
             return;
@@ -26,20 +50,51 @@ function Navbar() {
         }
 
         document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
+
+        return () =>
+            document.removeEventListener("keydown", handleKeyDown);
     }, [menuOpen]);
+
+    // Remove JWT and return to the home page
+    function handleLogout() {
+        clearToken();
+        setIsLoggedIn(false);
+        setMenuOpen(false);
+        navigate("/", { replace: true });
+    }
 
     return (
         <header className="gs-header">
             <nav className="gs-navbar" aria-label="Main">
-                <Link to="/" className="gs-brand" onClick={() => setMenuOpen(false)}>
-                    <span className="gs-brand-icon" aria-hidden="true">
-                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            strokeWidth="1.6" strokeLinecap="round">
+                <Link
+                    to="/"
+                    className="gs-brand"
+                    onClick={() => setMenuOpen(false)}
+                >
+                    <span
+                        className="gs-brand-icon"
+                        aria-hidden="true"
+                    >
+                        <svg
+                            width="26"
+                            height="26"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                            strokeLinecap="round"
+                        >
                             <circle cx="12" cy="12" r="5.2" />
-                            <ellipse cx="12" cy="12" rx="10.4" ry="3.4" transform="rotate(-24 12 12)" />
+                            <ellipse
+                                cx="12"
+                                cy="12"
+                                rx="10.4"
+                                ry="3.4"
+                                transform="rotate(-24 12 12)"
+                            />
                         </svg>
                     </span>
+
                     <span>Galactic Slicer</span>
                 </Link>
 
@@ -49,22 +104,31 @@ function Navbar() {
                     aria-controls="primaryNav"
                     aria-expanded={menuOpen}
                     aria-label="Toggle navigation"
-                    onClick={() => setMenuOpen(open => !open)}
+                    onClick={() =>
+                        setMenuOpen(open => !open)
+                    }
                 >
-                    <span></span><span></span><span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
                 </button>
 
-                <div className={`gs-nav-collapse${menuOpen ? " is-open" : ""}`} id="primaryNav">
+                <div
+                    className={`gs-nav-collapse${menuOpen ? " is-open" : ""}`}
+                    id="primaryNav"
+                >
                     <ul className="gs-nav-links">
                         {links.map(link => (
                             <li key={link.to}>
-                                {/* NavLink knows which page is open; "end" keeps Home from matching every page.
-                                    It also sets aria-current="page" on the open page's link. */}
                                 <NavLink
                                     to={link.to}
                                     end={link.to === "/"}
-                                    className={({ isActive }) => `gs-nav-link${isActive ? " is-active" : ""}`}
-                                    onClick={() => setMenuOpen(false)}
+                                    className={({ isActive }) =>
+                                        `gs-nav-link${isActive ? " is-active" : ""}`
+                                    }
+                                    onClick={() =>
+                                        setMenuOpen(false)
+                                    }
                                 >
                                     {link.label}
                                 </NavLink>
@@ -72,14 +136,38 @@ function Navbar() {
                         ))}
                     </ul>
 
-                    {/* visitor buttons, same as Subapp 1 (no login state yet, so always shown) */}
                     <div className="gs-nav-auth">
-                        <Link to="/login" className="gs-btn gs-btn--ghost" onClick={() => setMenuOpen(false)}>
-                            Log in
-                        </Link>
-                        <Link to="/register" className="gs-btn gs-btn--primary gs-btn--sm" onClick={() => setMenuOpen(false)}>
-                            Sign up
-                        </Link>
+                        {isLoggedIn ? (
+                            <button
+                                type="button"
+                                className="gs-btn gs-btn--ghost"
+                                onClick={handleLogout}
+                            >
+                                Log out
+                            </button>
+                        ) : (
+                            <>
+                                <Link
+                                    to="/login"
+                                    className="gs-btn gs-btn--ghost"
+                                    onClick={() =>
+                                        setMenuOpen(false)
+                                    }
+                                >
+                                    Log in
+                                </Link>
+
+                                <Link
+                                    to="/register"
+                                    className="gs-btn gs-btn--primary gs-btn--sm"
+                                    onClick={() =>
+                                        setMenuOpen(false)
+                                    }
+                                >
+                                    Sign up
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             </nav>
