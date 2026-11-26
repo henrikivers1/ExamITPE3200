@@ -82,7 +82,7 @@ public class HomeController : Controller
             return View(model);
         }
 
-                // Only the title is logged: the message text can contain personal data
+        // Only the title is logged: the message text can contain personal data
         _logger.LogInformation("[HomeController] Contact message received: {Title}", model.Title);
 
         TempData["ContactSuccess"] = true;

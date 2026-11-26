@@ -32,7 +32,7 @@
 <div class="gs-form-group">
     <label asp-for="CssClass" class="gs-label">Planet look</label>
     <div class="d-flex align-items-center gap-3">
-        @* live preview of the chosen look, using Filip's planet CSS *@
+        @* live preview of the chosen look, using the planet CSS in site.css *@
         <span id="planetPreview" class="gs-planet gs-planet--@look" aria-hidden="true"></span>
         <select asp-for="CssClass" asp-items="ViewBag.Styles" class="gs-input"></select>
     </div>

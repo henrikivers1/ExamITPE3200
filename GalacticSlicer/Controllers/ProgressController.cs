@@ -26,7 +26,7 @@ public class ProgressController : Controller
         IChallengeRepository challengeRepository,
         IPlanetRepository planetRepository,
         ILogger<ProgressController> logger,
-        PlayerProgressService progressService,
+        IPlayerProgressService progressService,
         UserManager<IdentityUser> userManager,
         ICharacterRepository characterRepository,
         IPlanetProgressService planetProgressService,
@@ -80,7 +80,8 @@ public class ProgressController : Controller
         // The equipped character, for the badge next to the username
         var activeCharacter = progress.ActiveCharacterId == null
             ? null
-                        : await _characterRepository.GetCharacterById(progress.ActiveCharacterId.Value);
+            : await
+_characterRepository.GetCharacterById(progress.ActiveCharacterId.Value);
 
         var xpRange = _rankService.GetXpRange(progress.ExperiencePoints);
 

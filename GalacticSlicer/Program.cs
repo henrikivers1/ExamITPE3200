@@ -7,7 +7,7 @@ using GalacticSlicer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Creates a unique log file name using the current date and time.
+// Creates one log file per day (the name only uses the date).
 // Example: logs/log-2026-09-30.txt
 var logFileName = $"logs/log-{DateTime.Now:yyyy-MM-dd}.txt";
 
@@ -32,14 +32,14 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false; // no email confirmation needed
 })
-.AddRoles<IdentityRole>()   //  enables roles, so we can use [Authorize(Roles = "Admin")]
+.AddRoles<IdentityRole>()   // enables roles, so we can use [Authorize(Roles = "Admin")]
 .AddEntityFrameworkStores<GalacticSlicerDbContext>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";       // where [Authorize] sends users who aren't logged in
     options.LogoutPath = "/Account/Logout";
-    options.AccessDeniedPath = "/Home/HttpStatus/403";   //  logged in but not Admin -> friendly 403 page
+    options.AccessDeniedPath = "/Home/HttpStatus/403";   // logged in but not Admin -> friendly 403 page
 });
 
 builder.Services.AddScoped<IChallengeRepository, ChallengeRepository>();
