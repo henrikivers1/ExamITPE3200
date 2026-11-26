@@ -108,6 +108,45 @@ public class MissionRewardTests
     }
 
     [Fact]
+    public void PassingEachMissionOnce_GivesEnoughXpForTheNextPlanet()
+    {
+        // Arrange
+        var planetProgress = new PlanetProgressService();
+
+        // Act + Assert: after passing missions 1..k (XpPerMission each), planet k+1 is unlocked.
+        // This is the chain that soft-locked players before Hoth with XP per correct answer.
+        for (int passedMissions = 1; passedMissions <= 5; passedMissions++)
+        {
+            int xp = passedMissions * ChallengeCompletionService.XpPerMission;
+            int nextPlanetOrder = passedMissions + 1;
+
+            Assert.True(xp >= planetProgress.GetRequiredXp(nextPlanetOrder),
+                $"{passedMissions} passed mission(s) = {xp} XP, but chapter {nextPlanetOrder} needs " +
+                $"{planetProgress.GetRequiredXp(nextPlanetOrder)} XP");
+        }
+    }
+
+    [Fact]
+    public void PassingEachMissionOnce_GivesEnoughCreditsForTheNextBadge()
+    {
+        // Arrange: the paid badges seeded in DBInit, cheapest first
+        int[] badgePrices = { 150, 300, 500, 1000 };
+        int credits = 0;
+
+        // Act + Assert: after each passed mission the player can buy the next badge
+        for (int mission = 0; mission < badgePrices.Length; mission++)
+        {
+            credits += ChallengeCompletionService.CreditsPerMission;
+
+            Assert.True(credits >= badgePrices[mission],
+                $"After mission {mission + 1} the player has {credits} Credits, " +
+                $"but the next badge costs {badgePrices[mission]}");
+
+            credits -= badgePrices[mission];
+        }
+    }
+
+    [Fact]
     public async Task EightCorrectAnswers_AwardsOnlyCorrectQuestions()
     {
         // Arrange
@@ -144,8 +183,9 @@ public class MissionRewardTests
 
             // Assert
             Assert.True(result);
-            Assert.Equal(800, progress.Credits);
-            Assert.Equal(1200, progress.ExperiencePoints);
+            // Credits and XP are fixed per passed mission, so 8/10 gives the same as 10/10
+            Assert.Equal(ChallengeCompletionService.CreditsPerMission, progress.Credits);
+            Assert.Equal(ChallengeCompletionService.XpPerMission, progress.ExperiencePoints);
             Assert.Equal(8, completedQuestions);
             Assert.True(missionCompleted);
         }
@@ -236,8 +276,8 @@ public class MissionRewardTests
             // Assert
             Assert.True(firstResult);
             Assert.True(secondResult);
-            Assert.Equal(1000, progress.Credits);
-            Assert.Equal(1500, progress.ExperiencePoints);
+            Assert.Equal(ChallengeCompletionService.CreditsPerMission, progress.Credits);
+            Assert.Equal(ChallengeCompletionService.XpPerMission, progress.ExperiencePoints);
             Assert.Equal(10, completedQuestions);
             Assert.Equal(1, completedMissions);
         }

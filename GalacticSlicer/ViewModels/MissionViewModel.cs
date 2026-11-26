@@ -7,9 +7,10 @@ public class MissionViewModel
     public Planet Planet { get; set; } = null!;
     public List<MissionQuestionViewModel> Questions { get; set; } = new();
     public int PassPercent { get; set; }
+    // Credits for passing the mission (fixed, the same for 8/10 and 10/10)
     public int TotalCreditReward { get; set; }
 
-    // Most XP the mission can give (every question answered correctly)
+    // XP for passing the mission (fixed, the same for 8/10 and 10/10)
     public int MaxXpReward { get; set; }
 
     // The player's rank and XP before the mission, for the XP bar on the result screen
