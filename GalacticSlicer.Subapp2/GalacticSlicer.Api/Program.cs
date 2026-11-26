@@ -2,6 +2,7 @@ using GalacticSlicer.Api.Models;
 using GalacticSlicer.Api.DAL;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using GalacticSlicer.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +19,14 @@ builder.Services
 // Add services to the container.
 // Register the planet repository for dependency injection
 builder.Services.AddScoped<IPlanetRepository, PlanetRepository>();
+builder.Services.AddScoped<IPlanetService, PlanetService>();
 builder.Services.AddControllers();
+builder.Services.AddScoped<IChallengeRepository, ChallengeRepository>();
+builder.Services.AddScoped<IChallengeService, ChallengeService>();
+builder.Services.AddScoped<ICharacterRepository, CharacterRepository>();
+builder.Services.AddScoped<ICharacterService, CharacterService>();
+builder.Services.AddScoped<CharacterGameplayService>();
+
 
 // Allow requests from the React frontend
 builder.Services.AddCors(options =>
@@ -30,7 +38,6 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
