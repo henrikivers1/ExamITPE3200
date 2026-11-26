@@ -23,6 +23,9 @@ builder.Services.AddScoped<IPlanetService, PlanetService>();
 builder.Services.AddControllers();
 builder.Services.AddScoped<IChallengeRepository, ChallengeRepository>();
 builder.Services.AddScoped<IChallengeService, ChallengeService>();
+builder.Services.AddScoped<ICharacterRepository, CharacterRepository>();
+builder.Services.AddScoped<ICharacterService, CharacterService>();
+builder.Services.AddScoped<CharacterGameplayService>();
 
 
 // Allow requests from the React frontend
@@ -35,7 +38,6 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
