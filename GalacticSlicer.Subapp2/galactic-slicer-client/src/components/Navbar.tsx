@@ -71,6 +71,16 @@ function Navbar() {
                             </li>
                         ))}
                     </ul>
+
+                    {/* visitor buttons, same as Subapp 1 (no login state yet, so always shown) */}
+                    <div className="gs-nav-auth">
+                        <Link to="/login" className="gs-btn gs-btn--ghost" onClick={() => setMenuOpen(false)}>
+                            Log in
+                        </Link>
+                        <Link to="/register" className="gs-btn gs-btn--primary gs-btn--sm" onClick={() => setMenuOpen(false)}>
+                            Sign up
+                        </Link>
+                    </div>
                 </div>
             </nav>
         </header>

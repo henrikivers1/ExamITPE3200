@@ -1,14 +1,7 @@
 import type { Planet } from "../types/Planet.ts";
+import { apiRequest } from "./api.ts";
 
-const API_URL = "http://localhost:5190/api/planets";
-
-
+// GET /api/planets
 export async function getPlanets(): Promise<Planet[]> {
-    const response = await fetch(API_URL);
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch planets");
-    }
-
-    return response.json();
+    return apiRequest<Planet[]>("/api/planets");
 }

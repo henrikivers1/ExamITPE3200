@@ -1,0 +1,60 @@
+interface TopicIconProps {
+    iconKey: string;
+}
+
+// Subject icon on the topic cards, same icons as Challenge/Topics.cshtml in Subapp 1
+function TopicIcon({ iconKey }: TopicIconProps) {
+    const common = {
+        width: 22,
+        height: 22,
+        viewBox: "0 0 24 24",
+        fill: "none",
+        stroke: "currentColor",
+        strokeWidth: 1.8,
+        strokeLinecap: "round" as const,
+        strokeLinejoin: "round" as const,
+    };
+
+    switch (iconKey) {
+        case "crypto":
+            return (
+                <svg {...common}>
+                    <rect x="5" y="11" width="14" height="9" rx="2" />
+                    <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                </svg>
+            );
+        case "network":
+            return (
+                <svg {...common}>
+                    <circle cx="12" cy="5" r="2.2" />
+                    <circle cx="5" cy="19" r="2.2" />
+                    <circle cx="19" cy="19" r="2.2" />
+                    <path d="M12 7.2V13M12 13 6.6 17.3M12 13l5.4 4.3" />
+                </svg>
+            );
+        case "web":
+            return (
+                <svg {...common}>
+                    <circle cx="12" cy="12" r="8.5" />
+                    <path d="M3.5 12h17M12 3.5c2.2 2.3 3.3 5.3 3.3 8.5s-1.1 6.2-3.3 8.5c-2.2-2.3-3.3-5.3-3.3-8.5S9.8 5.8 12 3.5Z" />
+                </svg>
+            );
+        case "linux":
+            return (
+                <svg {...common}>
+                    <rect x="3" y="5" width="18" height="14" rx="2" />
+                    <path d="M7 10l3 2-3 2M12.5 15h4.5" />
+                </svg>
+            );
+        default:
+            return (
+                <svg {...common}>
+                    <path d="M12 3 4 6.5v5.4c0 4.6 3.2 7.7 8 8.6 4.8-.9 8-4 8-8.6V6.5L12 3Z" />
+                    <circle cx="12" cy="11" r="2.4" />
+                    <path d="M12 13.4V16" />
+                </svg>
+            );
+    }
+}
+
+export default TopicIcon;

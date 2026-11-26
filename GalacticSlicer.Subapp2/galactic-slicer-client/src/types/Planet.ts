@@ -1,6 +1,7 @@
 
+// Same fields as PlanetDto in the API
 export interface Planet {
-    planetId: string;
+    planetId: number;
     name: string;
     description: string | null;
     order: number;

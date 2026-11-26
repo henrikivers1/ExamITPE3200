@@ -2,6 +2,8 @@
    This file only has what the React app needs on top of it. */
 
 @import "./theme.css";
+@import "./shop.css";
+@import "./progress.css";
 
 /* React renders into #root, so #root (not body) is the column that keeps the footer at the bottom */
 #root {
@@ -62,6 +64,122 @@
     .gs-starchart-path {
         --gs-cols: min(2, var(--gs-count, 6));
     }
+}
+
+/* message above a form, e.g. "Logging in isn't available yet" (gold, like the theme accent) */
+.gs-form-notice {
+    margin: 0 0 1.25rem;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--gs-accent);
+    border-radius: var(--gs-radius-sm);
+    background: var(--gs-accent-soft);
+    color: var(--gs-text);
+    font-size: 0.875rem;
+    text-align: left;
+}
+
+/* red border on inputs with an error */
+.gs-input[aria-invalid="true"] {
+    border-color: #ef5b5b;
+}
+
+/* password rules under the Sign up password field; green once a rule is met */
+.gs-password-rules {
+    margin: 0.2rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.8rem;
+    color: var(--gs-text-muted);
+}
+
+.gs-password-rules li.is-met {
+    color: #3ecf8e;
+}
+
+/* ---------- Manage Challenges (same look as Challenge/Index in Subapp 1, which uses Bootstrap) ---------- */
+
+/* search bar: text field, subject dropdown, Search and Clear on one centered row */
+.gs-search {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    max-width: 960px;
+    margin: 1.25rem auto 0;
+}
+
+.gs-search-text {
+    flex: 1 1 280px;
+    max-width: 400px;
+}
+
+.gs-search-subject {
+    flex: 0 1 240px;
+    cursor: pointer;
+}
+
+/* dark option list in the dropdown */
+select.gs-input option {
+    background: var(--gs-bg-elevated);
+    color: var(--gs-text);
+}
+
+/* white search field and dropdown with dark text, so they stand out clearly on the dark page
+   (like the search bar in Subapp 1). #5f6368 placeholder on white is about 6:1 contrast. */
+.gs-search .gs-input {
+    background: #ffffff;
+    color: #1a1d24;
+    border-color: #ffffff;
+}
+
+.gs-search .gs-input::placeholder {
+    color: #5f6368;
+}
+
+.gs-search select.gs-input option {
+    background: #ffffff;
+    color: #1a1d24;
+}
+
+/* the two big buttons: Create New Challenge and Practice Challenges */
+.gs-button-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 3rem 0;
+}
+
+.gs-button-row--large .gs-btn {
+    justify-content: center;
+    padding: 1.1rem 2.4rem;
+    font-size: 1.2rem;
+    border-radius: var(--gs-radius);
+}
+
+/* violet partner to the gold accent, same as .gs-btn-practice in Subapp 1 */
+.gs-btn--practice {
+    background: #7c5cff;
+    color: #fff;
+}
+
+.gs-btn--practice:hover {
+    background: #8f73ff;
+    color: #fff;
+}
+
+@media (max-width: 480px) {
+    .gs-button-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* messages when the list is empty (not logged in, no search results), in bright text */
+.challenge-empty {
+    margin: 1.5rem 0 0;
+    text-align: center;
+    color: var(--gs-text);
 }
 
 /* buttons under the page intro (Not found page) */
