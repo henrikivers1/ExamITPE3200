@@ -54,13 +54,13 @@
 @* Search and filter: method="get" because it changes no data (same pattern as the Challenges page) *@
 <form asp-action="Shop" method="get" class="gs-search row g-2 justify-content-center mt-4 mb-4">
     <div class="col-md-4">
-        @Html.TextBox("searchString", Model.SearchString, new { @class = "form-control", placeholder = "Search name or description" })
+        @Html.TextBox("searchString", Model.SearchString, new { @class = "form-control", placeholder = "Search name or description", aria_label = "Search name or description" })
     </div>
     <div class="col-md-2">
         @Html.TextBox("maxPrice", Model.MaxPrice, new { type = "number", min = "0", @class = "form-control", placeholder = "Max price" })
     </div>
     <div class="col-md-2">
-        @Html.DropDownList("sortOrder", sortOptions, new { @class = "form-select" })
+        @Html.DropDownList("sortOrder", sortOptions, new { @class = "form-select", aria_label = "Sort characters" })
     </div>
     @* only players own characters, so visitors don't get this filter *@
     @if (isLoggedIn)
