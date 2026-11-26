@@ -130,13 +130,13 @@ public class MissionRewardTests
     public void PassingEachMissionOnce_GivesEnoughCreditsForTheNextBadge()
     {
         // Arrange: the paid badges seeded in DBInit, cheapest first
-        int[] badgePrices = { 150, 300, 500, 1000 };
+        int[] badgePrices = { 500, 1000, 1500, 2000 };
         int credits = 0;
 
-        // Act + Assert: after each passed mission the player can buy the next badge
+        // Act + Assert: after each passed mission (chapter 1, 2, 3, ...) the player can buy the next badge
         for (int mission = 0; mission < badgePrices.Length; mission++)
         {
-            credits += ChallengeCompletionService.CreditsPerMission;
+            credits += ChallengeCompletionService.CreditsForMission(mission + 1);
 
             Assert.True(credits >= badgePrices[mission],
                 $"After mission {mission + 1} the player has {credits} Credits, " +
@@ -147,7 +147,7 @@ public class MissionRewardTests
     }
 
     [Fact]
-    public async Task EightCorrectAnswers_AwardsOnlyCorrectQuestions()
+    public async Task EightCorrectAnswers_PassesAndStoresOnlyCorrectQuestions()
     {
         // Arrange
         var (provider, connection, planetId) =
@@ -183,8 +183,8 @@ public class MissionRewardTests
 
             // Assert
             Assert.True(result);
-            // Credits and XP are fixed per passed mission, so 8/10 gives the same as 10/10
-            Assert.Equal(ChallengeCompletionService.CreditsPerMission, progress.Credits);
+            // The rewards depend on the planet, not the score, so 8/10 gives the same as 10/10
+            Assert.Equal(ChallengeCompletionService.CreditsForMission(1), progress.Credits); // test planet is chapter 1
             Assert.Equal(ChallengeCompletionService.XpPerMission, progress.ExperiencePoints);
             Assert.Equal(8, completedQuestions);
             Assert.True(missionCompleted);
@@ -276,7 +276,7 @@ public class MissionRewardTests
             // Assert
             Assert.True(firstResult);
             Assert.True(secondResult);
-            Assert.Equal(ChallengeCompletionService.CreditsPerMission, progress.Credits);
+            Assert.Equal(ChallengeCompletionService.CreditsForMission(1), progress.Credits); // test planet is chapter 1
             Assert.Equal(ChallengeCompletionService.XpPerMission, progress.ExperiencePoints);
             Assert.Equal(10, completedQuestions);
             Assert.Equal(1, completedMissions);

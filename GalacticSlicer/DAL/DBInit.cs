@@ -44,10 +44,10 @@ public static class DBInit
             var characters = new List<Character>
             {
                 new Character { Name = "Rookie Slicer", Price = 0, Description = "Every hacker starts somewhere. Free starter character." },
-                new Character { Name = "Astromech Hacker", Price = 150, Description = "A droid that plugs straight into any terminal." },
-                new Character { Name = "Smuggler", Price = 300, Description = "Knows every back door in the Outer Rim." },
-                new Character { Name = "Bounty Hunter", Price = 500, Description = "Tracks down malware for a price." },
-                new Character { Name = "Shadow Operative", Price = 1000, Description = "Leaves no logs behind. Legendary." },
+                new Character { Name = "Astromech Hacker", Price = 500, Description = "A droid that plugs straight into any terminal." },
+                new Character { Name = "Smuggler", Price = 1000, Description = "Knows every back door in the Outer Rim." },
+                new Character { Name = "Bounty Hunter", Price = 1500, Description = "Tracks down malware for a price." },
+                new Character { Name = "Shadow Operative", Price = 2000, Description = "Leaves no logs behind. Legendary." },
             };
             context.Characters.AddRange(characters);
             context.SaveChanges();

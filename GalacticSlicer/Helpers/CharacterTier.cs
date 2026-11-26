@@ -9,10 +9,11 @@ public static class CharacterTier
     // Key is used in CSS class names (gs-badge--rare), Label is shown to the player
     public static (string Key, string Label) Get(int price) => price switch
     {
-        0 => ("starter", "Starter"),
-        < 300 => ("uncommon", "Uncommon"),
-        < 500 => ("rare", "Rare"),
-        < 1000 => ("epic", "Epic"),
+        // one tier per seeded badge: 0, 500, 1000, 1500, 2000
+        0 => ("common", "Common"),
+        < 1000 => ("uncommon", "Uncommon"),
+        < 1500 => ("rare", "Rare"),
+        < 2000 => ("epic", "Epic"),
         _ => ("legendary", "Legendary")
     };
 

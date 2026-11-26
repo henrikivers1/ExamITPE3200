@@ -14,7 +14,7 @@
     <label asp-for="Price" class="gs-label">Price (Credits)</label>
     <input asp-for="Price" class="gs-input" type="number" min="0" max="100000" />
     @* the price decides the badge tier (Helpers/CharacterTier.cs) *@
-    <small class="text-muted">0 = Starter, under 300 = Uncommon, under 500 = Rare, under 1000 = Epic, 1000+ = Legendary</small>
+    <small class="text-muted">0 = Common, under 1000 = Uncommon, under 1500 = Rare, under 2000 = Epic, 2000+ = Legendary</small>
     <span asp-validation-for="Price" class="gs-field-error"></span>
 </div>
  
