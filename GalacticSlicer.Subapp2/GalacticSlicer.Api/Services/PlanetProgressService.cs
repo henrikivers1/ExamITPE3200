@@ -25,10 +25,14 @@ public class PlanetProgressService
             {
                 PlanetId = p.PlanetId,
                 Name = p.Name,
+                Description = p.Description,
+                Order = p.Order,
                 CssClass = p.CssClass,
+                Subject = p.Subject,
                 StepLabel = $"Chapter {p.Order}",
                 IsUnlocked = IsPlanetUnlocked(p, progress),
-                IsCompleted = completedPlanetIds.Contains(p.PlanetId)
+                IsCompleted = completedPlanetIds.Contains(p.PlanetId),
+                RequiredXp = GetRequiredXp(p.Order)
             })
             .ToList();
     }
@@ -44,7 +48,8 @@ public class PlanetProgressService
             4 => 3000,      // Kamino
             5 => 5000,      // Hoth
             6 => 6000,      // Endor
-            _ => int.MaxValue // Unknown planet orders stay locked
+            >= 7 => 6000 + (planetOrder - 6) * 2000,
+            _ => int.MaxValue // Invalid planet orders stay locked
         };
     }
 }

@@ -1,68 +1,168 @@
+
 import { useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import FormField from "../components/FormField";
 import { usePageTitle } from "../hooks/usePageTitle";
-import { passwordRules, validateSignUp, type SignUpValues } from "../validation/authValidation";
+import { passwordRules } from "../validation/authValidation";
+import { apiRequest, ApiError } from "../services/api";
 
-const fields: (keyof SignUpValues)[] = ["username", "password", "confirmPassword"];
+type SignUpValues = {
+    email: string;
+    password: string;
+    confirmPassword: string;
+};
 
-// Sign up form with client-side validation, like Account/SignUp in Subapp 1.
-// Not connected to the API yet (no register endpoint), so a valid form only shows a notice.
+const fields: (keyof SignUpValues)[] = [
+    "email",
+    "password",
+    "confirmPassword",
+];
+
 function RegisterPage() {
     usePageTitle("Sign up");
 
-    const [values, setValues] = useState<SignUpValues>({ username: "", password: "", confirmPassword: "" });
-    // a field shows its error after the user has left it once, or after pressing Sign up
-    const [touched, setTouched] = useState<Partial<Record<keyof SignUpValues, boolean>>>({});
+    const navigate = useNavigate();
+
+    const [values, setValues] = useState<SignUpValues>({
+        email: "",
+        password: "",
+        confirmPassword: "",
+    });
+
+    const [touched, setTouched] = useState<
+        Partial<Record<keyof SignUpValues, boolean>>
+    >({});
+
     const [submitted, setSubmitted] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [notice, setNotice] = useState<string | null>(null);
 
-    const errors = validateSignUp(values);
+    function validate() {
+        const errors: Partial<Record<keyof SignUpValues, string>> = {};
+
+        if (!values.email.trim()) {
+            errors.email = "Email is required.";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
+            errors.email = "Enter a valid email address.";
+        }
+
+        if (!values.password) {
+            errors.password = "Password is required.";
+        } else if (!passwordRules.every(rule => rule.test(values.password))) {
+            errors.password = "Password does not meet all requirements.";
+        }
+
+        if (!values.confirmPassword) {
+            errors.confirmPassword = "Please confirm your password.";
+        } else if (values.password !== values.confirmPassword) {
+            errors.confirmPassword = "Passwords do not match.";
+        }
+
+        return errors;
+    }
+
+    const errors = validate();
+
     const visibleError = (field: keyof SignUpValues) =>
         touched[field] || submitted ? errors[field] : undefined;
 
     function update(field: keyof SignUpValues, value: string) {
-        setValues(current => ({ ...current, [field]: value }));
+        setValues(current => ({
+            ...current,
+            [field]: value,
+        }));
+
         setNotice(null);
     }
 
-    function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        setSubmitted(true);
 
-        // move focus to the first field with an error, so keyboard users land on it
+        if (loading) return;
+
+        setSubmitted(true);
+        setNotice(null);
+
         const firstInvalid = fields.find(field => errors[field]);
+
         if (firstInvalid) {
             document.getElementById(firstInvalid)?.focus();
             return;
         }
 
-        // TODO: send to the API's register endpoint once it exists
-        setNotice("Signing up isn't available yet: the API doesn't have accounts yet. Nothing was sent.");
+        setLoading(true);
+
+        try {
+            await apiRequest<unknown>(
+                "/api/auth/register",
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        email: values.email.trim(),
+                        password: values.password,
+                    }),
+                }
+            );
+
+            navigate("/login", {
+                replace: true,
+                state: {
+                    message:
+                        "Account created successfully. Please log in.",
+                },
+            });
+        } catch (error) {
+            if (error instanceof ApiError) {
+                setNotice(error.message);
+            } else {
+                setNotice(
+                    "Registration failed. Please try again."
+                );
+            }
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
         <section className="gs-auth-wrapper">
             <div className="gs-auth-card">
                 <h1 className="gs-auth-title">Sign up</h1>
-                <p className="gs-auth-subtitle">Join the fight for a safer galaxy.</p>
 
-                {/* role="status": screen readers read the notice when it appears */}
-                <div role="status">
-                    {notice && <p className="gs-form-notice">{notice}</p>}
+                <p className="gs-auth-subtitle">
+                    Join the fight for a safer galaxy.
+                </p>
+
+                <div role="status" aria-live="polite">
+                    {notice && (
+                        <p className="gs-form-notice">
+                            {notice}
+                        </p>
+                    )}
                 </div>
 
-                {/* noValidate: our own messages instead of the browser's pop-ups */}
-                <form className="gs-form" onSubmit={handleSubmit} noValidate>
+                <form
+                    className="gs-form"
+                    onSubmit={handleSubmit}
+                    noValidate
+                >
                     <FormField
-                        id="username"
-                        label="Username"
-                        value={values.username}
-                        onChange={value => update("username", value)}
-                        onBlur={() => setTouched(current => ({ ...current, username: true }))}
-                        error={visibleError("username")}
-                        placeholder="Choose a username"
-                        autoComplete="username"
+                        id="email"
+                        label="Email"
+                        type="email"
+                        value={values.email}
+                        onChange={value =>
+                            update("email", value)
+                        }
+                        onBlur={() =>
+                            setTouched(current => ({
+                                ...current,
+                                email: true,
+                            }))
+                        }
+                        error={visibleError("email")}
+                        placeholder="Enter your email"
+                        autoComplete="email"
                     />
 
                     <FormField
@@ -70,20 +170,40 @@ function RegisterPage() {
                         label="Password"
                         type="password"
                         value={values.password}
-                        onChange={value => update("password", value)}
-                        onBlur={() => setTouched(current => ({ ...current, password: true }))}
+                        onChange={value =>
+                            update("password", value)
+                        }
+                        onBlur={() =>
+                            setTouched(current => ({
+                                ...current,
+                                password: true,
+                            }))
+                        }
                         error={visibleError("password")}
                         placeholder="Choose a password"
                         autoComplete="new-password"
                     >
-                        {/* checklist that ticks off each rule while typing */}
-                        <ul className="gs-password-rules" aria-label="Password rules">
+                        <ul
+                            className="gs-password-rules"
+                            aria-label="Password rules"
+                        >
                             {passwordRules.map(rule => {
                                 const met = rule.test(values.password);
+
                                 return (
-                                    <li key={rule.label} className={met ? "is-met" : ""}>
-                                        <span aria-hidden="true">{met ? "✓" : "○"}</span> {rule.label}
-                                        <span className="gs-sr-only">{met ? " (done)" : " (missing)"}</span>
+                                    <li
+                                        key={rule.label}
+                                        className={met ? "is-met" : ""}
+                                    >
+                                        <span aria-hidden="true">
+                                            {met ? "✓" : "○"}
+                                        </span>{" "}
+                                        {rule.label}
+                                        <span className="gs-sr-only">
+                                            {met
+                                                ? " (done)"
+                                                : " (missing)"}
+                                        </span>
                                     </li>
                                 );
                             })}
@@ -95,20 +215,32 @@ function RegisterPage() {
                         label="Confirm password"
                         type="password"
                         value={values.confirmPassword}
-                        onChange={value => update("confirmPassword", value)}
-                        onBlur={() => setTouched(current => ({ ...current, confirmPassword: true }))}
+                        onChange={value =>
+                            update("confirmPassword", value)
+                        }
+                        onBlur={() =>
+                            setTouched(current => ({
+                                ...current,
+                                confirmPassword: true,
+                            }))
+                        }
                         error={visibleError("confirmPassword")}
                         placeholder="Repeat your password"
                         autoComplete="new-password"
                     />
 
-                    <button type="submit" className="gs-btn gs-btn--primary gs-btn--lg gs-form-submit">
-                        Sign up
+                    <button
+                        type="submit"
+                        className="gs-btn gs-btn--primary gs-btn--lg gs-form-submit"
+                        disabled={loading}
+                    >
+                        {loading ? "Creating account..." : "Sign up"}
                     </button>
                 </form>
 
                 <p className="gs-form-footer">
-                    Already have an account? <Link to="/login">Log in</Link>
+                    Already have an account?{" "}
+                    <Link to="/login">Log in</Link>
                 </p>
             </div>
         </section>

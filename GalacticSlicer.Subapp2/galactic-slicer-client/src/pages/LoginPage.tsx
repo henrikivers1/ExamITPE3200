@@ -1,68 +1,157 @@
+
 import { useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import FormField from "../components/FormField";
 import { usePageTitle } from "../hooks/usePageTitle";
-import { validateLogin, type LoginValues } from "../validation/authValidation";
+import { apiRequest, ApiError, saveToken } from "../services/api";
 
-const fields: (keyof LoginValues)[] = ["username", "password"];
+type LoginValues = {
+    email: string;
+    password: string;
+};
 
-// Log in form with client-side validation, like Account/Login in Subapp 1.
-// Not connected to the API yet (no login endpoint), so a valid form only shows a notice.
+type LoginResponse = {
+    token: string;
+};
+
+const fields: (keyof LoginValues)[] = ["email", "password"];
+
 function LoginPage() {
     usePageTitle("Log in");
 
-    const [values, setValues] = useState<LoginValues>({ username: "", password: "" });
-    // a field shows its error after the user has left it once, or after pressing Log in
-    const [touched, setTouched] = useState<Partial<Record<keyof LoginValues, boolean>>>({});
+    const navigate = useNavigate();
+
+    const [values, setValues] = useState<LoginValues>({
+        email: "",
+        password: "",
+    });
+
+    const [touched, setTouched] = useState<
+        Partial<Record<keyof LoginValues, boolean>>
+    >({});
+
     const [submitted, setSubmitted] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [notice, setNotice] = useState<string | null>(null);
 
-    const errors = validateLogin(values);
+    function validate() {
+        const errors: Partial<Record<keyof LoginValues, string>> = {};
+
+        if (!values.email.trim()) {
+            errors.email = "Email is required.";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
+            errors.email = "Enter a valid email address.";
+        }
+
+        if (!values.password) {
+            errors.password = "Password is required.";
+        }
+
+        return errors;
+    }
+
+    const errors = validate();
+
     const visibleError = (field: keyof LoginValues) =>
         touched[field] || submitted ? errors[field] : undefined;
 
     function update(field: keyof LoginValues, value: string) {
-        setValues(current => ({ ...current, [field]: value }));
+        setValues(current => ({
+            ...current,
+            [field]: value,
+        }));
+
         setNotice(null);
     }
 
-    function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        setSubmitted(true);
 
-        // move focus to the first field with an error, so keyboard users land on it
+        if (loading) return;
+
+        setSubmitted(true);
+        setNotice(null);
+
         const firstInvalid = fields.find(field => errors[field]);
+
         if (firstInvalid) {
             document.getElementById(firstInvalid)?.focus();
             return;
         }
 
-        // TODO: send to the API's login endpoint once it exists
-        setNotice("Logging in isn't available yet: the API doesn't have login yet. Nothing was sent.");
+        setLoading(true);
+
+        try {
+            const response = await apiRequest<LoginResponse>(
+                "/api/auth/login",
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        email: values.email.trim(),
+                        password: values.password,
+                    }),
+                }
+            );
+
+            if (!response.token) {
+                throw new Error("The API did not return a token.");
+            }
+
+            saveToken(response.token);
+
+            navigate("/progress", { replace: true });
+        } catch (error) {
+            if (error instanceof ApiError) {
+                setNotice(error.message);
+            } else {
+                setNotice(
+                    "Login failed. Please try again."
+                );
+            }
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
         <section className="gs-auth-wrapper">
             <div className="gs-auth-card">
                 <h1 className="gs-auth-title">Log in</h1>
-                <p className="gs-auth-subtitle">Welcome back, slicer.</p>
 
-                {/* role="status": screen readers read the notice when it appears */}
-                <div role="status">
-                    {notice && <p className="gs-form-notice">{notice}</p>}
+                <p className="gs-auth-subtitle">
+                    Welcome back, slicer.
+                </p>
+
+                <div role="status" aria-live="polite">
+                    {notice && (
+                        <p className="gs-form-notice">
+                            {notice}
+                        </p>
+                    )}
                 </div>
 
-                {/* noValidate: our own messages instead of the browser's pop-ups */}
-                <form className="gs-form" onSubmit={handleSubmit} noValidate>
+                <form
+                    className="gs-form"
+                    onSubmit={handleSubmit}
+                    noValidate
+                >
                     <FormField
-                        id="username"
-                        label="Username"
-                        value={values.username}
-                        onChange={value => update("username", value)}
-                        onBlur={() => setTouched(current => ({ ...current, username: true }))}
-                        error={visibleError("username")}
-                        placeholder="Enter your username"
-                        autoComplete="username"
+                        id="email"
+                        label="Email"
+                        type="email"
+                        value={values.email}
+                        onChange={value =>
+                            update("email", value)
+                        }
+                        onBlur={() =>
+                            setTouched(current => ({
+                                ...current,
+                                email: true,
+                            }))
+                        }
+                        error={visibleError("email")}
+                        placeholder="Enter your email"
+                        autoComplete="email"
                     />
 
                     <FormField
@@ -70,20 +159,32 @@ function LoginPage() {
                         label="Password"
                         type="password"
                         value={values.password}
-                        onChange={value => update("password", value)}
-                        onBlur={() => setTouched(current => ({ ...current, password: true }))}
+                        onChange={value =>
+                            update("password", value)
+                        }
+                        onBlur={() =>
+                            setTouched(current => ({
+                                ...current,
+                                password: true,
+                            }))
+                        }
                         error={visibleError("password")}
                         placeholder="Enter your password"
                         autoComplete="current-password"
                     />
 
-                    <button type="submit" className="gs-btn gs-btn--primary gs-btn--lg gs-form-submit">
-                        Log in
+                    <button
+                        type="submit"
+                        className="gs-btn gs-btn--primary gs-btn--lg gs-form-submit"
+                        disabled={loading}
+                    >
+                        {loading ? "Logging in..." : "Log in"}
                     </button>
                 </form>
 
                 <p className="gs-form-footer">
-                    Don't have an account? <Link to="/register">Sign up</Link>
+                    Don't have an account?{" "}
+                    <Link to="/register">Sign up</Link>
                 </p>
             </div>
         </section>
