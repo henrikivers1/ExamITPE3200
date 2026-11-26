@@ -66,7 +66,8 @@
                 <p class="mt-3 mb-0">You need to be logged in to start a mission.</p>
             }
         </div>
-
+        @* error message from SubmitMission, filled in by the script *@
+        <p id="missionError" class="gs-delete-warning text-center" role="alert" hidden></p>
         @* 2. the questions *@
         <div id="quizQuestionArea" hidden>
             @* "Question X of Y" and a bar showing how far through the mission the player is *@
@@ -260,7 +261,7 @@
             nextBtn.focus();
         }
 
-        async function finishMission() {
+                async function finishMission() {
             questionArea.hidden = true;
 
             const token = document.querySelector(
@@ -284,7 +285,9 @@
                 );
 
                 if (!response.ok) {
-                    throw new Error("Could not submit mission.");
+                    // The server sends a short reason, e.g. "This mission has expired. Reload the page..."
+                    const message = await response.text();
+                    throw new Error(message || "Could not submit mission.");
                 }
 
                 const result = await response.json();
@@ -322,9 +325,14 @@
             } catch (error) {
                 console.error(error);
                 questionArea.hidden = false;
-                alert("Something went wrong. Please reload the page and try again.");
+                // Show the error on the page instead of a browser popup
+                const errorBox = document.getElementById("missionError");
+                               errorBox.textContent = (error instanceof TypeError ? "Could not reach the server." : error.message)
+                    + " Please reload the page and try again.";
+                errorBox.hidden = false;
             }
         }
+
 
         // lists every question with the player's answer, the correct answer and the explanation
         function renderReview(review) {

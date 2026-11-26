@@ -43,7 +43,8 @@ public class PlanetProgressService
             4 => 3000,      // Kamino
             5 => 5000,      // Hoth
             6 => 6000,      // Endor
-            _ => int.MaxValue // Unknown planet orders stay locked
+                       // Planets added by an admin (chapter 7+) need 2000 XP more per chapter
+            _ => 6000 + (planetOrder - 6) * 2000
         };
     }
 }

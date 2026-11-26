@@ -82,10 +82,8 @@ public class HomeController : Controller
             return View(model);
         }
 
-        _logger.LogInformation(
-            "Contact message received. Title: {Title}, Description: {Description}",
-            model.Title,
-            model.Description);
+                // Only the title is logged: the message text can contain personal data
+        _logger.LogInformation("[HomeController] Contact message received: {Title}", model.Title);
 
         TempData["ContactSuccess"] = true;
         return RedirectToAction(nameof(Contact));

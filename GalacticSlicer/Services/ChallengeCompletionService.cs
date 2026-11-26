@@ -74,14 +74,9 @@ public class ChallengeCompletionService
                 return false;
             }
 
-            // Endor is the final exam and can use official questions
-            // from all previous planets.
-            bool isFinalExam =
-                string.Equals(
-                    planet.Name,
-                    "Endor",
-                    StringComparison.OrdinalIgnoreCase) &&
-                planet.Subject == null;
+                       // A planet without a subject is a final exam (Endor): it mixes questions from every subject.
+            // Decided by the data, not the name, so an admin can rename or add planets.
+            bool isFinalExam = planet.Subject == null;
 
             // Load the submitted questions from the database
             var challenges = await _context.Challenges
@@ -96,11 +91,9 @@ public class ChallengeCompletionService
                 challenges.Any(c =>
                     string.IsNullOrWhiteSpace(c.SourceId) ||
                     c.CreatedByUserId != null ||
-                    !c.PlanetId.HasValue ||
-                    (isFinalExam
-                        ? c.PlanetId == planetId
-                        : c.PlanetId != planetId ||
-                          c.Subject != planet.Subject));
+                                        !c.PlanetId.HasValue ||
+                    // Same rule as QuestionService.GetPlanetPoolAsync: a normal planet only accepts its own subject
+                    (!isFinalExam && c.Subject != planet.Subject));
 
             if (invalidQuestions)
             {

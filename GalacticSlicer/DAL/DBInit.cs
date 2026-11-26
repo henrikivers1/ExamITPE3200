@@ -29,22 +29,10 @@ public static class DBInit
             new Planet { Name = "Endor",     Order = 6, CssClass = "endor",     Subject = null,                              Description = "The final test for a legendary slicer: questions from every subject." },
         };
 
+                // Only add the planets if the table is empty, so admin edits are never overwritten
         if (!context.Planets.Any())
         {
             context.Planets.AddRange(planets);
-        }
-        else
-        {
-            // Existing databases: keep the planets, but update their subject and description
-            foreach (var seed in planets)
-            {
-                var planet = context.Planets.FirstOrDefault(p => p.Name == seed.Name);
-                if (planet != null)
-                {
-                    planet.Subject = seed.Subject;
-                    planet.Description = seed.Description;
-                }
-            }
         }
         context.SaveChanges();
 

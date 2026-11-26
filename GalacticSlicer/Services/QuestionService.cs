@@ -12,58 +12,84 @@ public class QuestionService
     public const int QuestionsPerRound = 10;
 
     private readonly GalacticSlicerDbContext _context;
+    private readonly ILogger<QuestionService> _logger;
 
-    public QuestionService(GalacticSlicerDbContext context)
+    public QuestionService(GalacticSlicerDbContext context, ILogger<QuestionService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     // All questions a planet's mission can ask: its subject, or every subject if it has none (Endor)
     public async Task<List<Challenge>> GetPlanetPoolAsync(Planet planet)
     {
-        // Only use official questions assigned to a planet
-        var query = _context.Challenges.Where(c =>
-            !string.IsNullOrEmpty(c.SourceId) &&
-            c.CreatedByUserId == null &&
-            c.PlanetId.HasValue);
-
-        if (planet.Subject != null)
+        try
         {
-            query = query.Where(c => c.Subject == planet.Subject);
-        }
+            // Only use official questions assigned to a planet
+            var query = _context.Challenges.Where(c =>
+                !string.IsNullOrEmpty(c.SourceId) &&
+                c.CreatedByUserId == null &&
+                c.PlanetId.HasValue);
 
-        return await query.ToListAsync();
+            if (planet.Subject != null)
+            {
+                query = query.Where(c => c.Subject == planet.Subject);
+            }
+
+            return await query.ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[QuestionService] Failed to load the question pool for Planet {PlanetId}", planet.PlanetId);
+            throw;
+        }
     }
 
     // All practice questions in one subject: questions.json plus the player's own questions
     // (userId is null for visitors, who only get questions.json)
     public async Task<List<Challenge>> GetSubjectPoolAsync(string subject, string? userId = null)
     {
-        return await _context.Challenges
-            .Where(c => (c.SourceId != null || (userId != null && c.CreatedByUserId == userId))
-                        && c.Subject == subject)
-            .ToListAsync();
+        try
+        {
+            return await _context.Challenges
+                .Where(c => (c.SourceId != null || (userId != null && c.CreatedByUserId == userId))
+                            && c.Subject == subject)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[QuestionService] Failed to load practice questions for subject {Subject}", subject);
+            throw;
+        }
     }
 
     // Each subject with its number of practice questions (questions.json plus the player's own),
     // in planet order (subjects without a planet last)
     public async Task<List<(string Subject, int Count, int Order)>> GetSubjectsAsync(string? userId = null)
     {
-        var counts = await _context.Challenges
-            .Where(c => (c.SourceId != null || (userId != null && c.CreatedByUserId == userId))
-                        && c.Subject != null)
-            .GroupBy(c => c.Subject!)
-            .Select(g => new { Subject = g.Key, Count = g.Count() })
-            .ToListAsync();
+        try
+        {
+            var counts = await _context.Challenges
+                .Where(c => (c.SourceId != null || (userId != null && c.CreatedByUserId == userId))
+                            && c.Subject != null)
+                .GroupBy(c => c.Subject!)
+                .Select(g => new { Subject = g.Key, Count = g.Count() })
+                .ToListAsync();
 
-        var planetOrder = await _context.Planets
-            .Where(p => p.Subject != null)
-            .ToDictionaryAsync(p => p.Subject!, p => p.Order);
+            var planetOrder = await _context.Planets
+                .Where(p => p.Subject != null)
+                .ToDictionaryAsync(p => p.Subject!, p => p.Order);
 
-        return counts
-            .Select(s => (s.Subject, s.Count, planetOrder.GetValueOrDefault(s.Subject, int.MaxValue)))
-            .OrderBy(s => s.Item3)
-            .ToList();
+            return counts
+                .Select(s => (s.Subject, s.Count, planetOrder.GetValueOrDefault(s.Subject, int.MaxValue)))
+                .OrderBy(s => s.Item3)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[QuestionService] Failed to load the subject list");
+            throw;
+        }
     }
 
     // A random selection of questions, different every time
