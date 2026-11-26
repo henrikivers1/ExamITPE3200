@@ -33,7 +33,7 @@ public class PlayerDashboardViewModel
     // Last unlocked planet, for "Replay" when every unlocked mission is completed
     public PlanetViewModel? LastUnlockedPlanet { get; set; }
 
-    // Next locked planet and the XP it needs, e.g. "Kamino unlocks at 3000 XP"
+    // Next locked planet and the XP it needs, e.g. "Kamino unlocks at 6000 XP"
     public PlanetViewModel? NextLockedPlanet { get; set; }
     public int NextLockedPlanetXp { get; set; }
 

@@ -9,8 +9,8 @@ public class ChallengeCompletionService : IChallengeCompletionService
     // Game rules in one place, so the controller, the view and this service always agree
     public const int PassPercent = 80;          // % correct needed to pass a mission
     // Fixed XP for passing a planet's mission the first time, no matter if it was 8/10 or 10/10.
-    // 2000 is always enough for the next planet (unlocks at 500/1500/3000/5000/6000 XP),
-    // and all 6 missions give 12000 XP = the top rank "Galactic Slicer".
+    // Each planet unlocks at 2000 XP more than the one before (PlanetProgressService.GetRequiredXp),
+    // so one pass always unlocks the next planet, and all 6 missions give 12000 XP = the top rank "Galactic Slicer".
     public const int XpPerMission = 2000;
 
     // Credits for passing a planet's mission the first time: 500 per chapter

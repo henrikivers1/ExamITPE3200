@@ -9,13 +9,13 @@ public class PlanetProgressServiceTests
 {
     private readonly PlanetProgressService _service = new();
 
-    // Positive test: Naboo should unlock when the player has enough XP
+    // Positive test: Naboo (chapter 2) unlocks after one passed mission (2000 XP)
     [Fact]
     public void IsPlanetUnlocked_WithEnoughXp_ReturnsTrue()
     {
         // Arrange
         var planet = new Planet { Order = 2 };
-        var progress = new PlayerProgress { ExperiencePoints = 600 };
+        var progress = new PlayerProgress { ExperiencePoints = 2000 };
 
         // Act
         bool result = _service.IsPlanetUnlocked(planet, progress);
@@ -24,13 +24,13 @@ public class PlanetProgressServiceTests
         Assert.True(result);
     }
 
-    // Negative test: Coruscant should remain locked with insufficient XP
+    // Negative test: Coruscant (chapter 3, needs 4000 XP) stays locked after only one passed mission
     [Fact]
     public void IsPlanetUnlocked_WithInsufficientXp_ReturnsFalse()
     {
         // Arrange
         var planet = new Planet { Order = 3 };
-        var progress = new PlayerProgress { ExperiencePoints = 600 };
+        var progress = new PlayerProgress { ExperiencePoints = 2000 };
 
         // Act
         bool result = _service.IsPlanetUnlocked(planet, progress);

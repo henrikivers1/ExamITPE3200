@@ -33,19 +33,12 @@ public class PlanetProgressService : IPlanetProgressService
             .ToList();
     }
 
-    // Define the XP required to unlock each planet (also shown on the Progress page)
+    // XP required to unlock each planet (also shown on the Progress page):
+    // one passed mission's XP per chapter, so passing a planet's mission always unlocks the next one.
+    // Tatooine 0, Naboo 2000, Coruscant 4000, Kamino 6000, Hoth 8000, Endor 10000,
+    // and planets added by an admin (chapter 7+) continue with 2000 more per chapter.
     public int GetRequiredXp(int planetOrder)
     {
-        return planetOrder switch
-        {
-            1 => 0,         // Tatooine
-            2 => 500,       // Naboo
-            3 => 1500,      // Coruscant
-            4 => 3000,      // Kamino
-            5 => 5000,      // Hoth
-            6 => 6000,      // Endor
-            // Planets added by an admin (chapter 7+) need 2000 XP more per chapter
-            _ => 6000 + (planetOrder - 6) * 2000
-        };
+        return Math.Max(0, planetOrder - 1) * ChallengeCompletionService.XpPerMission;
     }
 }
