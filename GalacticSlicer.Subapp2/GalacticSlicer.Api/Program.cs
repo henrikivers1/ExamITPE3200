@@ -79,6 +79,7 @@ if (string.IsNullOrWhiteSpace(jwtKey))
     // Tokens become invalid when the API restarts.
     jwtKey = Convert.ToBase64String(
         RandomNumberGenerator.GetBytes(32));
+    builder.Configuration["Jwt:Key"] = jwtKey;
 }
 
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]
