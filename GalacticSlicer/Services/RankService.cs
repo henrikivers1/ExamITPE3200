@@ -1,7 +1,7 @@
 
 namespace GalacticSlicer.Services;
 
-public class RankService
+public class RankService : IRankService
 {
     public string GetRank(int xp)
     {

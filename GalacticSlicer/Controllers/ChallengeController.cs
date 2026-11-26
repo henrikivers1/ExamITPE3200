@@ -7,16 +7,16 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace GalacticSlicer.Controllers
-{
-    public class ChallengeController : Controller
+namespace GalacticSlicer.Controllers;
+
+public class ChallengeController : Controller
     {
         private readonly IChallengeRepository _challengeRepository;
         private readonly ILogger<ChallengeController> _logger;
-        private readonly QuestionService _questionService;
+        private readonly IQuestionService _questionService;
         private readonly UserManager<IdentityUser> _userManager;
 
-        public ChallengeController(IChallengeRepository challengeRepository, ILogger<ChallengeController> logger, QuestionService questionService, UserManager<IdentityUser> userManager)
+        public ChallengeController(IChallengeRepository challengeRepository, ILogger<ChallengeController> logger, IQuestionService questionService, UserManager<IdentityUser> userManager)
         {
             _challengeRepository = challengeRepository;
             _logger = logger;
@@ -345,4 +345,3 @@ namespace GalacticSlicer.Controllers
             return RedirectToAction(nameof(Index));
         }
     }
-}

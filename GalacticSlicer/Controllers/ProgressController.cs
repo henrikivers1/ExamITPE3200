@@ -16,11 +16,11 @@ public class ProgressController : Controller
     private readonly ICharacterRepository _characterRepository;
     private readonly IPlanetRepository _planetRepository;
     private readonly ILogger<ProgressController> _logger;
-    private readonly PlayerProgressService _progressService;
+    private readonly IPlayerProgressService _progressService;
     private readonly UserManager<IdentityUser> _userManager;
-    private readonly PlanetProgressService _planetProgressService;
+    private readonly IPlanetProgressService _planetProgressService;
     private readonly ChallengeCompletionService _completionService;
-    private readonly RankService _rankService;
+    private readonly IRankService _rankService;
 
     public ProgressController(
         IChallengeRepository challengeRepository,

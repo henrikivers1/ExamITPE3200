@@ -3,7 +3,7 @@ using GalacticSlicer.Models;
 
 namespace GalacticSlicer.Services;
 
-public class PlanetProgressService
+public class PlanetProgressService : IPlanetProgressService
 {
     public bool IsPlanetUnlocked(Planet planet, PlayerProgress progress)
     {

@@ -13,9 +13,9 @@ public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
     private readonly UserManager<IdentityUser> _userManager;
-    private readonly PlayerProgressService _progressService;
-    private readonly PlanetProgressService _planetProgressService;
-    private readonly ChallengeCompletionService _completionService;
+    private readonly IPlayerProgressService _progressService;
+    private readonly IPlanetProgressService _planetProgressService;
+    private readonly IChallengeCompletionService _completionService;
     private readonly IPlanetRepository _planetRepository;
 
     public HomeController(ILogger<HomeController> logger, UserManager<IdentityUser> userManager,

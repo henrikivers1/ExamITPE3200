@@ -13,30 +13,32 @@ public class PlanetController : Controller
 {
     private readonly IPlanetRepository _planetRepository;
     private readonly ILogger<PlanetController> _logger;
-    private readonly ChallengeCompletionService _completionService;
+    private readonly IChallengeCompletionService _completionService;
     private readonly UserManager<IdentityUser> _userManager;
-    private readonly PlanetProgressService _planetProgressService;
-    private readonly PlayerProgressService _progressService;
-    private readonly QuestionService _questionService;
-    private readonly RankService _rankService;
+    private readonly IPlanetProgressService _planetProgressService;
+    private readonly IPlayerProgressService _progressService;
+    private readonly IQuestionService _questionService;
+    private readonly IRankService _rankService;
 
-    public PlanetController(IPlanetRepository planetRepository, ILogger<PlanetController>
-    logger, ChallengeCompletionService completionService, UserManager<IdentityUser>
-    userManager, PlanetProgressService planetProgressService, PlayerProgressService progressService,
-    QuestionService questionService, RankService rankService)
+    public PlanetController(
+        IPlanetRepository planetRepository,
+        ILogger<PlanetController> logger,
+        IChallengeCompletionService completionService,
+        UserManager<IdentityUser> userManager,
+        IPlanetProgressService planetProgressService,
+        IPlayerProgressService progressService,
+        IQuestionService questionService,
+        IRankService rankService)
     {
-        _questionService = questionService;
-        _rankService = rankService;
         _planetRepository = planetRepository;
         _logger = logger;
         _completionService = completionService;
         _userManager = userManager;
         _planetProgressService = planetProgressService;
         _progressService = progressService;
-
+        _questionService = questionService;
+        _rankService = rankService;
     }
-
-
 
     // GET: /Planet - Display the Galaxy map with unlocked and locked planets
     public async Task<IActionResult> Index()
@@ -342,11 +344,10 @@ public class PlanetController : Controller
     }
     // ---------- Manage planets (CRUD) ----------
 
-    // The planet looks Filip has CSS for (.gs-planet--tatooine etc. in site.css)
+    //The Planet CSS in
     private static readonly string[] PlanetStyles =
         { "tatooine", "naboo", "coruscant", "kamino", "hoth", "endor" };
 
-    // Fills the two dropdowns on the Create and Edit forms
     private async Task LoadPlanetDropdowns(Planet? planet = null)
     {
         var subjects = (await _questionService.GetSubjectsAsync()).Select(s => s.Subject);

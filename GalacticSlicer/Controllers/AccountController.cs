@@ -10,9 +10,9 @@ public class AccountController : Controller
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly ILogger<AccountController> _logger;
-    private readonly PlayerProgressService _progressService;
+    private readonly IPlayerProgressService _progressService;
 
-    public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, ILogger<AccountController> logger, PlayerProgressService progressService)
+    public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, ILogger<AccountController> logger, IPlayerProgressService progressService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
