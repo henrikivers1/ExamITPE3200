@@ -13,14 +13,14 @@ public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
     private readonly UserManager<IdentityUser> _userManager;
-    private readonly PlayerProgressService _progressService;
-    private readonly PlanetProgressService _planetProgressService;
-    private readonly ChallengeCompletionService _completionService;
+    private readonly IPlayerProgressService _progressService;
+    private readonly IPlanetProgressService _planetProgressService;
+    private readonly IChallengeCompletionService _completionService;
     private readonly IPlanetRepository _planetRepository;
 
     public HomeController(ILogger<HomeController> logger, UserManager<IdentityUser> userManager,
-        PlayerProgressService progressService, PlanetProgressService planetProgressService,
-        ChallengeCompletionService completionService, IPlanetRepository planetRepository)
+        IPlayerProgressService progressService, IPlanetProgressService planetProgressService,
+        IChallengeCompletionService completionService, IPlanetRepository planetRepository)
     {
         _logger = logger;
         _userManager = userManager;
@@ -82,7 +82,7 @@ public class HomeController : Controller
             return View(model);
         }
 
-                // Only the title is logged: the message text can contain personal data
+        // Only the title is logged: the message text can contain personal data
         _logger.LogInformation("[HomeController] Contact message received: {Title}", model.Title);
 
         TempData["ContactSuccess"] = true;

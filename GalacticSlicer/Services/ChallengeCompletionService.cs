@@ -4,25 +4,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GalacticSlicer.Services;
 
-public class ChallengeCompletionService
+public class ChallengeCompletionService : IChallengeCompletionService
 {
     // Game rules in one place, so the controller, the view and this service always agree
     public const int PassPercent = 80;          // % correct needed to pass a mission
     public const int XpPerCorrectAnswer = 150;  // XP for each correctly answered official question
 
     private readonly GalacticSlicerDbContext _context;
-    private readonly PlayerProgressService _progressService;
-    private readonly RankService _rankService;
+    private readonly IRankService _rankService;
     private readonly ILogger<ChallengeCompletionService> _logger;
 
     public ChallengeCompletionService(
         GalacticSlicerDbContext context,
-        PlayerProgressService progressService,
-        RankService rankService,
+        IRankService rankService,
         ILogger<ChallengeCompletionService> logger)
     {
         _context = context;
-        _progressService = progressService;
         _rankService = rankService;
         _logger = logger;
     }

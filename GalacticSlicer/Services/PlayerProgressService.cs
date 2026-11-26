@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GalacticSlicer.Services;
 
-public class PlayerProgressService
+public class PlayerProgressService : IPlayerProgressService
 {
     private readonly GalacticSlicerDbContext _context;
     private readonly ILogger<PlayerProgressService> _logger;
@@ -22,7 +22,7 @@ public class PlayerProgressService
     {
         try
         {
-            // Same as SELECT * FROM PlayerProgresses WHERE UserId = 'bruker-id' LIMIT 1;
+            // Same as SELECT * FROM PlayerProgresses WHERE UserId = 'user-id' LIMIT 1;
             var progress = await _context.PlayerProgresses
                 .FirstOrDefaultAsync(p => p.UserId == userId);
 

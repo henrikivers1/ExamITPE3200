@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GalacticSlicer.Services;
 
-public class CharacterService
+public class CharacterService : ICharacterService
 {
     private readonly GalacticSlicerDbContext _context;
     private readonly ILogger<CharacterService> _logger;

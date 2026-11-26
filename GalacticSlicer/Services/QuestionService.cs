@@ -6,7 +6,7 @@ namespace GalacticSlicer.Services;
 // Picks random questions for planet missions and practice.
 // Missions only use questions.json (stored in the Challenges table with a SourceId).
 // Practice also includes the logged-in player's own questions in that subject.
-public class QuestionService
+public class QuestionService : IQuestionService
 {
     // How many questions a mission or practice round asks
     public const int QuestionsPerRound = 10;

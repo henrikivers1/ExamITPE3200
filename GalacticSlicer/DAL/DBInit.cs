@@ -106,21 +106,6 @@ public static class DBInit
             File.ReadAllText(path),
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<QuestionSeed>();
 
-        // Cleanup: remove challenges that are neither from questions.json nor made by a user
-        // (the old placeholder challenges), and the completions pointing to them.
-        // Nobody can see or use them, since missions only use questions.json and users only see their own.
-        var placeholders = context.Challenges
-            .Where(c => c.SourceId == null && c.CreatedByUserId == null)
-            .ToList();
-        if (placeholders.Count > 0)
-        {
-            var placeholderIds = placeholders.Select(c => c.ChallengeId).ToList();
-            context.CompletedChallenges.RemoveRange(
-                context.CompletedChallenges.Where(cc => placeholderIds.Contains(cc.ChallengeId)));
-            context.Challenges.RemoveRange(placeholders);
-            context.SaveChanges();
-        }
-
         var planets = context.Planets.ToList();
         // Subjects without their own planet are placed on the mixed planet (Endor)
         var mixedPlanet = planets.FirstOrDefault(p => p.Subject == null) ?? planets.OrderBy(p => p.Order).Last();

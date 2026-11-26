@@ -13,11 +13,11 @@ public class Planet
     [StringLength(300, ErrorMessage = "Description can be at most 300 characters.")]
     public string? Description { get; set; }
 
-    // Chapter number: 1 = first planet. Task 14 uses it to unlock planets in order.
+    // Chapter number: 1 = first planet. Planets unlock in this order.
     [Range(1, 100, ErrorMessage = "Order must be between 1 and 100.")]
     public int Order { get; set; }
-
-    // Matches Filip's CSS classes, e.g. "tatooine" -> .gs-planet--tatooine
+    
+    // Matches the CSS classes in site.css, e.g. "tatooine" -> .gs-planet--tatooine
     [Required]
     [StringLength(30)]
     public string CssClass { get; set; } = string.Empty;

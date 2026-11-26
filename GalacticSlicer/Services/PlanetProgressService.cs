@@ -3,7 +3,7 @@ using GalacticSlicer.Models;
 
 namespace GalacticSlicer.Services;
 
-public class PlanetProgressService
+public class PlanetProgressService : IPlanetProgressService
 {
     public bool IsPlanetUnlocked(Planet planet, PlayerProgress progress)
     {
@@ -43,7 +43,7 @@ public class PlanetProgressService
             4 => 3000,      // Kamino
             5 => 5000,      // Hoth
             6 => 6000,      // Endor
-                       // Planets added by an admin (chapter 7+) need 2000 XP more per chapter
+            // Planets added by an admin (chapter 7+) need 2000 XP more per chapter
             _ => 6000 + (planetOrder - 6) * 2000
         };
     }

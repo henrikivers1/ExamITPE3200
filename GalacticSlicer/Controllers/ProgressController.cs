@@ -16,22 +16,22 @@ public class ProgressController : Controller
     private readonly ICharacterRepository _characterRepository;
     private readonly IPlanetRepository _planetRepository;
     private readonly ILogger<ProgressController> _logger;
-    private readonly PlayerProgressService _progressService;
+    private readonly IPlayerProgressService _progressService;
     private readonly UserManager<IdentityUser> _userManager;
-    private readonly PlanetProgressService _planetProgressService;
-    private readonly ChallengeCompletionService _completionService;
-    private readonly RankService _rankService;
+    private readonly IPlanetProgressService _planetProgressService;
+    private readonly IChallengeCompletionService _completionService;
+    private readonly IRankService _rankService;
 
     public ProgressController(
         IChallengeRepository challengeRepository,
         IPlanetRepository planetRepository,
         ILogger<ProgressController> logger,
-        PlayerProgressService progressService,
+        IPlayerProgressService progressService,
         UserManager<IdentityUser> userManager,
-                ICharacterRepository characterRepository,
-        PlanetProgressService planetProgressService,
-        ChallengeCompletionService completionService,
-        RankService rankService)
+        ICharacterRepository characterRepository,
+        IPlanetProgressService planetProgressService,
+        IChallengeCompletionService completionService,
+        IRankService rankService)
     {
         _challengeRepository = challengeRepository;
         _planetRepository = planetRepository;
@@ -80,7 +80,8 @@ public class ProgressController : Controller
         // The equipped character, for the badge next to the username
         var activeCharacter = progress.ActiveCharacterId == null
             ? null
-                        : await _characterRepository.GetCharacterById(progress.ActiveCharacterId.Value);
+            : await
+_characterRepository.GetCharacterById(progress.ActiveCharacterId.Value);
 
         var xpRange = _rankService.GetXpRange(progress.ExperiencePoints);
 

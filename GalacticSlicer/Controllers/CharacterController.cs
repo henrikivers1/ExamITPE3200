@@ -12,11 +12,11 @@ public class CharacterController : Controller
 {
     private readonly ICharacterRepository _characterRepository;
     private readonly ILogger<CharacterController> _logger;
-    private readonly CharacterService _characterService;
+    private readonly ICharacterService _characterService;
     private readonly UserManager<IdentityUser> _userManager;
-    private readonly PlayerProgressService _progressService;
+    private readonly IPlayerProgressService _progressService;
 
-    public CharacterController(ICharacterRepository characterRepository, ILogger<CharacterController> logger, CharacterService characterService, UserManager<IdentityUser> userManager, PlayerProgressService progressService)
+        public CharacterController(ICharacterRepository characterRepository, ILogger<CharacterController> logger, ICharacterService characterService, UserManager<IdentityUser> userManager, IPlayerProgressService progressService)
     {
         _characterRepository = characterRepository;
         _logger = logger;
@@ -25,9 +25,7 @@ public class CharacterController : Controller
         _progressService = progressService;
     }
 
-    // GET: /Character/Shop - anyone can browse the shop
-
-        // GET: /Character/Shop - anyone can browse, search and filter the shop
+    // GET: /Character/Shop - anyone can browse, search and filter the shop
     public async Task<IActionResult> Shop(string? searchString, int? maxPrice, string? sortOrder, bool ownedOnly = false)
     {
         var characters = await _characterRepository.Search(searchString, maxPrice, sortOrder);
@@ -50,7 +48,7 @@ public class CharacterController : Controller
             activeCharacterId = progress.ActiveCharacterId;
             ownedCharacterIds = await _characterService.GetOwnedCharacterIdsAsync(userId);
 
-            // "Owned only" needs to know what the player owns, so it is filtered here, not in the repository
+            //"Owned only" needs to know what the player owns, so it is filtered here, not in the repository
             if (ownedOnly)
             {
                 characters = characters.Where(c => ownedCharacterIds.Contains(c.CharacterId));
@@ -167,6 +165,7 @@ public class CharacterController : Controller
 
         return RedirectToAction(nameof(Shop));
     }
+
     // ---------- Manage characters (CRUD) ----------
 
     // Domain rules for characters, checked on the server for both Create and Edit
@@ -205,6 +204,7 @@ public class CharacterController : Controller
             CanDelete = owners == 0 && !isLastFree
         };
     }
+
     // GET: /Character/Manage - table of all characters with Edit and Delete buttons
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Manage()
@@ -315,6 +315,7 @@ public class CharacterController : Controller
         _logger.LogWarning("[CharacterController] Character update failed for CharacterId {CharacterId}", id);
         return View(character);
     }
+
 
     [HttpGet]
     [Authorize(Roles = "Admin")]
