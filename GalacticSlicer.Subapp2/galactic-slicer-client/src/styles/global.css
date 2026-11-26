@@ -64,6 +64,36 @@
     }
 }
 
+/* message above a form, e.g. "Logging in isn't available yet" (gold, like the theme accent) */
+.gs-form-notice {
+    margin: 0 0 1.25rem;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--gs-accent);
+    border-radius: var(--gs-radius-sm);
+    background: var(--gs-accent-soft);
+    color: var(--gs-text);
+    font-size: 0.875rem;
+    text-align: left;
+}
+
+/* red border on inputs with an error */
+.gs-input[aria-invalid="true"] {
+    border-color: #ef5b5b;
+}
+
+/* password rules under the Sign up password field; green once a rule is met */
+.gs-password-rules {
+    margin: 0.2rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.8rem;
+    color: var(--gs-text-muted);
+}
+
+.gs-password-rules li.is-met {
+    color: #3ecf8e;
+}
+
 /* buttons under the page intro (Not found page) */
 .gs-page-actions {
     display: flex;
