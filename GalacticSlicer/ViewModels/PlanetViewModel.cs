@@ -1,4 +1,4 @@
-namespace GalacticSlicer.Models;
+namespace GalacticSlicer.ViewModels;
 public class PlanetViewModel
 {
     public required string Name { get; set; }
