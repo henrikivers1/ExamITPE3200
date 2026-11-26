@@ -2,6 +2,42 @@
     ViewData["Title"] = "About";
 }
 
+@* Explains the game and the rules, so new players (and the examiner) know what to do *@
 <section class="gs-page-intro">
-    <h1>About</h1>
+    <h1>About Galactic Slicer</h1>
+    <p>
+        Galactic Slicer turns the cybersecurity topics of the course into a space adventure.
+        Travel from planet to planet, answer missions and become a legendary slicer.
+        Made by Henrik, Jonas and Filip for ITPE3200 Web Applications at OsloMet.
+    </p>
+</section>
+
+@* How the game works, same feature cards as the home page *@
+<section class="gs-features">
+    <div class="gs-feature-card">
+        <h3 class="gs-feature-title">1. Fly to a planet</h3>
+        <p class="gs-feature-text">
+            Each planet has one subject, like Linux or network security. Tatooine is always open,
+            and the next planets unlock when you earn enough XP. Endor is the final test with questions from every subject.
+        </p>
+        <a class="gs-feature-link" asp-controller="Planet" asp-action="Index">Open the galaxy →</a>
+    </div>
+
+    <div class="gs-feature-card">
+        <h3 class="gs-feature-title">2. Complete the mission</h3>
+        <p class="gs-feature-text">
+            A mission asks 10 random questions. Answer at least 80% correctly to pass.
+            Every correct answer gives 150 XP and Credits the first time, and you see an explanation for each question.
+        </p>
+        <a class="gs-feature-link" asp-controller="Challenge" asp-action="Topics">Practice without pressure →</a>
+    </div>
+
+    <div class="gs-feature-card">
+        <h3 class="gs-feature-title">3. Rank up and collect</h3>
+        <p class="gs-feature-text">
+            XP raises your rank from Outsider to Galactic Slicer. Spend Credits in the Shop on characters,
+            and equip one as the badge next to your name. You can also write your own practice questions.
+        </p>
+        <a class="gs-feature-link" asp-controller="Character" asp-action="Shop">Visit the Shop →</a>
+    </div>
 </section>

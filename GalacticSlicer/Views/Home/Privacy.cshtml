@@ -1,6 +1,43 @@
 ﻿@{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Privacy";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<section class="gs-page-intro">
+    <h1>Privacy</h1>
+    <p>What Galactic Slicer stores about you, and why.</p>
+</section>
+
+@* Same themed card as the forms, just wider, so the text is easy to read *@
+<section class="gs-auth-wrapper">
+    <div class="gs-auth-card gs-auth-card--wide">
+        <span class="gs-detail-label">Your account</span>
+        <p class="gs-detail-value">
+            Your username and your password. The password is never stored as text:
+            ASP.NET Core Identity only stores a secure hash of it. No email address is needed.
+        </p>
+
+        <span class="gs-detail-label">Your progress</span>
+        <p class="gs-detail-value">
+            Your XP, rank, Credits, completed missions and questions, the characters you own
+            and the questions you create yourself. Only you can see and edit your own questions.
+        </p>
+
+        <span class="gs-detail-label">Cookies</span>
+        <p class="gs-detail-value">
+            One login cookie keeps you signed in, and a security cookie protects the forms against
+            cross-site request forgery. There are no tracking or advertising cookies.
+        </p>
+
+        <span class="gs-detail-label">Logs</span>
+        <p class="gs-detail-value">
+            The server writes a log file with events such as logins, purchases and errors,
+            so problems can be found and fixed. Passwords are never logged.
+        </p>
+
+        <span class="gs-detail-label">Deleting your data</span>
+        <p class="gs-detail-value">
+            This is a student project. Send us a message on the
+            <a asp-controller="Home" asp-action="Contact">Contact page</a> and we will delete your account and progress.
+        </p>
+    </div>
+</section>

@@ -11,10 +11,11 @@
     <p>Spend the Credits you earn on missions to unlock new slicers. Characters are cosmetic, so pick your favorite.</p>
 
     @* the player's balance, or a hint to log in *@
-       @if (isLoggedIn)
+           @if (isLoggedIn)
     {
         <div class="shop-balance">
-            ...
+            <span class="shop-coin" aria-hidden="true">&#9679;</span>
+            <span><strong>@Model.PlayerCredits</strong> Credits</span>
         </div>
         @if (User.IsInRole("Admin"))
         {
@@ -40,10 +41,47 @@
     <div class="shop-alert shop-alert--error" role="alert">@TempData["ErrorMessage"]</div>
 }
 
+@{
+    // Sort options for the dropdown; the current choice stays selected after searching
+    var sortOptions = new SelectList(new[]
+    {
+        new { Value = "", Text = "Cheapest first" },
+        new { Value = "price_desc", Text = "Most expensive first" },
+        new { Value = "name", Text = "Name A-Z" }
+    }, "Value", "Text", Model.SortOrder);
+}
+
+@* Search and filter: method="get" because it changes no data (same pattern as the Challenges page) *@
+<form asp-action="Shop" method="get" class="gs-search row g-2 justify-content-center mt-4 mb-4">
+    <div class="col-md-4">
+        @Html.TextBox("searchString", Model.SearchString, new { @class = "form-control", placeholder = "Search name or description" })
+    </div>
+    <div class="col-md-2">
+        @Html.TextBox("maxPrice", Model.MaxPrice, new { type = "number", min = "0", @class = "form-control", placeholder = "Max price" })
+    </div>
+    <div class="col-md-2">
+        @Html.DropDownList("sortOrder", sortOptions, new { @class = "form-select" })
+    </div>
+    @* only players own characters, so visitors don't get this filter *@
+    @if (isLoggedIn)
+    {
+        <div class="col-md-auto d-flex align-items-center gap-2">
+            @Html.CheckBox("ownedOnly", Model.OwnedOnly, new { @class = "form-check-input" })
+            <label class="form-check-label" for="ownedOnly">Owned only</label>
+        </div>
+    }
+    <div class="col-md-auto d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Search</button>
+        <a asp-action="Shop" class="gs-btn gs-btn--outline">Clear</a>
+    </div>
+</form>
+
 @* Conditional rendering: show a message instead of an empty grid *@
 @if (!Model.Characters.Any())
 {
-    <p class="text-center text-muted">No characters in the shop yet.</p>
+    <p class="text-center text-muted">
+        @(Model.IsSearching ? "No characters match your search." : "No characters in the shop yet.")
+    </p>
 }
 
 <section class="shop-grid">

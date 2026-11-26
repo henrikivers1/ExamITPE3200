@@ -10,5 +10,5 @@ public interface ICharacterRepository
     Task<bool> Update(Character character);
     Task<bool> Delete(int id);
     Task<int> CountOwners(int characterId);
-    
+    Task<IEnumerable<Character>?> Search(string? searchString, int? maxPrice, string? sortOrder);
 }

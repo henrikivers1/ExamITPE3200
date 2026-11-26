@@ -158,4 +158,39 @@ public class CharacterRepository : ICharacterRepository
             throw;
         }
     }
+        public async Task<IEnumerable<Character>?> Search(string? searchString, int? maxPrice, string? sortOrder)
+    {
+        try
+        {
+            // Build the query step by step; nothing is sent to the database yet
+            IQueryable<Character> query = _db.Characters;
+
+            if (!string.IsNullOrWhiteSpace(searchString))
+            {
+                query = query.Where(c =>
+                    c.Name.Contains(searchString) ||
+                    (c.Description != null && c.Description.Contains(searchString)));
+            }
+
+            if (maxPrice != null)
+            {
+                query = query.Where(c => c.Price <= maxPrice);
+            }
+
+            query = sortOrder switch
+            {
+                "price_desc" => query.OrderByDescending(c => c.Price),
+                "name" => query.OrderBy(c => c.Name),
+                _ => query.OrderBy(c => c.Price)   // default: cheapest first
+            };
+
+            // Only now is the SQL sent to the database
+            return await query.ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to search characters");
+            throw;
+        }
+    }
 }

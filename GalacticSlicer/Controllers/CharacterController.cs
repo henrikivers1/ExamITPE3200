@@ -27,37 +27,33 @@ public class CharacterController : Controller
 
     // GET: /Character/Shop - anyone can browse the shop
 
-    public async Task<IActionResult> Shop()
+        // GET: /Character/Shop - anyone can browse, search and filter the shop
+    public async Task<IActionResult> Shop(string? searchString, int? maxPrice, string? sortOrder, bool ownedOnly = false)
     {
-        var characters = await _characterRepository.GetAll();
+        var characters = await _characterRepository.Search(searchString, maxPrice, sortOrder);
 
         if (characters == null)
         {
-            _logger.LogError("[CharacterController] Character list not found");
+            _logger.LogError("[CharacterController] Character list not found while executing Search()");
             return NotFound();
         }
 
         int playerCredits = 0;
-
         var ownedCharacterIds = new List<int>();
         int? activeCharacterId = null;
 
-        if (User.Identity?.IsAuthenticated == true)
+        var userId = _userManager.GetUserId(User);
+        if (userId != null)
         {
-            var userId = _userManager.GetUserId(User);
+            var progress = await _progressService.GetOrCreateProgressAsync(userId);
+            playerCredits = progress.Credits;
+            activeCharacterId = progress.ActiveCharacterId;
+            ownedCharacterIds = await _characterService.GetOwnedCharacterIdsAsync(userId);
 
-            if (userId != null)
+            // "Owned only" needs to know what the player owns, so it is filtered here, not in the repository
+            if (ownedOnly)
             {
-
-                var progress = await _progressService
-                    .GetOrCreateProgressAsync(userId);
-
-                playerCredits = progress.Credits;
-
-                ownedCharacterIds = await _characterService
-                 .GetOwnedCharacterIdsAsync(userId);
-
-                activeCharacterId = progress.ActiveCharacterId;
+                characters = characters.Where(c => ownedCharacterIds.Contains(c.CharacterId));
             }
         }
 
@@ -66,7 +62,11 @@ public class CharacterController : Controller
             Characters = characters,
             PlayerCredits = playerCredits,
             OwnedCharacterIds = ownedCharacterIds,
-            ActiveCharacterId = activeCharacterId
+            ActiveCharacterId = activeCharacterId,
+            SearchString = searchString,
+            MaxPrice = maxPrice,
+            SortOrder = sortOrder,
+            OwnedOnly = ownedOnly
         };
 
         return View(viewModel);
