@@ -57,7 +57,7 @@
         @Html.TextBox("searchString", Model.SearchString, new { @class = "form-control", placeholder = "Search name or description", aria_label = "Search name or description" })
     </div>
     <div class="col-md-2">
-        @Html.TextBox("maxPrice", Model.MaxPrice, new { type = "number", min = "0", @class = "form-control", placeholder = "Max price" })
+        @Html.TextBox("maxPrice", Model.MaxPrice, new { type = "number", min = "0", @class = "form-control", placeholder = "Max price", aria_label = "Maximum price" })
     </div>
     <div class="col-md-2">
         @Html.DropDownList("sortOrder", sortOptions, new { @class = "form-select", aria_label = "Sort characters" })
