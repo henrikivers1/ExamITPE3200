@@ -16,7 +16,7 @@ public class NavUserViewComponent : ViewComponent
     private readonly ICharacterRepository _characterRepository;
 
     public NavUserViewComponent(UserManager<IdentityUser> userManager,
-        PlayerProgressService progressService, ICharacterRepository characterRepository)
+        IPlayerProgressService progressService, ICharacterRepository characterRepository)
     {
         _userManager = userManager;
         _progressService = progressService;

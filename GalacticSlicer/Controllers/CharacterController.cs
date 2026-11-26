@@ -12,11 +12,11 @@ public class CharacterController : Controller
 {
     private readonly ICharacterRepository _characterRepository;
     private readonly ILogger<CharacterController> _logger;
-    private readonly CharacterService _characterService;
+    private readonly ICharacterService _characterService;
     private readonly UserManager<IdentityUser> _userManager;
-    private readonly PlayerProgressService _progressService;
+    private readonly IPlayerProgressService _progressService;
 
-    public CharacterController(ICharacterRepository characterRepository, ILogger<CharacterController> logger, CharacterService characterService, UserManager<IdentityUser> userManager, PlayerProgressService progressService)
+        public CharacterController(ICharacterRepository characterRepository, ILogger<CharacterController> logger, ICharacterService characterService, UserManager<IdentityUser> userManager, IPlayerProgressService progressService)
     {
         _characterRepository = characterRepository;
         _logger = logger;
@@ -24,9 +24,6 @@ public class CharacterController : Controller
         _characterService = characterService;
         _progressService = progressService;
     }
-
-    // GET: /Character/Shop - anyone can browse the shop
-
         // GET: /Character/Shop - anyone can browse, search and filter the shop
     public async Task<IActionResult> Shop(string? searchString, int? maxPrice, string? sortOrder, bool ownedOnly = false)
     {

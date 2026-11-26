@@ -32,14 +32,14 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false; // no email confirmation needed
 })
-.AddRoles<IdentityRole>()   // NEW: enables roles, so we can use [Authorize(Roles = "Admin")]
+.AddRoles<IdentityRole>()   //  enables roles, so we can use [Authorize(Roles = "Admin")]
 .AddEntityFrameworkStores<GalacticSlicerDbContext>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";       // where [Authorize] sends users who aren't logged in
     options.LogoutPath = "/Account/Logout";
-    options.AccessDeniedPath = "/Home/HttpStatus/403";   // CHANGED: logged in but not Admin -> friendly 403 page
+    options.AccessDeniedPath = "/Home/HttpStatus/403";   //  logged in but not Admin -> friendly 403 page
 });
 
 builder.Services.AddScoped<IChallengeRepository, ChallengeRepository>();
@@ -48,19 +48,19 @@ builder.Services.AddScoped<IPlanetRepository, PlanetRepository>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddScoped<RankService>();
-builder.Services.AddScoped<PlayerProgressService>();
-builder.Services.AddScoped<ChallengeCompletionService>();
-builder.Services.AddScoped<CharacterService>();
-builder.Services.AddScoped<PlanetProgressService>();
-builder.Services.AddScoped<QuestionService>();
+builder.Services.AddScoped<IRankService, RankService>();
+builder.Services.AddScoped<IPlayerProgressService, PlayerProgressService>();
+builder.Services.AddScoped<IChallengeCompletionService, ChallengeCompletionService>();
+builder.Services.AddScoped<ICharacterService, CharacterService>();
+builder.Services.AddScoped<IPlanetProgressService, PlanetProgressService>();
+builder.Services.AddScoped<IQuestionService, QuestionService>();
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     DBInit.Seed(app);
-    await DBInit.SeedAdminAsync(app);   // NEW: Admin role + admin user (admin / Admin123!)
+    await DBInit.SeedAdminAsync(app);   // Admin role + admin user (admin / Admin123!)
 }
 
 // Configure the HTTP request pipeline.

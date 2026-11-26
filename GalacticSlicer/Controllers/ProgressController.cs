@@ -19,7 +19,7 @@ public class ProgressController : Controller
     private readonly IPlayerProgressService _progressService;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly IPlanetProgressService _planetProgressService;
-    private readonly ChallengeCompletionService _completionService;
+    private readonly IChallengeCompletionService _completionService;
     private readonly IRankService _rankService;
 
     public ProgressController(
@@ -28,10 +28,10 @@ public class ProgressController : Controller
         ILogger<ProgressController> logger,
         PlayerProgressService progressService,
         UserManager<IdentityUser> userManager,
-                ICharacterRepository characterRepository,
-        PlanetProgressService planetProgressService,
-        ChallengeCompletionService completionService,
-        RankService rankService)
+        ICharacterRepository characterRepository,
+        IPlanetProgressService planetProgressService,
+        IChallengeCompletionService completionService,
+        IRankService rankService)
     {
         _challengeRepository = challengeRepository;
         _planetRepository = planetRepository;
