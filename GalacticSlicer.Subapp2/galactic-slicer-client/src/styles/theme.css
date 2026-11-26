@@ -2,7 +2,7 @@
    Only the parts the React pages use: base, buttons, navbar, hero, cards, footer,
    page intro, starchart and planets, responsive rules, the background sky,
    and (at the bottom) the navbar's Log in / Sign up buttons, the form styles,
-   the challenge topic cards, progress bars and the practice quiz. */
+   the challenge topic cards, progress bars, the practice quiz and the character badge. */
 
 :root {
   --gs-bg: #05070d;
@@ -1586,3 +1586,63 @@ a.gs-star-node-link:hover .gs-star-node-name {
   gap: 0.5rem;
 }
 
+
+/* ---------- character badge (Views/Shared/_CharacterBadge.cshtml) ---------- */
+
+/* the badge fills the element around it, which decides its size */
+.gs-badge {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* tier colors (same as the Shop cards): starter grey-blue, uncommon teal, rare blue, epic violet, legendary gold */
+.gs-badge--starter { --tier: #8fa3c4; }
+.gs-badge--uncommon { --tier: #3ec9c0; }
+.gs-badge--rare { --tier: #4d8dff; }
+.gs-badge--epic { --tier: #8f73ff; }
+.gs-badge--legendary { --tier: var(--gs-accent); }
+.gs-badge--empty { --tier: transparent; }
+
+/* empty badge slot when nothing is equipped: a faint dashed circle */
+.gs-badge-slot {
+  fill: rgba(255, 255, 255, 0.04);
+  stroke: var(--gs-text-muted);
+  stroke-width: 4;
+  stroke-dasharray: 8 6;
+  opacity: 0.7;
+}
+
+/* the badge's outer shape: tier-colored metal with a lighter edge */
+.gs-badge-base {
+  fill: color-mix(in srgb, var(--tier) 70%, #0d1426);
+  stroke: color-mix(in srgb, var(--tier) 60%, #ffffff);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+/* inner ring: a darker inset so the emblem stands out */
+.gs-badge-ring {
+  fill: color-mix(in srgb, var(--tier) 30%, #0a1020);
+  stroke: color-mix(in srgb, var(--tier) 80%, #ffffff);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+/* ribbon tails behind the epic and legendary badges */
+.gs-badge-ribbon {
+  fill: color-mix(in srgb, var(--tier) 45%, #0d1426);
+  stroke: color-mix(in srgb, var(--tier) 70%, #ffffff);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+/* the character's emblem in the middle of the badge, drawn as light outlines */
+.gs-badge-icon {
+  fill: none;
+  stroke: #f3f5fa;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

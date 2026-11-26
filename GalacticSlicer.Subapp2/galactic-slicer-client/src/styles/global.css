@@ -2,6 +2,7 @@
    This file only has what the React app needs on top of it. */
 
 @import "./theme.css";
+@import "./shop.css";
 
 /* React renders into #root, so #root (not body) is the column that keeps the footer at the bottom */
 #root {

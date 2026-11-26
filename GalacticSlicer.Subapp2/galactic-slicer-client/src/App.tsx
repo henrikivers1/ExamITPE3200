@@ -5,7 +5,7 @@ import PlanetsPage from "./pages/PlanetsPage";
 import ManageChallengesPage from "./pages/ManageChallengesPage";
 import TopicsPage from "./pages/TopicsPage";
 import PracticePage from "./pages/PracticePage";
-import CharactersPage from "./pages/CharactersPage";
+import ShopPage from "./pages/ShopPage";
 import ProgressPage from "./pages/ProgressPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import LoginPage from "./pages/LoginPage";
@@ -21,7 +21,7 @@ function App() {
                 <Route path="challenges" element={<ManageChallengesPage />} />
                 <Route path="challenges/topics" element={<TopicsPage />} />
                 <Route path="challenges/practice/:subject" element={<PracticePage />} />
-                <Route path="characters" element={<CharactersPage />} />
+                <Route path="characters" element={<ShopPage />} />
                 <Route path="progress" element={<ProgressPage />} />
                 <Route path="login" element={<LoginPage />} />
                 <Route path="register" element={<RegisterPage />} />
