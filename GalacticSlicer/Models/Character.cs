@@ -22,13 +22,3 @@ public class Character
     public ICollection<UserCharacter> Owners { get; set; }
         = new List<UserCharacter>();
 }
-
-
-/*
- * CharacterId - Unique ID for the character.
- * Name        - Name of the character.
- * Description - Optional description of the character.
- * Price       - Cost of the character in Credits.
- * ImageUrl    - Optional URL to the character's image.
- * Owners      - Collection of ownership records linking the character to players (N:M).
- */
