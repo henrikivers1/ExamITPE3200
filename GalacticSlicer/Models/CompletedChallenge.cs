@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace GalacticSlicer.Models;
 
+// An official question the player has already been rewarded for, so rewards are only given once
 public class CompletedChallenge
 {
     public int Id { get; set; }
@@ -14,13 +15,4 @@ public class CompletedChallenge
     public Challenge Challenge { get; set; } = null!;
 
     public DateTime CompletedAt { get; set; } = DateTime.UtcNow;
-
 }
-
-/*
- * Id          - Unique ID for the completed challenge record.
- * UserId      - ID of the player who completed the challenge.
- * ChallengeId - ID of the completed challenge.
- * Challenge   - Navigation property to the Challenge model.
- * CompletedAt - Date and time when the challenge was completed.
- */

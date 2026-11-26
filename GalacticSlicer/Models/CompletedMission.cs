@@ -16,11 +16,3 @@ public class CompletedMission
 
     public DateTime CompletedAt { get; set; } = DateTime.UtcNow;
 }
-
-/*
- * Id          - Unique ID for the completed mission record.
- * UserId      - ID of the player who passed the mission.
- * PlanetId    - ID of the planet whose mission was passed.
- * Planet      - Navigation property to the Planet model.
- * CompletedAt - Date and time of the first pass.
- */
