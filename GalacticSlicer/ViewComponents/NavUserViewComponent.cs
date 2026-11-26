@@ -12,7 +12,7 @@ namespace GalacticSlicer.ViewComponents;
 public class NavUserViewComponent : ViewComponent
 {
     private readonly UserManager<IdentityUser> _userManager;
-    private readonly PlayerProgressService _progressService;
+    private readonly IPlayerProgressService _progressService;
     private readonly ICharacterRepository _characterRepository;
 
     public NavUserViewComponent(UserManager<IdentityUser> userManager,

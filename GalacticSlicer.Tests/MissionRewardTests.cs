@@ -25,8 +25,8 @@ public class MissionRewardTests
         services.AddDbContext<GalacticSlicerDbContext>(options =>
             options.UseSqlite(connection));
 
-        services.AddScoped<PlayerProgressService>();
-        services.AddScoped<RankService>();
+        services.AddScoped<IPlayerProgressService, PlayerProgressService>();
+        services.AddScoped<IRankService, RankService>();
         services.AddScoped<ChallengeCompletionService>();
 
         var provider = services.BuildServiceProvider();
