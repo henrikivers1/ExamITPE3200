@@ -8,7 +8,15 @@ public class ChallengeCompletionService : IChallengeCompletionService
 {
     // Game rules in one place, so the controller, the view and this service always agree
     public const int PassPercent = 80;          // % correct needed to pass a mission
-    public const int XpPerCorrectAnswer = 150;  // XP for each correctly answered official question
+    // Fixed XP for passing a planet's mission the first time, no matter if it was 8/10 or 10/10.
+    // 2000 is always enough for the next planet (unlocks at 500/1500/3000/5000/6000 XP),
+    // and all 6 missions give 12000 XP = the top rank "Galactic Slicer".
+    public const int XpPerMission = 2000;
+
+    // Fixed Credits for passing a planet's mission the first time.
+    // Each pass pays for the next badge in the Shop (150, 300, 500, 1000):
+    // after 1/2/3/4 missions the player has 500/1000/1500/2000, and the badges cost 150/450/950/1950 in total.
+    public const int CreditsPerMission = 500;
 
     private readonly GalacticSlicerDbContext _context;
     private readonly IRankService _rankService;
@@ -136,7 +144,7 @@ public class ChallengeCompletionService : IChallengeCompletionService
                 return false;
             }
 
-            // Find previously rewarded challenges to prevent duplicate rewards
+            // Find challenges the player has already answered correctly, so they aren't stored twice
             var completedIds = await _context.CompletedChallenges
                 .Where(c => c.UserId == userId &&
                             challengeIds.Contains(c.ChallengeId))
@@ -145,30 +153,15 @@ public class ChallengeCompletionService : IChallengeCompletionService
 
             var completedSet = completedIds.ToHashSet();
 
-            int awardedCredits = 0;
-            int awardedXp = 0;
+            // Credits and XP are fixed per passed mission (this point is only reached on the first pass)
+            int awardedCredits = CreditsPerMission;
+            int awardedXp = XpPerMission;
 
-            // Reward correct answers.
-            // Endor can reward previously completed questions as a final exam.
+            // Remember which questions the player has answered correctly (for the Progress page)
             foreach (var challenge in correctChallenges)
             {
-                bool alreadyRewarded = completedSet.Contains(challenge.ChallengeId);
-
-                if (isFinalExam)
-                {
-                    // Final exam rewards are independent of previous planet rewards
-                    awardedCredits += challenge.CreditReward;
-                    awardedXp += XpPerCorrectAnswer;
-                }
-                else if (!alreadyRewarded)
-                {
-                    // Normal planets reward each challenge only once
-                    awardedCredits += challenge.CreditReward;
-                    awardedXp += XpPerCorrectAnswer;
-                }
-
                 // Never insert duplicate CompletedChallenge records
-                if (!alreadyRewarded)
+                if (!completedSet.Contains(challenge.ChallengeId))
                 {
                     _context.CompletedChallenges.Add(new CompletedChallenge
                     {
