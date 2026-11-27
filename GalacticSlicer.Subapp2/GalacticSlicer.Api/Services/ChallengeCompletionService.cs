@@ -6,19 +6,30 @@ namespace GalacticSlicer.Api.Services;
 
 public class ChallengeCompletionService
 {
+    public const int QuestionsPerMission = 10;
+    public const int QuestionsPerFinalMission = 15;
+    public const int FinalMissionSubjectCount = 5;
+    public const int QuestionsPerFinalSubject = 3;
+    public const int PassPercent = 80;
+    public const int XpPerMission = 2000;
+    public const int CreditsPerChapter = 500;
+
     private readonly GalacticSlicerDbContext _context;
     private readonly PlayerProgressService _progressService;
+    private readonly PlanetProgressService _planetProgressService;
     private readonly RankService _rankService;
     private readonly ILogger<ChallengeCompletionService> _logger;
 
     public ChallengeCompletionService(
         GalacticSlicerDbContext context,
         PlayerProgressService progressService,
+        PlanetProgressService planetProgressService,
         RankService rankService,
         ILogger<ChallengeCompletionService> logger)
     {
         _context = context;
         _progressService = progressService;
+        _planetProgressService = planetProgressService;
         _rankService = rankService;
         _logger = logger;
     }
@@ -204,6 +215,38 @@ public class ChallengeCompletionService
                 return false;
             }
 
+            var progress = await _context.PlayerProgresses
+                .FirstOrDefaultAsync(p => p.UserId == userId);
+
+            if (progress == null)
+            {
+                _logger.LogWarning(
+                    "Mission reward rejected: Player progress not found");
+
+                return false;
+            }
+
+            var planets = await _context.Planets
+                .AsNoTracking()
+                .OrderBy(p => p.Order)
+                .ToListAsync();
+
+            var completedPlanetIds = await GetCompletedPlanetIdsAsync(
+                userId);
+
+            if (!_planetProgressService.IsPlanetUnlocked(
+                planet,
+                progress,
+                planets,
+                completedPlanetIds))
+            {
+                _logger.LogWarning(
+                    "Mission reward rejected: Planet {PlanetId} is locked",
+                    planetId);
+
+                return false;
+            }
+
             // Endor is the final exam and can use official questions
             // from all previous planets.
             bool isFinalExam =
@@ -212,6 +255,15 @@ public class ChallengeCompletionService
                     "Endor",
                     StringComparison.OrdinalIgnoreCase) &&
                 planet.Subject == null;
+
+            int requiredQuestionCount = isFinalExam
+                ? QuestionsPerFinalMission
+                : QuestionsPerMission;
+
+            var previousPlanetIds = planets
+                .Where(p => p.Order < planet.Order)
+                .Select(p => p.PlanetId)
+                .ToHashSet();
 
             // Load the submitted questions from the database
             var challenges = await _context.Challenges
@@ -222,15 +274,33 @@ public class ChallengeCompletionService
             // Normal planets only accept their own subject questions.
             // Endor accepts official questions from previous planets.
             bool invalidQuestions =
+                (isFinalExam &&
+                 submittedAnswers.Count != requiredQuestionCount) ||
                 challenges.Count != submittedAnswers.Count ||
                 challenges.Any(c =>
                     string.IsNullOrWhiteSpace(c.SourceId) ||
                     c.CreatedByUserId != null ||
                     !c.PlanetId.HasValue ||
                     (isFinalExam
-                        ? c.PlanetId == planetId
+                        ? !previousPlanetIds.Contains(
+                            c.PlanetId.Value)
                         : c.PlanetId != planetId ||
                           c.Subject != planet.Subject));
+
+            if (isFinalExam && !invalidQuestions)
+            {
+                var subjectGroups = challenges
+                    .Where(c => !string.IsNullOrWhiteSpace(c.Subject))
+                    .GroupBy(
+                        c => c.Subject!,
+                        StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                invalidQuestions =
+                    subjectGroups.Count != FinalMissionSubjectCount ||
+                    subjectGroups.Any(group =>
+                        group.Count() != QuestionsPerFinalSubject);
+            }
 
             if (invalidQuestions)
             {
@@ -253,7 +323,7 @@ public class ChallengeCompletionService
                 correctChallenges.Count * 100.0 / challenges.Count;
 
             // Failed missions must not award permanent rewards
-            if (percent < 80)
+            if (percent < PassPercent)
             {
                 _logger.LogInformation(
                     "Mission failed on Planet {PlanetId}: {Correct}/{Total} correct",
@@ -264,19 +334,7 @@ public class ChallengeCompletionService
                 return false;
             }
 
-            // Get the player's existing progress
-            var progress = await _context.PlayerProgresses
-                .FirstOrDefaultAsync(p => p.UserId == userId);
-
-            if (progress == null)
-            {
-                _logger.LogWarning(
-                    "Mission reward rejected: Player progress not found");
-
-                return false;
-            }
-
-            // Find previously rewarded challenges to prevent duplicate rewards
+            // Find previously completed questions so they are not stored twice.
             var completedIds = await _context.CompletedChallenges
                 .Where(c => c.UserId == userId &&
                             challengeIds.Contains(c.ChallengeId))
@@ -285,27 +343,13 @@ public class ChallengeCompletionService
 
             var completedSet = completedIds.ToHashSet();
 
-            int awardedCredits = 0;
-            int awardedXp = 0;
+            int awardedCredits = CreditsForMission(planet.Order);
+            int awardedXp = XpPerMission;
 
-            // Reward correct answers.
-            // Endor can reward previously completed questions as a final exam.
+            // Remember every correctly answered official question.
             foreach (var challenge in correctChallenges)
             {
                 bool alreadyRewarded = completedSet.Contains(challenge.ChallengeId);
-
-                if (isFinalExam)
-                {
-                    // Final exam rewards are independent of previous planet rewards
-                    awardedCredits += challenge.CreditReward;
-                    awardedXp += 150;
-                }
-                else if (!alreadyRewarded)
-                {
-                    // Normal planets reward each challenge only once
-                    awardedCredits += challenge.CreditReward;
-                    awardedXp += 150;
-                }
 
                 // Never insert duplicate CompletedChallenge records
                 if (!alreadyRewarded)
@@ -356,6 +400,11 @@ public class ChallengeCompletionService
 
             return false;
         }
+    }
+
+    public static int CreditsForMission(int planetOrder)
+    {
+        return CreditsPerChapter * planetOrder;
     }
 
     // IDs of the planets whose mission the player has passed

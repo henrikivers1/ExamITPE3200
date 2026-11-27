@@ -56,6 +56,8 @@ function MissionPage() {
     const resultRef = useRef<HTMLHeadingElement>(null);
 
     const isLoggedIn = Boolean(getToken());
+    const isFinalMission =
+        planet?.name.toLowerCase() === "endor";
 
     // ============================================
     // LOAD MISSION
@@ -354,8 +356,8 @@ function MissionPage() {
                 <h2>🔒 Planet locked</h2>
 
                 <p>
-                    You need{" "}
-                    {planet?.requiredXp.toLocaleString() ?? "more"}{" "}
+                    Complete every previous mission and reach{" "}
+                    {planet?.requiredXp.toLocaleString() ?? "the required"}{" "}
                     total XP to unlock this planet.
                 </p>
 
@@ -410,18 +412,29 @@ function MissionPage() {
         <>
             <section className="gs-page-intro">
                 <h1>
-                    {planet?.name ?? "Planet"} Mission
+                    {planet?.name ?? "Planet"}{" "}
+                    {isFinalMission
+                        ? "Final Trial"
+                        : "Mission"}
                 </h1>
 
                 {planet?.subject && (
                     <p>{planet.subject}</p>
                 )}
 
-                <p>
-                    Answer all questions to complete
-                    this mission. You need at least
-                    80% correct to pass.
-                </p>
+                {isFinalMission ? (
+                    <p>
+                        The Final Trial combines all five
+                        cybersecurity subjects. Answer all 15
+                        questions; at least 12 must be correct.
+                    </p>
+                ) : (
+                    <p>
+                        Answer all questions to complete
+                        this mission. You need at least
+                        80% correct to pass.
+                    </p>
+                )}
             </section>
 
             <section className="gs-quiz-wrapper">
@@ -461,12 +474,15 @@ function MissionPage() {
                                 ref={resultRef}
                                 tabIndex={-1}
                             >
-                                ✓ Mission completed!
+                                {isFinalMission
+                                    ? "✓ Final Trial completed!"
+                                    : "✓ Mission completed!"}
                             </h2>
 
                             <p>
-                                You passed the mission
-                                and earned your rewards!
+                                {isFinalMission
+                                    ? "Congratulations! You conquered Endor and completed the Galactic Slicer journey."
+                                    : "You passed the mission and earned your rewards!"}
                             </p>
 
                             <p>
@@ -506,12 +522,15 @@ function MissionPage() {
                                 ref={resultRef}
                                 tabIndex={-1}
                             >
-                                Mission not passed
+                                {isFinalMission
+                                    ? "Final Trial not passed"
+                                    : "Mission not passed"}
                             </h2>
 
                             <p>
-                                You need at least 80% correct
-                                answers to pass.
+                                {isFinalMission
+                                    ? "You need at least 12 of 15 correct answers to pass."
+                                    : "You need at least 80% correct answers to pass."}
                             </p>
 
                             <p>

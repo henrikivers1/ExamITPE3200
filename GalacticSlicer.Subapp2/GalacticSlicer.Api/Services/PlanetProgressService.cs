@@ -6,12 +6,30 @@ namespace GalacticSlicer.Api.Services;
 
 public class PlanetProgressService
 {
-    public bool IsPlanetUnlocked(Planet planet, PlayerProgress progress)
+    public bool IsPlanetUnlocked(
+        Planet planet,
+        PlayerProgress progress,
+        IReadOnlyCollection<Planet> planets,
+        IReadOnlySet<int> completedPlanetIds)
     {
         if (planet.Order == 1)
+        {
             return true;
+        }
 
-        return progress.ExperiencePoints >= GetRequiredXp(planet.Order);
+        var previousPlanets = planets
+            .Where(p => p.Order < planet.Order)
+            .ToList();
+
+        if (previousPlanets.Count == 0)
+        {
+            return false;
+        }
+
+        return previousPlanets.All(p =>
+                   completedPlanetIds.Contains(p.PlanetId)) &&
+               progress.ExperiencePoints >=
+                   GetRequiredXp(planet.Order);
     }
 
     // Every planet in chapter order with its locked / unlocked / completed status
@@ -19,8 +37,11 @@ public class PlanetProgressService
     public List<PlanetStatusDto> GetPlanetStatuses(
         IEnumerable<Planet> planets, PlayerProgress progress, HashSet<int> completedPlanetIds)
     {
-        return planets
+        var orderedPlanets = planets
             .OrderBy(p => p.Order)
+            .ToList();
+
+        return orderedPlanets
             .Select(p => new PlanetStatusDto
             {
                 PlanetId = p.PlanetId,
@@ -30,14 +51,20 @@ public class PlanetProgressService
                 CssClass = p.CssClass,
                 Subject = p.Subject,
                 StepLabel = $"Chapter {p.Order}",
-                IsUnlocked = IsPlanetUnlocked(p, progress),
+                IsUnlocked = IsPlanetUnlocked(
+                    p,
+                    progress,
+                    orderedPlanets,
+                    completedPlanetIds),
                 IsCompleted = completedPlanetIds.Contains(p.PlanetId),
                 RequiredXp = GetRequiredXp(p.Order)
             })
             .ToList();
     }
 
-    // Define the XP required to unlock each planet (also shown on the Progress page)
+    // Existing XP limits remain compatible with progress earned before
+    // mission rewards were standardized. The previous mission must also
+    // be completed, so XP alone can never skip a chapter.
     public int GetRequiredXp(int planetOrder)
     {
         return planetOrder switch
