@@ -1,17 +1,6 @@
-@model GalacticSlicer.Models.Challenge
+@model GalacticSlicer.ViewModels.ChallengeFormViewModel
 
 @* The fields shared by Create and Edit. The <form> tag and the buttons are in those views. *@
-@{
-    // Which option is marked as correct: what was just posted (if the form is shown again with errors),
-    // otherwise the saved answer when editing
-    var correctOption = ViewData["CorrectOption"] as string
-        ?? (Model == null || string.IsNullOrEmpty(Model.CorrectAnswer) ? null
-            : Model.CorrectAnswer == Model.OptionA ? "A"
-            : Model.CorrectAnswer == Model.OptionB ? "B"
-            : Model.CorrectAnswer == Model.OptionC ? "C"
-            : Model.CorrectAnswer == Model.OptionD ? "D"
-            : null);
-}
 
 <div asp-validation-summary="ModelOnly" class="gs-form-error-summary"></div>
 
@@ -54,24 +43,25 @@
     <span asp-validation-for="OptionD" class="gs-field-error"></span>
 </div>
 
-@* Correct answer: pick one of the four options above. The server turns the letter into the option's text. *@
+@* Correct answer: pick one of the four options above. The server turns the letter into the option's text.
+   asp-for selects the saved or just-posted letter automatically. *@
 <div class="gs-form-group">
-    <label for="correctOption" class="gs-label">Correct answer</label>
-    <select id="correctOption" name="correctOption" class="gs-input">
+    <label asp-for="CorrectOption" class="gs-label"></label>
+    <select asp-for="CorrectOption" class="gs-input">
         <option value="">-- Select the correct option --</option>
         @foreach (var letter in new[] { "A", "B", "C", "D" })
         {
-            <option value="@letter" selected="@(letter == correctOption)">Option @letter</option>
+            <option value="@letter">Option @letter</option>
         }
     </select>
-    <span asp-validation-for="CorrectAnswer" class="gs-field-error"></span>
+    <span asp-validation-for="CorrectOption" class="gs-field-error"></span>
 </div>
 
 <script>
     // Show what was typed in each option inside the dropdown, e.g. "Option A: pwd"
     document.querySelectorAll("[data-option]").forEach(function (input) {
         const letter = input.dataset.option;
-        const choice = document.querySelector('#correctOption option[value="' + letter + '"]');
+        const choice = document.querySelector('#CorrectOption option[value="' + letter + '"]');
         function update() {
             choice.textContent = "Option " + letter + (input.value.trim() ? ": " + input.value.trim() : "");
         }

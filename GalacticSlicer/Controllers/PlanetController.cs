@@ -395,6 +395,27 @@ public class PlanetController : Controller
         }
     }
 
+    // A planet in the Create/Edit form, and the form's values back as a planet (without its challenges)
+    private static PlanetFormViewModel ToFormViewModel(Planet planet) => new PlanetFormViewModel
+    {
+        PlanetId = planet.PlanetId,
+        Name = planet.Name,
+        Description = planet.Description,
+        Order = planet.Order,
+        CssClass = planet.CssClass,
+        Subject = planet.Subject
+    };
+
+    private static Planet ToPlanet(PlanetFormViewModel model) => new Planet
+    {
+        PlanetId = model.PlanetId,
+        Name = model.Name,
+        Description = model.Description,
+        Order = model.Order,
+        CssClass = model.CssClass,
+        Subject = model.Subject
+    };
+
     // Domain rule: the first planet and planets that still have mission questions can't be deleted
     private static bool CanDeletePlanet(Planet planet) =>
         planet.Order != 1 && (planet.Challenges == null || planet.Challenges.Count == 0);
@@ -433,17 +454,17 @@ public class PlanetController : Controller
         };
 
         await LoadPlanetDropdowns(planet);
-        return View(planet);
+        return View(ToFormViewModel(planet));
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Planet planet)
+    public async Task<IActionResult> Create(PlanetFormViewModel model)
     {
         // A new planet always gets a new id and no questions (questions.json is linked by DBInit)
+        var planet = ToPlanet(model);
         planet.PlanetId = 0;
-        planet.Challenges = null;
 
         await ValidatePlanetRules(planet);
 
@@ -465,7 +486,7 @@ public class PlanetController : Controller
 
         // The form is shown again, so the dropdowns need their items again
         await LoadPlanetDropdowns(planet);
-        return View(planet);
+        return View(model);
     }
     [HttpGet]
     [Authorize(Roles = "Admin")]
@@ -479,14 +500,15 @@ public class PlanetController : Controller
         }
 
         await LoadPlanetDropdowns(planet);
-        return View(planet);
+        return View(ToFormViewModel(planet));
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, Planet planet)
+    public async Task<IActionResult> Edit(int id, PlanetFormViewModel model)
     {
+        var planet = ToPlanet(model);
         if (id != planet.PlanetId)
         {
             _logger.LogWarning("[PlanetController] Edit id mismatch: route {RouteId}, form {FormId}", id, planet.PlanetId);
@@ -530,7 +552,7 @@ public class PlanetController : Controller
         _logger.LogWarning("[PlanetController] Planet update failed for PlanetId {PlanetId}", id);
 
         await LoadPlanetDropdowns(planet);
-        return View(planet);
+        return View(model);
     }
 
     [HttpGet]

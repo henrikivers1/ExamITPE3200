@@ -39,55 +39,64 @@ public class ChallengeController : Controller
         ViewBag.Subjects = new SelectList(subjects, selectedSubject);
     }
 
-    // The form has no title, planet or reward, and picks the correct answer as a letter (A-D).
-    // This turns the letter into the option's text, makes the title from the question,
-    // and checks that the subject is one of the real ones.
-    private async Task ApplyFormFields(Challenge challenge, string? correctOption)
+    // Domain rules the form's DataAnnotations can't check: the subject must be one of the real ones,
+    // and the four options must differ (the correct answer is compared by text, so two equal options
+    // would make the question unanswerable)
+    private async Task ValidateAnswerOptions(ChallengeFormViewModel model)
     {
-        challenge.Title = QuestionService.MakeTitle(challenge.Question ?? string.Empty);
-        challenge.CorrectAnswer = correctOption switch
-        {
-            "A" => challenge.OptionA,
-            "B" => challenge.OptionB,
-            "C" => challenge.OptionC,
-            "D" => challenge.OptionD,
-            _ => string.Empty
-        };
-
-        // These were validated while the form was read, before the server filled them in
-        ModelState.Remove(nameof(challenge.Title));
-        ModelState.Remove(nameof(challenge.CorrectAnswer));
-        ViewData["CorrectOption"] = correctOption;
-
-        if (string.IsNullOrEmpty(challenge.CorrectAnswer))
-        {
-            ModelState.AddModelError(nameof(challenge.CorrectAnswer), "Please choose the correct answer.");
-        }
-
         var subjects = await _questionService.GetSubjectsAsync();
-        if (!subjects.Any(s => s.Subject == challenge.Subject))
+        if (!string.IsNullOrEmpty(model.Subject) && !subjects.Any(s => s.Subject == model.Subject))
         {
-            ModelState.AddModelError(nameof(challenge.Subject), "Please choose a subject.");
-        }
-    }
-
-    // Domain rule: the correct answer must be one of the four options, and the options must differ.
-    // Missions compare the clicked option's text with CorrectAnswer, so anything else is unanswerable.
-    private void ValidateAnswerOptions(Challenge challenge)
-    {
-        var options = new[] { challenge.OptionA, challenge.OptionB, challenge.OptionC, challenge.OptionD };
-
-        if (!options.Contains(challenge.CorrectAnswer, StringComparer.OrdinalIgnoreCase))
-        {
-            ModelState.AddModelError(nameof(challenge.CorrectAnswer),
-                "The correct answer must match one of the four options exactly.");
+            ModelState.AddModelError(nameof(model.Subject), "Please choose a subject.");
         }
 
+        var options = new[] { model.OptionA, model.OptionB, model.OptionC, model.OptionD };
         if (options.Distinct(StringComparer.OrdinalIgnoreCase).Count() != options.Length)
         {
             ModelState.AddModelError(string.Empty, "The four options must all be different.");
         }
     }
+
+    // The form picks the correct answer as a letter (A-D); the database stores the option's text
+    private static string CorrectAnswerText(ChallengeFormViewModel model) => model.CorrectOption switch
+    {
+        "A" => model.OptionA,
+        "B" => model.OptionB,
+        "C" => model.OptionC,
+        "D" => model.OptionD,
+        _ => string.Empty
+    };
+
+    // A saved challenge as shown on the list, Details and Delete pages
+    private static ChallengeViewModel ToViewModel(Challenge challenge) => new ChallengeViewModel
+    {
+        ChallengeId = challenge.ChallengeId,
+        Title = challenge.Title,
+        Subject = challenge.Subject,
+        Question = challenge.Question,
+        OptionA = challenge.OptionA,
+        OptionB = challenge.OptionB,
+        OptionC = challenge.OptionC,
+        OptionD = challenge.OptionD,
+        CorrectAnswer = challenge.CorrectAnswer
+    };
+
+    // A saved challenge in the Edit form, with the correct answer turned back into its letter
+    private static ChallengeFormViewModel ToFormViewModel(Challenge challenge) => new ChallengeFormViewModel
+    {
+        ChallengeId = challenge.ChallengeId,
+        Subject = challenge.Subject,
+        Question = challenge.Question,
+        OptionA = challenge.OptionA,
+        OptionB = challenge.OptionB,
+        OptionC = challenge.OptionC,
+        OptionD = challenge.OptionD,
+        CorrectOption = challenge.CorrectAnswer == challenge.OptionA ? "A"
+            : challenge.CorrectAnswer == challenge.OptionB ? "B"
+            : challenge.CorrectAnswer == challenge.OptionC ? "C"
+            : challenge.CorrectAnswer == challenge.OptionD ? "D"
+            : null
+    };
 
     // GET: /Challenge/Topics - one card per subject in questions.json, in planet order.
     // The question count includes the logged-in player's own questions in that subject.
@@ -165,7 +174,7 @@ public class ChallengeController : Controller
         var userId = _userManager.GetUserId(User);
         if (userId == null)
         {
-            return View(new List<Challenge>());
+            return View(new List<ChallengeViewModel>());
         }
 
         // Only the logged-in user's own challenges (questions.json is never listed)
@@ -176,7 +185,7 @@ public class ChallengeController : Controller
             return NotFound();
         }
 
-        return View(challenges);
+        return View(challenges.Select(ToViewModel).ToList());
     }
 
     // GET: /Challenge/Details/5 - only the user who made the challenge
@@ -189,7 +198,7 @@ public class ChallengeController : Controller
             _logger.LogError("[ChallengeController] Challenge not found for ChallengeId {ChallengeId:0000}", id);
             return NotFound();
         }
-        return View(challenge);
+        return View(ToViewModel(challenge));
     }
 
     [HttpGet]
@@ -197,26 +206,33 @@ public class ChallengeController : Controller
     public async Task<IActionResult> Create()
     {
         await LoadSubjectDropdown();
-        return View();
+        return View(new ChallengeFormViewModel());
     }
 
     [HttpPost]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Challenge challenge, string? correctOption)
+    public async Task<IActionResult> Create(ChallengeFormViewModel model)
     {
-        // Set on the server, so a user can't post their way into the planet missions or another user's list
-        challenge.CreatedByUserId = _userManager.GetUserId(User);
-        challenge.SourceId = null;
-        challenge.Explanation = null;
-        challenge.PlanetId = null;
-        challenge.CreditReward = 0;
-
-        await ApplyFormFields(challenge, correctOption);
-        ValidateAnswerOptions(challenge);
+        await ValidateAnswerOptions(model);
 
         if (ModelState.IsValid)
         {
+            // Owner, title and correct answer are set on the server. Source, planet and reward stay empty,
+            // so a user can't post their way into the planet missions or another user's list.
+            var challenge = new Challenge
+            {
+                CreatedByUserId = _userManager.GetUserId(User),
+                Title = QuestionService.MakeTitle(model.Question),
+                Question = model.Question,
+                Subject = model.Subject,
+                OptionA = model.OptionA,
+                OptionB = model.OptionB,
+                OptionC = model.OptionC,
+                OptionD = model.OptionD,
+                CorrectAnswer = CorrectAnswerText(model)
+            };
+
             try
             {
                 await _challengeRepository.Create(challenge);
@@ -228,11 +244,11 @@ public class ChallengeController : Controller
                 ModelState.AddModelError(string.Empty, "Could not save the challenge. Please try again.");
             }
         }
-        _logger.LogWarning("[ChallengeController] Challenge creation failed for {Title}", challenge.Title);
+        _logger.LogWarning("[ChallengeController] Challenge creation failed for {Question}", model.Question);
 
         // The form is shown again, so the dropdown needs its subjects again
-        await LoadSubjectDropdown(challenge.Subject);
-        return View(challenge);
+        await LoadSubjectDropdown(model.Subject);
+        return View(model);
     }
 
     [HttpGet]
@@ -247,17 +263,17 @@ public class ChallengeController : Controller
         }
 
         await LoadSubjectDropdown(challenge.Subject);
-        return View(challenge);
+        return View(ToFormViewModel(challenge));
     }
 
     [HttpPost]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, Challenge challenge, string? correctOption)
+    public async Task<IActionResult> Edit(int id, ChallengeFormViewModel model)
     {
-        if (id != challenge.ChallengeId)
+        if (id != model.ChallengeId)
         {
-            _logger.LogWarning("[ChallengeController] Edit id mismatch: route {RouteId}, form {FormId}", id, challenge.ChallengeId);
+            _logger.LogWarning("[ChallengeController] Edit id mismatch: route {RouteId}, form {FormId}", id, model.ChallengeId);
             return BadRequest();
         }
 
@@ -268,22 +284,21 @@ public class ChallengeController : Controller
             return NotFound();
         }
 
-        await ApplyFormFields(challenge, correctOption);
-        ValidateAnswerOptions(challenge);
+        await ValidateAnswerOptions(model);
 
         if (ModelState.IsValid)
         {
             try
             {
                 // Copy only the fields the form edits, so owner, source, planet and reward can't be changed
-                existing.Title = challenge.Title;
-                existing.Question = challenge.Question;
-                existing.CorrectAnswer = challenge.CorrectAnswer;
-                existing.Subject = challenge.Subject;
-                existing.OptionA = challenge.OptionA;
-                existing.OptionB = challenge.OptionB;
-                existing.OptionC = challenge.OptionC;
-                existing.OptionD = challenge.OptionD;
+                existing.Title = QuestionService.MakeTitle(model.Question);
+                existing.Question = model.Question;
+                existing.CorrectAnswer = CorrectAnswerText(model);
+                existing.Subject = model.Subject;
+                existing.OptionA = model.OptionA;
+                existing.OptionB = model.OptionB;
+                existing.OptionC = model.OptionC;
+                existing.OptionD = model.OptionD;
 
                 await _challengeRepository.Update(existing);
                 return RedirectToAction(nameof(Index));
@@ -294,10 +309,10 @@ public class ChallengeController : Controller
                 ModelState.AddModelError(string.Empty, "Could not update the challenge. Please try again.");
             }
         }
-        _logger.LogWarning("[ChallengeController] Challenge update failed for ChallengeId {ChallengeId:0000}", challenge.ChallengeId);
+        _logger.LogWarning("[ChallengeController] Challenge update failed for ChallengeId {ChallengeId:0000}", model.ChallengeId);
 
-        await LoadSubjectDropdown(challenge.Subject);
-        return View(challenge);
+        await LoadSubjectDropdown(model.Subject);
+        return View(model);
     }
 
     [HttpGet]
@@ -310,7 +325,7 @@ public class ChallengeController : Controller
             _logger.LogError("[ChallengeController] Challenge not found when deleting ChallengeId {ChallengeId:0000}", id);
             return NotFound();
         }
-        return View(challenge);
+        return View(ToViewModel(challenge));
     }
 
     [HttpPost, ActionName("Delete")]
