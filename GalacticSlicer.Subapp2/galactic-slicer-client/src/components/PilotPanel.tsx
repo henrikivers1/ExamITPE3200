@@ -8,7 +8,7 @@ interface PilotPanelProps {
 
 // Pilot panel: badge, name, rank, Credits, the next mission and a mini starchart.
 // Same panel as the top of Progress/Index.cshtml in Subapp 1.
-// TODO: the mission buttons and planets link to the Galaxy page until Subapp 2 has a mission page.
+// Mission shortcuts use the Galaxy page, which shows lock and completion status.
 function PilotPanel({ progress }: PilotPanelProps) {
     const { planets, activeCharacter } = progress;
 

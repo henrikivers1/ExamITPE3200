@@ -18,5 +18,6 @@ public enum CharacterDeleteResult
 {
     Deleted,
     NotFound,
-    HasOwners
+    HasOwners,
+    StandardCharacter
 }

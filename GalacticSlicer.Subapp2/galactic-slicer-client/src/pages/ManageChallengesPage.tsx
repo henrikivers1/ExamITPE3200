@@ -48,8 +48,6 @@ function ManageChallengesPage() {
 
     useEffect(() => {
         if (!isLoggedIn) {
-            setLoading(false);
-            setChallenges([]);
             return;
         }
 

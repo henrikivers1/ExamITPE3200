@@ -67,7 +67,6 @@ function MissionPage() {
             !Number.isInteger(planetId) ||
             planetId <= 0
         ) {
-            setLoading(false);
             return;
         }
 

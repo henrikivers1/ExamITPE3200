@@ -1,8 +1,11 @@
 
+using System.ComponentModel.DataAnnotations;
 using GalacticSlicer.Api.DTOs;
 using GalacticSlicer.Api.Services;
+using Microsoft.Data.Sqlite;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace GalacticSlicer.Api.Controllers;
 
@@ -36,7 +39,10 @@ public class CharactersController : ControllerBase
 
         if (character == null)
         {
-            return NotFound();
+            return NotFound(new
+            {
+                message = "Character not found."
+            });
         }
 
         return Ok(character);
@@ -49,12 +55,29 @@ public class CharactersController : ControllerBase
     public async Task<ActionResult<CharacterDto>> Create(
         [FromBody] CharacterUpsertDto dto)
     {
-        var character = await _service.CreateAsync(dto);
+        try
+        {
+            var character = await _service.CreateAsync(dto);
 
-        return CreatedAtAction(
-            nameof(GetById),
-            new { id = character.CharacterId },
-            character);
+            return CreatedAtAction(
+                nameof(GetById),
+                new { id = character.CharacterId },
+                character);
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new
+            {
+                message = ex.Message
+            });
+        }
+        catch (CharacterConflictException ex)
+        {
+            return Conflict(new
+            {
+                message = ex.Message
+            });
+        }
     }
 
     // PUT /api/characters/1
@@ -65,9 +88,34 @@ public class CharactersController : ControllerBase
         int id,
         [FromBody] CharacterUpsertDto dto)
     {
-        var updated = await _service.UpdateAsync(id, dto);
+        try
+        {
+            var updated = await _service.UpdateAsync(id, dto);
 
-        return updated ? NoContent() : NotFound();
+            if (!updated)
+            {
+                return NotFound(new
+                {
+                    message = "Character not found."
+                });
+            }
+
+            return NoContent();
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new
+            {
+                message = ex.Message
+            });
+        }
+        catch (CharacterConflictException ex)
+        {
+            return Conflict(new
+            {
+                message = ex.Message
+            });
+        }
     }
 
     // DELETE /api/characters/1
@@ -76,15 +124,40 @@ public class CharactersController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
-        var result = await _service.DeleteAsync(id);
-
-        return result switch
+        try
         {
-            CharacterDeleteResult.Deleted => NoContent(),
-            CharacterDeleteResult.NotFound => NotFound(),
-            CharacterDeleteResult.HasOwners =>
-                Conflict("Character is owned by players."),
-            _ => StatusCode(500)
-        };
+            var result = await _service.DeleteAsync(id);
+
+            return result switch
+            {
+                CharacterDeleteResult.Deleted => NoContent(),
+                CharacterDeleteResult.NotFound => NotFound(new
+                {
+                    message = "Character not found."
+                }),
+                CharacterDeleteResult.HasOwners => Conflict(new
+                {
+                    message =
+                        "Character cannot be deleted because " +
+                        "it is owned by players."
+                }),
+                CharacterDeleteResult.StandardCharacter => Conflict(new
+                {
+                    message = "Standard characters cannot be deleted."
+                }),
+                _ => StatusCode(500)
+            };
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is SqliteException
+                { SqliteErrorCode: 19 })
+        {
+            return Conflict(new
+            {
+                message =
+                    "Character cannot be deleted because " +
+                    "it is owned by players."
+            });
+        }
     }
 }
