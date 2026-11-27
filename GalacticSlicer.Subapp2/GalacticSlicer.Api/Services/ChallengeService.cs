@@ -15,31 +15,46 @@ public class ChallengeService : IChallengeService
         _repository = repository;
     }
 
+    // ============================================
+    // GET ALL
+    // ============================================
+
     public async Task<IEnumerable<ChallengeDto>> GetAllAsync(
         string userId)
     {
         var challenges = await _repository.GetAll();
 
         return (challenges ?? Enumerable.Empty<Challenge>())
-            .Where(c => c.SourceId != null ||
-                        c.CreatedByUserId == userId)
-            .Select(ToDto)
+            .Where(c => CanView(c, userId))
+            .Select(c => ToDto(c, userId))
             .ToList();
     }
 
+    // ============================================
+    // GET BY ID
+    // ============================================
+
     public async Task<ChallengeDto?> GetByIdAsync(
-        int id, string userId)
+        int id,
+        string userId)
     {
         var challenge = await _repository.GetChallengeById(id);
 
         if (challenge == null || !CanView(challenge, userId))
+        {
             return null;
+        }
 
-        return ToDto(challenge);
+        return ToDto(challenge, userId);
     }
 
+    // ============================================
+    // CREATE
+    // ============================================
+
     public async Task<ChallengeDto> CreateAsync(
-        ChallengeUpsertDto dto, string userId)
+        ChallengeUpsertDto dto,
+        string userId)
     {
         Validate(dto);
 
@@ -47,7 +62,8 @@ public class ChallengeService : IChallengeService
 
         ApplyChanges(challenge, dto);
 
-        // Business rules for user-created challenges
+        // User-created questions cannot be used as
+        // official mission questions or give rewards.
         challenge.CreatedByUserId = userId;
         challenge.CreditReward = 0;
         challenge.PlanetId = null;
@@ -55,16 +71,24 @@ public class ChallengeService : IChallengeService
 
         await _repository.Create(challenge);
 
-        return ToDto(challenge);
+        return ToDto(challenge, userId);
     }
 
+    // ============================================
+    // UPDATE
+    // ============================================
+
     public async Task<bool> UpdateAsync(
-        int id, ChallengeUpsertDto dto, string userId)
+        int id,
+        ChallengeUpsertDto dto,
+        string userId)
     {
         var challenge = await _repository.GetChallengeById(id);
 
         if (challenge == null || !CanEdit(challenge, userId))
+        {
             return false;
+        }
 
         Validate(dto);
         ApplyChanges(challenge, dto);
@@ -72,15 +96,27 @@ public class ChallengeService : IChallengeService
         return await _repository.Update(challenge);
     }
 
-    public async Task<bool> DeleteAsync(int id, string userId)
+    // ============================================
+    // DELETE
+    // ============================================
+
+    public async Task<bool> DeleteAsync(
+        int id,
+        string userId)
     {
         var challenge = await _repository.GetChallengeById(id);
 
         if (challenge == null || !CanEdit(challenge, userId))
+        {
             return false;
+        }
 
         return await _repository.Delete(id);
     }
+
+    // ============================================
+    // SEARCH AND FILTER
+    // ============================================
 
     public async Task<IEnumerable<ChallengeDto>> SearchAsync(
         string? searchString,
@@ -88,24 +124,39 @@ public class ChallengeService : IChallengeService
         string userId)
     {
         var results = await _repository.Search(
-            searchString, subject, userId);
+            searchString,
+            subject,
+            userId);
 
         return (results ?? Enumerable.Empty<Challenge>())
-            .Select(ToDto)
+            .Where(c => CanView(c, userId))
+            .Select(c => ToDto(c, userId))
             .ToList();
     }
 
-    private static bool CanView(Challenge c, string userId)
+    // ============================================
+    // OWNERSHIP RULES
+    // ============================================
+
+    private static bool CanView(
+        Challenge challenge,
+        string userId)
     {
-        return c.SourceId != null ||
-               c.CreatedByUserId == userId;
+        return challenge.SourceId != null ||
+               challenge.CreatedByUserId == userId;
     }
 
-    private static bool CanEdit(Challenge c, string userId)
+    private static bool CanEdit(
+        Challenge challenge,
+        string userId)
     {
-        return c.SourceId == null &&
-               c.CreatedByUserId == userId;
+        return challenge.SourceId == null &&
+               challenge.CreatedByUserId == userId;
     }
+
+    // ============================================
+    // VALIDATION
+    // ============================================
 
     private static void Validate(ChallengeUpsertDto dto)
     {
@@ -135,12 +186,17 @@ public class ChallengeService : IChallengeService
         }
     }
 
+    // ============================================
+    // APPLY CHANGES
+    // ============================================
+
     private static void ApplyChanges(
-        Challenge challenge, ChallengeUpsertDto dto)
+        Challenge challenge,
+        ChallengeUpsertDto dto)
     {
         challenge.Question = dto.Question.Trim();
 
-        // Title is generated by the server
+        // The server generates the title.
         challenge.Title = challenge.Question.Length > 100
             ? challenge.Question[..100]
             : challenge.Question;
@@ -155,20 +211,42 @@ public class ChallengeService : IChallengeService
         challenge.Explanation = dto.Explanation;
     }
 
-    private static ChallengeDto ToDto(Challenge c)
+    // ============================================
+    // MAP ENTITY TO DTO
+    // ============================================
+
+    private static ChallengeDto ToDto(
+        Challenge challenge,
+        string userId)
     {
+        bool isOwner = CanEdit(challenge, userId);
+
         return new ChallengeDto
         {
-            ChallengeId = c.ChallengeId,
-            Title = c.Title,
-            Question = c.Question,
-            OptionA = c.OptionA,
-            OptionB = c.OptionB,
-            OptionC = c.OptionC,
-            OptionD = c.OptionD,
-            Subject = c.Subject,
-            PlanetId = c.PlanetId,
-            CreditReward = c.CreditReward
+            ChallengeId = challenge.ChallengeId,
+            Title = challenge.Title,
+            Question = challenge.Question,
+
+            OptionA = challenge.OptionA,
+            OptionB = challenge.OptionB,
+            OptionC = challenge.OptionC,
+            OptionD = challenge.OptionD,
+
+            Subject = challenge.Subject,
+            PlanetId = challenge.PlanetId,
+            CreditReward = challenge.CreditReward,
+
+            IsOwnedByCurrentUser = isOwner,
+
+            // Only reveal the answer and explanation
+            // to the creator of a user-created challenge.
+            CorrectAnswer = isOwner
+                ? challenge.CorrectAnswer
+                : null,
+
+            Explanation = isOwner
+                ? challenge.Explanation
+                : null
         };
     }
 }

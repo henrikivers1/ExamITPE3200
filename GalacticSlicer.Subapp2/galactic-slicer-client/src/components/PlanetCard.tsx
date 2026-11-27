@@ -1,29 +1,124 @@
+
+import { Link } from "react-router-dom";
+
 import type { Planet } from "../types/Planet";
+import type {
+    PlanetStatus,
+} from "../types/PlayerProgress";
 
 interface PlanetCardProps {
     planet: Planet;
+    status?: PlanetStatus;
+    isLoggedIn: boolean;
 }
 
-// One planet on the starchart: the CSS planet on top, chapter, name, description and subject underneath.
-// Same markup as the Subapp 1 Galaxy page, but without Locked/Unlocked:
-// the API doesn't know who the player is yet, so we don't guess.
-function PlanetCard({ planet }: PlanetCardProps) {
-    return (
-        <li className="gs-star-node">
-            <div className="gs-star-node-link">
-                <span className={`gs-planet gs-planet--${planet.cssClass}`} aria-hidden="true"></span>
-                <span className="gs-star-node-info">
-                    <span className="gs-star-node-step">Chapter {planet.order}</span>
-                    <span className="gs-star-node-name">{planet.name}</span>
-                    {planet.description && (
-                        <span className="gs-star-node-meta">{planet.description}</span>
-                    )}
-                    {/* only shown when the API sends one (the current seed data has none yet) */}
-                    {planet.subject && (
-                        <span className="gs-star-node-meta">{planet.subject}</span>
-                    )}
+function PlanetCard({
+    planet,
+    status,
+    isLoggedIn,
+}: PlanetCardProps) {
+    const isUnlocked = status?.isUnlocked ?? false;
+    const isCompleted = status?.isCompleted ?? false;
+    const requiredXp = status?.requiredXp ?? 0;
+
+    const canStart =
+        isLoggedIn &&
+        status !== undefined &&
+        isUnlocked &&
+        !isCompleted &&
+        planet.name.toLowerCase() !== "endor";
+
+    const stateClass = !isLoggedIn || !status
+        ? ""
+        : isCompleted
+          ? " gs-star-node--completed"
+          : isUnlocked
+            ? " gs-star-node--unlocked"
+            : " gs-star-node--locked";
+
+    const content = (
+        <>
+            <span
+                className={
+                    `gs-planet gs-planet--${planet.cssClass}`
+                }
+                aria-hidden="true"
+            />
+
+            <span className="gs-star-node-info">
+                <span className="gs-star-node-step">
+                    Chapter {planet.order}
                 </span>
-            </div>
+
+                <span className="gs-star-node-name">
+                    {planet.name}
+                </span>
+
+                {planet.description && (
+                    <span className="gs-star-node-meta">
+                        {planet.description}
+                    </span>
+                )}
+
+                {planet.subject && (
+                    <span className="gs-star-node-meta">
+                        {planet.subject}
+                    </span>
+                )}
+
+                {!isLoggedIn && (
+                    <span className="gs-star-node-meta">
+                        Log in to start missions
+                    </span>
+                )}
+
+                {isLoggedIn && status && (
+                    <span className="gs-star-node-meta">
+                        {isCompleted ? (
+                            <strong>✓ Completed</strong>
+                        ) : !isUnlocked ? (
+                            <strong>
+                                🔒 Locked — Requires{" "}
+                                {requiredXp.toLocaleString()} XP
+                            </strong>
+                        ) : planet.name.toLowerCase() === "endor" ? (
+                            <strong>
+                                Final mission coming soon
+                            </strong>
+                        ) : (
+                            <strong>
+                                ▶ Start Mission
+                            </strong>
+                        )}
+                    </span>
+                )}
+
+                {isLoggedIn && !status && (
+                    <span className="gs-star-node-meta">
+                        Progress unavailable
+                    </span>
+                )}
+            </span>
+        </>
+    );
+
+    return (
+        <li className={`gs-star-node${stateClass}`}>
+            {canStart ? (
+                <Link
+                    className="gs-star-node-link"
+                    to={`/planets/${planet.planetId}/mission`}
+                    aria-label={
+                        `Start ${planet.name} mission`
+                    }
+                >
+                    {content}
+                </Link>
+            ) : (
+                <div className="gs-star-node-link">
+                    {content}
+                </div>
+            )}
         </li>
     );
 }

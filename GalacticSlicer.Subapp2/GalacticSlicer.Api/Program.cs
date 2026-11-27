@@ -79,6 +79,9 @@ if (string.IsNullOrWhiteSpace(jwtKey))
     // Tokens become invalid when the API restarts.
     jwtKey = Convert.ToBase64String(
         RandomNumberGenerator.GetBytes(32));
+
+    // Make the generated key available to AuthController.
+    builder.Configuration["Jwt:Key"] = jwtKey;
 }
 
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]
@@ -170,11 +173,22 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider
         .GetRequiredService<GalacticSlicerDbContext>();
 
-    // Automatically create/update the database
+    // Apply existing migrations without deleting the database.
     await context.Database.MigrateAsync();
 
-    // Seed initial planets using the existing DBInit.cs
+    // Seed six planets, five starter characters,
+    // and the official questions from Questions.json.
     await DBInit.SeedAsync(context);
+
+    // Create the Admin role and optionally bootstrap
+    // an administrator account using configuration.
+    var logger = scope.ServiceProvider
+        .GetRequiredService<ILogger<Program>>();
+
+    await DBInit.SeedAdminAsync(
+        scope.ServiceProvider,
+        app.Configuration,
+        logger);
 }
 
 // ============================================

@@ -188,7 +188,7 @@ public class ChallengeCompletionService
                     "Mission on Planet {PlanetId} already completed",
                     planetId);
 
-                return true;
+                return false;
             }
 
             // Identify the planet before validating its questions

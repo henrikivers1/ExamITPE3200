@@ -1,199 +1,435 @@
+
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { getPracticeQuestions } from "../services/challengeService";
-import type { Question } from "../types/Question";
+import {
+    getPracticeQuestions,
+    checkPracticeAnswer,
+    type PracticeQuestion,
+    type PracticeAnswerResult,
+} from "../services/challengeService";
 
 interface PracticeQuizProps {
     subject: string;
-    // true on "Practice again": focus the first question, since the clicked button is gone
     focusOnStart: boolean;
     onRestart: () => void;
 }
 
-// One practice round: answer a question, see right/wrong and the explanation at once,
-// then the score at the end. Same flow as the Practice page script in Subapp 1.
-// TODO: shows "Could not load the questions." until challengeService gets the questions from the API
-function PracticeQuiz({ subject, focusOnStart, onRestart }: PracticeQuizProps) {
-    const [questions, setQuestions] = useState<Question[]>([]);
+function PracticeQuiz({
+    subject,
+    focusOnStart,
+    onRestart,
+}: PracticeQuizProps) {
+    const [questions, setQuestions] =
+        useState<PracticeQuestion[]>([]);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const [currentIndex, setCurrentIndex] = useState(0);
-    // the option the player picked for the current question (null = not answered yet)
-    const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+    const [selectedIndex, setSelectedIndex] =
+        useState<number | null>(null);
+
+    const [answerResult, setAnswerResult] =
+        useState<PracticeAnswerResult | null>(null);
+
+    const [checking, setChecking] = useState(false);
     const [correctCount, setCorrectCount] = useState(0);
     const [finished, setFinished] = useState(false);
 
+    const submittingRef = useRef(false);
     const questionRef = useRef<HTMLHeadingElement>(null);
     const nextRef = useRef<HTMLButtonElement>(null);
     const completeRef = useRef<HTMLHeadingElement>(null);
 
+    // ============================================
+    // LOAD QUESTIONS FROM API
+    // ============================================
+
     useEffect(() => {
+        let cancelled = false;
+
         async function loadQuestions() {
+            setLoading(true);
+            setError(null);
+
             try {
-                setQuestions(await getPracticeQuestions(subject));
-            } catch {
-                setError("Could not load the questions.");
+                const result = await getPracticeQuestions(subject);
+
+                if (!cancelled) {
+                    setQuestions(result);
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    setError(
+                        err instanceof Error
+                            ? err.message
+                            : "Could not load the questions."
+                    );
+                }
             } finally {
-                setLoading(false);
+                if (!cancelled) {
+                    setLoading(false);
+                }
             }
         }
 
-        loadQuestions();
+        void loadQuestions();
+
+        return () => {
+            cancelled = true;
+        };
     }, [subject]);
 
-    // keyboard and screen reader users start at each new question
-    // (not on the first one when the page opens, so the page doesn't jump)
+    // ============================================
+    // ACCESSIBILITY
+    // ============================================
+
     useEffect(() => {
-        if (questions.length > 0 && (currentIndex > 0 || focusOnStart)) {
+        if (
+            questions.length > 0 &&
+            !finished &&
+            (currentIndex > 0 || focusOnStart)
+        ) {
             questionRef.current?.focus();
         }
-    }, [currentIndex, questions, focusOnStart]);
+    }, [currentIndex, questions, focusOnStart, finished]);
 
-    // the clicked option is disabled after answering, so move focus to the button that continues
     useEffect(() => {
-        if (selectedIndex !== null) {
+        if (answerResult !== null) {
             nextRef.current?.focus();
         }
-    }, [selectedIndex]);
+    }, [answerResult]);
 
-    // move focus to the result, so it's read out and Tab continues to its buttons
     useEffect(() => {
         if (finished) {
             completeRef.current?.focus();
         }
     }, [finished]);
 
-    if (loading) {
-        return <p className="gs-page-intro" aria-live="polite">Loading questions...</p>;
-    }
+    // ============================================
+    // CHECK ANSWER ON SERVER
+    // ============================================
 
-    if (error) {
-        return <p className="gs-page-intro" role="alert">{error}</p>;
-    }
-
-    if (questions.length === 0) {
-        return (
-            <section className="gs-page-intro">
-                <p>There are no questions for this subject.</p>
-                <Link to="/challenges/topics" className="gs-btn gs-btn--primary">Back to challenges</Link>
-            </section>
-        );
-    }
-
-    const question = questions[currentIndex];
-    const answered = selectedIndex !== null;
-    const isLast = currentIndex === questions.length - 1;
-    const progress = finished ? questions.length : currentIndex;
-
-    function selectAnswer(index: number) {
-        if (answered) {
+    async function selectAnswer(index: number) {
+        if (
+            submittingRef.current ||
+            answerResult !== null ||
+            finished
+        ) {
             return;
         }
+
+        const question = questions[currentIndex];
+
+        if (!question) return;
+
+        const options = [
+            question.optionA,
+            question.optionB,
+            question.optionC,
+            question.optionD,
+        ];
+
+        const selectedAnswer = options[index];
+
+        if (!selectedAnswer) return;
+
+        submittingRef.current = true;
+        setChecking(true);
         setSelectedIndex(index);
-        if (index === question.correctIndex) {
-            setCorrectCount(count => count + 1);
+        setError(null);
+
+        try {
+            const result = await checkPracticeAnswer(
+                question.challengeId,
+                selectedAnswer
+            );
+
+            setAnswerResult(result);
+
+            if (result.isCorrect) {
+                setCorrectCount(count => count + 1);
+            }
+        } catch (err) {
+            // Restore the option buttons when checking fails,
+            // so the player can retry their answer.
+            setSelectedIndex(null);
+
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : "Could not check the answer."
+            );
+        } finally {
+            submittingRef.current = false;
+            setChecking(false);
         }
     }
 
+    // ============================================
+    // NEXT QUESTION
+    // ============================================
+
     function goToNext() {
+        if (answerResult === null) return;
+
+        const isLast =
+            currentIndex === questions.length - 1;
+
         if (isLast) {
             setFinished(true);
         } else {
             setCurrentIndex(index => index + 1);
             setSelectedIndex(null);
+            setAnswerResult(null);
+            setError(null);
         }
     }
 
-    // green ✓ on the right answer and red ✗ on a wrong pick, after answering.
-    // The symbols mean right and wrong don't depend on seeing green and red.
-    function optionClass(index: number) {
-        if (!answered) {
+    // ============================================
+    // OPTION STYLING
+    // ============================================
+
+    function optionClass(
+        index: number,
+        options: string[]
+    ) {
+        if (answerResult === null) {
             return "gs-quiz-option";
         }
-        if (index === question.correctIndex) {
+
+        const option = options[index];
+
+        if (option === answerResult.correctAnswer) {
             return "gs-quiz-option gs-quiz-option--correct";
         }
+
         if (index === selectedIndex) {
             return "gs-quiz-option gs-quiz-option--incorrect";
         }
+
         return "gs-quiz-option";
     }
 
-    function optionMark(index: number) {
-        if (!answered) {
-            return "";
-        }
-        if (index === question.correctIndex) {
+    function optionMark(
+        index: number,
+        options: string[]
+    ) {
+        if (answerResult === null) return "";
+
+        if (options[index] === answerResult.correctAnswer) {
             return "✓ ";
         }
+
         return index === selectedIndex ? "✗ " : "";
     }
+
+    // ============================================
+    // LOADING AND EMPTY STATES
+    // ============================================
+
+    if (loading) {
+        return (
+            <p
+                className="gs-page-intro"
+                aria-live="polite"
+            >
+                Loading questions...
+            </p>
+        );
+    }
+
+    if (questions.length === 0) {
+        return (
+            <section className="gs-page-intro">
+                {error ? (
+                    <p role="alert">{error}</p>
+                ) : (
+                    <p>
+                        There are no questions for this subject.
+                    </p>
+                )}
+
+                <Link
+                    to="/challenges/topics"
+                    className="gs-btn gs-btn--primary"
+                >
+                    Back to challenges
+                </Link>
+            </section>
+        );
+    }
+
+    const question = questions[currentIndex];
+
+    const options = [
+        question.optionA,
+        question.optionB,
+        question.optionC,
+        question.optionD,
+    ];
+
+    const answered = answerResult !== null;
+
+    const isLast =
+        currentIndex === questions.length - 1;
+
+    const progress = finished
+        ? questions.length
+        : currentIndex;
+
+    // ============================================
+    // QUIZ UI
+    // ============================================
 
     return (
         <section className="gs-quiz-wrapper">
             <div className="gs-quiz-card">
                 <div className="gs-quiz-progress-row">
-                    {/* aria-live: screen readers read "Question X of Y" when it changes */}
-                    <span aria-live="polite">Question {Math.min(currentIndex + 1, questions.length)} of {questions.length}</span>
-                    <div className="gs-progress-bar gs-quiz-progress-bar" role="progressbar"
-                        aria-label="Practice progress" aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={progress}>
-                        <div className="gs-progress-bar-fill" style={{ width: `${Math.round((progress / questions.length) * 100)}%` }}></div>
+                    <span aria-live="polite">
+                        Question{" "}
+                        {Math.min(
+                            currentIndex + 1,
+                            questions.length
+                        )}{" "}
+                        of {questions.length}
+                    </span>
+
+                    <div
+                        className="gs-progress-bar gs-quiz-progress-bar"
+                        role="progressbar"
+                        aria-label="Practice progress"
+                        aria-valuemin={0}
+                        aria-valuemax={questions.length}
+                        aria-valuenow={progress}
+                    >
+                        <div
+                            className="gs-progress-bar-fill"
+                            style={{
+                                width: `${
+                                    Math.round(
+                                        (progress / questions.length) * 100
+                                    )
+                                }%`,
+                            }}
+                        />
                     </div>
                 </div>
 
                 {!finished ? (
                     <div>
-                        {/* tabIndex -1 so focus can move here when a new question appears */}
-                        <h2 className="gs-quiz-question" ref={questionRef} tabIndex={-1}>{question.question}</h2>
+                        <h2
+                            className="gs-quiz-question"
+                            ref={questionRef}
+                            tabIndex={-1}
+                        >
+                            {question.question}
+                        </h2>
 
                         <div className="gs-quiz-options">
-                            {question.options.map((option, index) => (
+                            {options.map((option, index) => (
                                 <button
                                     key={`${currentIndex}-${index}`}
                                     type="button"
-                                    className={optionClass(index)}
-                                    disabled={answered}
-                                    onClick={() => selectAnswer(index)}
+                                    className={optionClass(
+                                        index,
+                                        options
+                                    )}
+                                    disabled={checking || answered}
+                                    onClick={() =>
+                                        void selectAnswer(index)
+                                    }
                                 >
-                                    {optionMark(index)}{option}
+                                    {optionMark(index, options)}
+                                    {option}
                                 </button>
                             ))}
                         </div>
 
-                        {/* read out after answering, hidden on screen (the colours and marks show it) */}
-                        <p className="gs-sr-only" aria-live="polite">
-                            {answered && (selectedIndex === question.correctIndex
-                                ? "Correct!"
-                                : `Wrong. The correct answer is: ${question.options[question.correctIndex]}`)}
-                        </p>
+                        {checking && (
+                            <p role="status">
+                                Checking answer...
+                            </p>
+                        )}
 
-                        {answered && question.explanation && (
-                            <p className="gs-quiz-explanation">{question.explanation}</p>
+                        {error && (
+                            <p role="alert">
+                                {error}
+                            </p>
                         )}
 
                         {answered && (
-                            <button type="button" className="gs-btn gs-btn--primary gs-quiz-next" ref={nextRef} onClick={goToNext}>
-                                {isLast ? "See results" : "Next question"}
+                            <p
+                                className="gs-sr-only"
+                                aria-live="polite"
+                            >
+                                {answerResult.isCorrect
+                                    ? "Correct!"
+                                    : `Wrong. The correct answer is: ${answerResult.correctAnswer}`}
+                            </p>
+                        )}
+
+                        {answered &&
+                            answerResult.explanation && (
+                            <p className="gs-quiz-explanation">
+                                {answerResult.explanation}
+                            </p>
+                        )}
+
+                        {answered && (
+                            <button
+                                type="button"
+                                className="gs-btn gs-btn--primary gs-quiz-next"
+                                ref={nextRef}
+                                onClick={goToNext}
+                            >
+                                {isLast
+                                    ? "See results"
+                                    : "Next question"}
                             </button>
                         )}
                     </div>
                 ) : (
                     <div className="gs-quiz-complete">
-                        <h2 ref={completeRef} tabIndex={-1}>Practice complete!</h2>
-                        <p>You got {correctCount} out of {questions.length} correct.</p>
+                        <h2
+                            ref={completeRef}
+                            tabIndex={-1}
+                        >
+                            Practice complete!
+                        </h2>
+
+                        <p>
+                            You got {correctCount} out of{" "}
+                            {questions.length} correct.
+                        </p>
+
                         <div className="gs-quiz-complete-actions">
-                            <button type="button" className="gs-btn gs-btn--primary" onClick={onRestart}>
+                            <button
+                                type="button"
+                                className="gs-btn gs-btn--primary"
+                                onClick={onRestart}
+                            >
                                 Practice again
                             </button>
-                            <Link to="/challenges/topics" className="gs-btn gs-btn--outline">Back to challenges</Link>
+
+                            <Link
+                                to="/challenges/topics"
+                                className="gs-btn gs-btn--outline"
+                            >
+                                Back to challenges
+                            </Link>
                         </div>
                     </div>
                 )}
             </div>
 
             <div className="gs-quiz-nav">
-                <Link to="/challenges/topics" className="gs-btn gs-btn--ghost">&larr; Back to challenges</Link>
+                <Link
+                    to="/challenges/topics"
+                    className="gs-btn gs-btn--ghost"
+                >
+                    &larr; Back to challenges
+                </Link>
             </div>
         </section>
     );

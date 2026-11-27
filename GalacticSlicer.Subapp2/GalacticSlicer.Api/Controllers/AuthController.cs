@@ -2,13 +2,12 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using GalacticSlicer.Api.DTOs;
+using GalacticSlicer.Api.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using GalacticSlicer.Api.Services;
 
 namespace GalacticSlicer.Api.Controllers;
-
 
 [ApiController]
 [Route("api/auth")]
@@ -28,9 +27,13 @@ public class AuthController : ControllerBase
         _progressService = progressService;
     }
 
+    // ============================================
+    // REGISTER
+    // ============================================
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterDto dto)
+    public async Task<IActionResult> Register(
+        [FromBody] RegisterDto dto)
     {
         var user = new IdentityUser
         {
@@ -50,7 +53,7 @@ public class AuthController : ControllerBase
             }));
         }
 
-        // Automatically create progress for a new player
+        // Automatically create progress for a new player.
         await _progressService.GetOrCreateProgressAsync(user.Id);
 
         return StatusCode(201, new
@@ -59,12 +62,16 @@ public class AuthController : ControllerBase
         });
     }
 
-
+    // ============================================
+    // LOGIN
+    // ============================================
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginDto dto)
+    public async Task<IActionResult> Login(
+        [FromBody] LoginDto dto)
     {
-        var user = await _userManager.FindByEmailAsync(dto.Email);
+        var user = await _userManager.FindByEmailAsync(
+            dto.Email);
 
         if (user == null)
         {
@@ -74,8 +81,8 @@ public class AuthController : ControllerBase
             });
         }
 
-        var validPassword = await _userManager.CheckPasswordAsync(
-            user, dto.Password);
+        var validPassword = await _userManager
+            .CheckPasswordAsync(user, dto.Password);
 
         if (!validPassword)
         {
@@ -85,7 +92,8 @@ public class AuthController : ControllerBase
             });
         }
 
-        var token = GenerateToken(user);
+        // Generate a JWT containing the user's Identity roles.
+        var token = await GenerateTokenAsync(user);
 
         return Ok(new
         {
@@ -95,8 +103,12 @@ public class AuthController : ControllerBase
         });
     }
 
+    // ============================================
+    // JWT TOKEN GENERATION
+    // ============================================
 
-    private string GenerateToken(IdentityUser user)
+    private async Task<string> GenerateTokenAsync(
+        IdentityUser user)
     {
         var key = Convert.FromBase64String(
             _configuration["Jwt:Key"]!);
@@ -105,12 +117,28 @@ public class AuthController : ControllerBase
             new SymmetricSecurityKey(key),
             SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        // Standard JWT claims.
+        var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-            new Claim(JwtRegisteredClaimNames.Jti,
+            new Claim(
+                JwtRegisteredClaimNames.Sub,
+                user.Id),
+
+            new Claim(
+                JwtRegisteredClaimNames.Jti,
                 Guid.NewGuid().ToString())
         };
+
+        // Load the user's roles from ASP.NET Core Identity.
+        var roles = await _userManager.GetRolesAsync(user);
+
+        // Add each role to the JWT.
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(
+                ClaimTypes.Role,
+                role));
+        }
 
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"],

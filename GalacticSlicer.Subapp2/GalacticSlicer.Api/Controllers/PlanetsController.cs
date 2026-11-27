@@ -1,6 +1,7 @@
 
 using GalacticSlicer.Api.DTOs;
 using GalacticSlicer.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Data.Sqlite;
@@ -19,6 +20,7 @@ public class PlanetsController : ControllerBase
     }
 
     // GET: /api/planets
+    // Public - everyone can view planets
     [HttpGet]
     public async Task<ActionResult<IEnumerable<PlanetDto>>> GetPlanets()
     {
@@ -28,6 +30,7 @@ public class PlanetsController : ControllerBase
     }
 
     // GET: /api/planets/1
+    // Public - everyone can view a specific planet
     [HttpGet("{id:int}")]
     public async Task<ActionResult<PlanetDto>> GetPlanet(int id)
     {
@@ -42,7 +45,9 @@ public class PlanetsController : ControllerBase
     }
 
     // POST: /api/planets
+    // Admin only - create a planet
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<PlanetDto>> CreatePlanet(
         [FromBody] PlanetUpsertDto dto)
     {
@@ -55,7 +60,9 @@ public class PlanetsController : ControllerBase
     }
 
     // PUT: /api/planets/1
+    // Admin only - update a planet
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdatePlanet(
         int id,
         [FromBody] PlanetUpsertDto dto)
@@ -71,7 +78,9 @@ public class PlanetsController : ControllerBase
     }
 
     // DELETE: /api/planets/1
+    // Admin only - delete a planet
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeletePlanet(int id)
     {
         try
