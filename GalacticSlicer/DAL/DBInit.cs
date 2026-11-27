@@ -54,7 +54,7 @@ public static class DBInit
         }
     }
 
-    // Creates the Admin role and one admin user (login for the examiner, also written in the documentation).
+    // Creates the Admin role, one admin user and one standard user (logins for the examiner, also written in the documentation).
     // UserManager and RoleManager are async, so this is a separate async method.
     public static async Task SeedAdminAsync(IApplicationBuilder app)
     {
@@ -87,6 +87,20 @@ public static class DBInit
         if (!await userManager.IsInRoleAsync(admin, adminRole))
         {
             await userManager.AddToRoleAsync(admin, adminRole);
+        }
+
+        // A standard user without the Admin role (login for the examiner, also in the README)
+        const string userName = "user";
+        const string userPassword = "User123!";
+
+        if (await userManager.FindByNameAsync(userName) == null)
+        {
+            var result = await userManager.CreateAsync(new IdentityUser { UserName = userName }, userPassword);
+            if (!result.Succeeded)
+            {
+                Serilog.Log.Error("[DBInit] Could not create standard user: {Errors}",
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
         }
     }
 

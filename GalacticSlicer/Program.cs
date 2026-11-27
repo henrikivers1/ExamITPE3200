@@ -4,6 +4,7 @@ using Serilog;
 using GalacticSlicer.DAL;
 using Microsoft.AspNetCore.Identity;
 using GalacticSlicer.Services;
+using GalacticSlicer.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,7 +48,8 @@ builder.Services.AddScoped<ICharacterRepository, CharacterRepository>();
 builder.Services.AddScoped<IPlanetRepository, PlanetRepository>();
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+// LogExceptionFilter logs any unhandled error in a controller and shows the friendly error page
+builder.Services.AddControllersWithViews(options => options.Filters.Add<LogExceptionFilter>());
 builder.Services.AddScoped<IRankService, RankService>();
 builder.Services.AddScoped<IPlayerProgressService, PlayerProgressService>();
 builder.Services.AddScoped<IChallengeCompletionService, ChallengeCompletionService>();
@@ -60,7 +62,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     DBInit.Seed(app);
-    await DBInit.SeedAdminAsync(app);   // Admin role + admin user (admin / Admin123!)
+    await DBInit.SeedAdminAsync(app);   // Admin role + admin user (admin / Admin123!) + standard user (user / User123!)
 }
 
 // Configure the HTTP request pipeline.

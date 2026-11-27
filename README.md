@@ -38,7 +38,8 @@ On startup in Development (the default for `dotnet run`), the app creates the SQ
 ### Logging in
 
 - **Admin:** username `admin`, password `Admin123!` (seeded on startup). The admin can create, edit and delete planets and characters.
-- **Players:** create an account with **Sign up**. New players start with 0 Credits and the Rookie Slicer badge available for free in the Shop.
+- **Standard user:** username `user`, password `User123!` (seeded on startup, no admin rights).
+- **New players:** create an account with **Sign up**. New players start with 0 Credits and the Rookie Slicer badge available for free in the Shop.
 
 ### Running the tests
 
@@ -67,7 +68,7 @@ dotnet test GalacticSlicer.Tests/GalacticSlicer.Tests.csproj
 - `ViewComponents/`: `NavUserViewComponent` (the player's name, Credits and badge in the navbar)
 - `Services/`: the game rules (mission rewards, purchases, planet unlocking, ranks, questions), each with an interface
 - `DAL/`: the repositories (Challenge, Character, Planet) and `DBInit` (seeding); `DAL/SeedData/` has the mission questions
-- `Helpers/`: `CharacterTier` (badge tier from the price)
+- `Helpers/`: `CharacterTier` (badge tier from the price) and `LogExceptionFilter` (logs unexpected errors and shows the friendly error page)
 - `Migrations/`: the Entity Framework Core migrations
 - `wwwroot/`: CSS, JavaScript and libraries
 
@@ -88,7 +89,7 @@ SQLite with Entity Framework Core. Main tables:
 - **Server-side validation:** Data Annotations (`Required`, `StringLength`, `Range`, ...) on the models and ViewModels, checked with `ModelState.IsValid`, plus game rules in the controllers and services (for example a challenge's correct answer must be one of its options).
 - **Client-side validation:** jQuery Validation on all forms.
 - **Security:** antiforgery tokens on every form that changes data, `[Authorize]` on player actions and `[Authorize(Roles = "Admin")]` on admin pages, owner checks on players' own challenges, and missions are graded on the server.
-- **Error handling:** create, edit, delete and purchase actions use `try/catch` and show a friendly message instead of crashing. Unknown pages and pages without access show a friendly 404 or 403 page.
+- **Error handling:** create, edit, delete, purchase, log in and sign up use `try/catch` and show a friendly message instead of crashing. Any other unexpected error in a controller is logged by `LogExceptionFilter` (registered in `Program.cs`) and the player sees a friendly 500 page. Unknown pages and pages without access show a friendly 404 or 403 page.
 - **Logging:** Serilog writes to `logs/log-<date>.txt` (configured in `Program.cs`). Controllers, services and repositories log errors and important game events with `ILogger`.
 
 ## Subapp 2 (API + React)
