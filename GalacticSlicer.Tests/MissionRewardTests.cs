@@ -75,7 +75,6 @@ public class MissionRewardTests
                 OptionB = "B",
                 OptionC = "C",
                 OptionD = "D",
-                CreditReward = 100,
                 PlanetId = planet.PlanetId,
                 SourceId = $"test-mission-{i}"
             });

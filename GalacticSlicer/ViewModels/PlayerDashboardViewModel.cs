@@ -36,9 +36,10 @@ public class PlayerDashboardViewModel
     // Last unlocked planet, for "Replay" when every unlocked mission is completed
     public PlanetViewModel? LastUnlockedPlanet { get; set; }
 
-    // Next locked planet and the XP it needs, e.g. "Kamino unlocks at 6000 XP"
+    // Next locked planet and the planet before it, whose mission unlocks it,
+    // e.g. "Pass the Coruscant mission to unlock Kamino"
     public PlanetViewModel? NextLockedPlanet { get; set; }
-    public int NextLockedPlanetXp { get; set; }
+    public PlanetViewModel? UnlockedByPlanet { get; set; }
 
     // Percentages for progress bars
     public int PlanetPercent =>

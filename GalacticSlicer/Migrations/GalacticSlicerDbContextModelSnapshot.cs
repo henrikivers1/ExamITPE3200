@@ -31,9 +31,6 @@ namespace GalacticSlicer.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("CreditReward")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Explanation")
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");

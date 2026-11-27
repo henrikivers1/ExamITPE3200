@@ -135,7 +135,7 @@ public static class DBInit
 
             if (!existing.TryGetValue(seed.Id, out var challenge))
             {
-                challenge = new Challenge { SourceId = seed.Id, CreditReward = 100 };
+                challenge = new Challenge { SourceId = seed.Id };
                 context.Challenges.Add(challenge);
             }
 

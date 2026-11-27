@@ -76,6 +76,9 @@ public class ProgressController : Controller
         var completedPlanetIds = await _completionService.GetCompletedPlanetIdsAsync(userId);
         var statuses = _planetProgressService.GetPlanetStatuses(planets, progress, completedPlanetIds);
         var nextLocked = statuses.FirstOrDefault(p => !p.IsUnlocked);
+        // statuses are in chapter order, so the planet just before the first locked one is the mission to pass
+        var nextLockedIndex = nextLocked == null ? -1 : statuses.IndexOf(nextLocked);
+        var unlockedBy = nextLockedIndex > 0 ? statuses[nextLockedIndex - 1] : null;
 
         // The equipped character, for the badge next to the username
         var activeCharacter = progress.ActiveCharacterId == null
@@ -116,8 +119,7 @@ _characterRepository.GetCharacterById(progress.ActiveCharacterId.Value);
             NextPlanet = statuses.FirstOrDefault(p => p.IsUnlocked && !p.IsCompleted),
             LastUnlockedPlanet = statuses.LastOrDefault(p => p.IsUnlocked),
             NextLockedPlanet = nextLocked,
-            NextLockedPlanetXp = nextLocked == null ? 0 : _planetProgressService.GetRequiredXp(
-                planets.First(p => p.PlanetId == nextLocked.PlanetId).Order)
+            UnlockedByPlanet = unlockedBy
         };
 
         return View(model);

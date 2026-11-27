@@ -21,10 +21,6 @@ public class Challenge
     [Display(Name = "Correct answer")]
     public string CorrectAnswer { get; set; } = string.Empty;
 
-    // Credits for completing it in a mission (questions.json only; user-made challenges give 0)
-    [Range(0, 10000)]
-    public int CreditReward { get; set; }
-
     // Foreign key: which planet's mission this question belongs to.
     // Null for challenges made by users, since they are never used in missions.
     [Display(Name = "Planet")]

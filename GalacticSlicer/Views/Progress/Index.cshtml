@@ -46,9 +46,10 @@
             }
             <a class="gs-btn gs-btn--outline" href="@Url.Action("Topics", "Challenge")">Practice</a>
         </div>
-        @if (Model.NextLockedPlanet != null)
+        @* each passed mission unlocks the next planet, so name the mission to pass *@
+        @if (Model.NextLockedPlanet != null && Model.UnlockedByPlanet != null)
         {
-            <p class="pilot-hint">@Model.NextLockedPlanet.Name unlocks at @Model.NextLockedPlanetXp XP</p>
+            <p class="pilot-hint">Pass the @Model.UnlockedByPlanet.Name mission to unlock @Model.NextLockedPlanet.Name</p>
         }
 
         @* mini starchart: every planet with its status; unlocked ones open their mission *@
