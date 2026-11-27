@@ -46,9 +46,10 @@
             }
             <a class="gs-btn gs-btn--outline" href="@Url.Action("Topics", "Challenge")">Practice</a>
         </div>
-        @if (Model.NextLockedPlanet != null)
+        @* each passed mission unlocks the next planet, so name the mission to pass *@
+        @if (Model.NextLockedPlanet != null && Model.UnlockedByPlanet != null)
         {
-            <p class="pilot-hint">@Model.NextLockedPlanet.Name unlocks at @Model.NextLockedPlanetXp XP</p>
+            <p class="pilot-hint">Pass the @Model.UnlockedByPlanet.Name mission to unlock @Model.NextLockedPlanet.Name</p>
         }
 
         @* mini starchart: every planet with its status; unlocked ones open their mission *@
@@ -128,4 +129,34 @@
             <div class="gs-progress-bar-fill" style="width: @(Model.XpPercent)%;"></div>
         </div>
     </div>
+</section>
+
+@* Mission history: the latest attempts, passed or failed (MissionAttempt) *@
+<section class="history" aria-labelledby="historyTitle">
+    <h2 id="historyTitle" class="history-title">Mission history</h2>
+    @if (!Model.RecentAttempts.Any())
+    {
+        <p class="history-empty">
+            No missions played yet. <a href="@Url.Action("Index", "Planet")">Pick a planet in the Galaxy</a> to start.
+        </p>
+    }
+    else
+    {
+        <ol class="history-list">
+            @foreach (var attempt in Model.RecentAttempts)
+            {
+                <li class="history-item">
+                    <span class="history-planet">@attempt.PlanetName</span>
+                    <span class="history-score">@attempt.CorrectCount / @attempt.TotalQuestions correct</span>
+                    @* the word next to the colour, so passed/failed doesn't depend on seeing green and red *@
+                    <span class="history-result @(attempt.Passed ? "history-result--passed" : "history-result--failed")">
+                        @(attempt.Passed ? "✓ Passed" : "✗ Failed")
+                    </span>
+                    <time class="history-date" datetime="@attempt.AttemptedAt.ToString("o")">
+                        @attempt.AttemptedAt.ToLocalTime().ToString("d MMM HH:mm", System.Globalization.CultureInfo.InvariantCulture)
+                    </time>
+                </li>
+            }
+        </ol>
+    }
 </section>

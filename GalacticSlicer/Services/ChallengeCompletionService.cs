@@ -223,4 +223,66 @@ public class ChallengeCompletionService : IChallengeCompletionService
 
         return planetIds.ToHashSet();
     }
+
+    // Saves one graded mission (passed or failed) in the player's mission history.
+    // Returns false instead of throwing, so a failed save never breaks the mission result.
+    public async Task<bool> SaveAttemptAsync(
+        string userId,
+        int planetId,
+        int correctCount,
+        int totalQuestions,
+        bool passed)
+    {
+        if (string.IsNullOrWhiteSpace(userId) ||
+            totalQuestions <= 0 ||
+            correctCount < 0 ||
+            correctCount > totalQuestions)
+        {
+            _logger.LogWarning(
+                "Mission attempt rejected for Planet {PlanetId}: {Correct}/{Total}",
+                planetId,
+                correctCount,
+                totalQuestions);
+
+            return false;
+        }
+
+        try
+        {
+            _context.MissionAttempts.Add(new MissionAttempt
+            {
+                UserId = userId,
+                PlanetId = planetId,
+                CorrectCount = correctCount,
+                TotalQuestions = totalQuestions,
+                Passed = passed,
+                AttemptedAt = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to save mission attempt for Planet {PlanetId}",
+                planetId);
+
+            _context.ChangeTracker.Clear();
+            return false;
+        }
+    }
+
+    // The player's latest mission attempts, newest first, with the planet for its name
+    public async Task<List<MissionAttempt>> GetRecentAttemptsAsync(string userId, int count)
+    {
+        return await _context.MissionAttempts
+            .Include(a => a.Planet)
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.AttemptedAt)
+            .ThenByDescending(a => a.Id)
+            .Take(count)
+            .ToListAsync();
+    }
 }

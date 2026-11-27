@@ -32,6 +32,10 @@ builder.Services.AddDbContext<GalacticSlicerDbContext>(options =>
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false; // no email confirmation needed
+
+    // Lock an account for 5 minutes after 5 wrong passwords in a row, so passwords can't be guessed endlessly
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
 })
 .AddRoles<IdentityRole>()   // enables roles, so we can use [Authorize(Roles = "Admin")]
 .AddEntityFrameworkStores<GalacticSlicerDbContext>();
@@ -61,7 +65,7 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    DBInit.Seed(app);
+    await DBInit.SeedAsync(app);
     await DBInit.SeedAdminAsync(app);   // Admin role + admin user (admin / Admin123!) + standard user (user / User123!)
 }
 

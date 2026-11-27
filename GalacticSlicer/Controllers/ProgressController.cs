@@ -76,6 +76,9 @@ public class ProgressController : Controller
         var completedPlanetIds = await _completionService.GetCompletedPlanetIdsAsync(userId);
         var statuses = _planetProgressService.GetPlanetStatuses(planets, progress, completedPlanetIds);
         var nextLocked = statuses.FirstOrDefault(p => !p.IsUnlocked);
+        // statuses are in chapter order, so the planet just before the first locked one is the mission to pass
+        var nextLockedIndex = nextLocked == null ? -1 : statuses.IndexOf(nextLocked);
+        var unlockedBy = nextLockedIndex > 0 ? statuses[nextLockedIndex - 1] : null;
 
         // The equipped character, for the badge next to the username
         var activeCharacter = progress.ActiveCharacterId == null
@@ -85,9 +88,21 @@ _characterRepository.GetCharacterById(progress.ActiveCharacterId.Value);
 
         var xpRange = _rankService.GetXpRange(progress.ExperiencePoints);
 
+        // The 5 latest missions, passed or failed, for the mission history
+        var recentAttempts = await _completionService.GetRecentAttemptsAsync(userId, 5);
+
         var model = new PlayerDashboardViewModel
         {
             Username = User.Identity?.Name ?? "Unknown slicer",
+            RecentAttempts = recentAttempts.Select(a => new MissionAttemptViewModel
+            {
+                PlanetName = a.Planet.Name,
+                CorrectCount = a.CorrectCount,
+                TotalQuestions = a.TotalQuestions,
+                Passed = a.Passed,
+                // Saved as UTC; SQLite returns it without a time zone, so mark it before the view converts it to local time
+                AttemptedAt = DateTime.SpecifyKind(a.AttemptedAt, DateTimeKind.Utc)
+            }).ToList(),
             ActiveCharacter = activeCharacter,
             Credits = progress.Credits,
             ChallengesCompleted = completedCount,
@@ -104,8 +119,7 @@ _characterRepository.GetCharacterById(progress.ActiveCharacterId.Value);
             NextPlanet = statuses.FirstOrDefault(p => p.IsUnlocked && !p.IsCompleted),
             LastUnlockedPlanet = statuses.LastOrDefault(p => p.IsUnlocked),
             NextLockedPlanet = nextLocked,
-            NextLockedPlanetXp = nextLocked == null ? 0 : _planetProgressService.GetRequiredXp(
-                planets.First(p => p.PlanetId == nextLocked.PlanetId).Order)
+            UnlockedByPlanet = unlockedBy
         };
 
         return View(model);

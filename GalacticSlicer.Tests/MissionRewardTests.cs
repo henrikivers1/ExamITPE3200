@@ -75,7 +75,6 @@ public class MissionRewardTests
                 OptionB = "B",
                 OptionC = "C",
                 OptionD = "D",
-                CreditReward = 100,
                 PlanetId = planet.PlanetId,
                 SourceId = $"test-mission-{i}"
             });
@@ -280,6 +279,57 @@ public class MissionRewardTests
             Assert.Equal(ChallengeCompletionService.XpPerMission, progress.ExperiencePoints);
             Assert.Equal(10, completedQuestions);
             Assert.Equal(1, completedMissions);
+        }
+    }
+    [Fact]
+    public async Task SaveAttempt_FailedMission_IsStoredInHistory()
+    {
+        // Arrange
+        var (provider, connection, planetId) =
+            await CreateTestDatabaseAsync();
+
+        using (provider)
+        using (connection)
+        using (var scope = provider.CreateScope())
+        {
+            var service = scope.ServiceProvider
+                .GetRequiredService<ChallengeCompletionService>();
+
+            // Act - a failed mission (5/10) still goes into the history
+            bool saved = await service.SaveAttemptAsync("test-user", planetId, 5, 10, passed: false);
+            var history = await service.GetRecentAttemptsAsync("test-user", 5);
+
+            // Assert
+            Assert.True(saved);
+            var attempt = Assert.Single(history);
+            Assert.Equal(5, attempt.CorrectCount);
+            Assert.Equal(10, attempt.TotalQuestions);
+            Assert.False(attempt.Passed);
+            Assert.Equal("Tatooine", attempt.Planet.Name);
+        }
+    }
+
+    [Fact]
+    public async Task SaveAttempt_ImpossibleScore_IsRejected()
+    {
+        // Arrange
+        var (provider, connection, planetId) =
+            await CreateTestDatabaseAsync();
+
+        using (provider)
+        using (connection)
+        using (var scope = provider.CreateScope())
+        {
+            var service = scope.ServiceProvider
+                .GetRequiredService<ChallengeCompletionService>();
+
+            // Act - more correct answers than questions can never be a real result
+            bool saved = await service.SaveAttemptAsync("test-user", planetId, 11, 10, passed: true);
+            var history = await service.GetRecentAttemptsAsync("test-user", 5);
+
+            // Assert
+            Assert.False(saved);
+            Assert.Empty(history);
         }
     }
 }

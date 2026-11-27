@@ -7,6 +7,9 @@ public class PlayerDashboardViewModel
 {
     public string Username { get; set; } = string.Empty;
 
+    // The player's latest mission attempts, newest first (passed and failed)
+    public List<MissionAttemptViewModel> RecentAttempts { get; set; } = new();
+
     // Equipped character, shown as a badge next to the username (null = nothing equipped)
     public Character? ActiveCharacter { get; set; }
     public string Rank { get; set; } = string.Empty;
@@ -33,9 +36,10 @@ public class PlayerDashboardViewModel
     // Last unlocked planet, for "Replay" when every unlocked mission is completed
     public PlanetViewModel? LastUnlockedPlanet { get; set; }
 
-    // Next locked planet and the XP it needs, e.g. "Kamino unlocks at 6000 XP"
+    // Next locked planet and the planet before it, whose mission unlocks it,
+    // e.g. "Pass the Coruscant mission to unlock Kamino"
     public PlanetViewModel? NextLockedPlanet { get; set; }
-    public int NextLockedPlanetXp { get; set; }
+    public PlanetViewModel? UnlockedByPlanet { get; set; }
 
     // Percentages for progress bars
     public int PlanetPercent =>

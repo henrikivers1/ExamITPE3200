@@ -8,14 +8,14 @@ namespace GalacticSlicer.DAL;
 
 public static class DBInit
 {
-    public static void Seed(IApplicationBuilder app)
+    public static async Task SeedAsync(IApplicationBuilder app)
     {
         using var serviceScope = app.ApplicationServices.CreateScope();
         var context = serviceScope.ServiceProvider.GetRequiredService<GalacticSlicerDbContext>();
         var env = serviceScope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
 
         // The .db file is not in Git, so create it and apply any new migrations on startup
-        context.Database.Migrate();
+        await context.Database.MigrateAsync();
 
         // Each planet's mission asks about one subject from questions.json.
         // Endor has no subject, so its mission mixes questions from every subject (the final test).
@@ -29,17 +29,17 @@ public static class DBInit
             new Planet { Name = "Endor",     Order = 6, CssClass = "endor",     Subject = null,                              Description = "The final test for a legendary slicer: questions from every subject." },
         };
 
-                // Only add the planets if the table is empty, so admin edits are never overwritten
-        if (!context.Planets.Any())
+        // Only add the planets if the table is empty, so admin edits are never overwritten
+        if (!await context.Planets.AnyAsync())
         {
             context.Planets.AddRange(planets);
         }
-        context.SaveChanges();
+        await context.SaveChangesAsync();
 
-        SeedQuestions(context, Path.Combine(env.ContentRootPath, "DAL", "SeedData", "Questions.json"));
+        await SeedQuestionsAsync(context, Path.Combine(env.ContentRootPath, "DAL", "SeedData", "Questions.json"));
 
         // Only add characters if the table is empty, so we never create duplicates
-        if (!context.Characters.Any())
+        if (!await context.Characters.AnyAsync())
         {
             var characters = new List<Character>
             {
@@ -50,7 +50,7 @@ public static class DBInit
                 new Character { Name = "Shadow Operative", Price = 2000, Description = "Leaves no logs behind. Legendary." },
             };
             context.Characters.AddRange(characters);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 
@@ -107,7 +107,7 @@ public static class DBInit
     // Imports questions.json into the Challenges table.
     // New questions are added and changed ones updated (matched by SourceId), so editing the
     // JSON file is enough: everyone gets the changes the next time they start the app.
-    private static void SeedQuestions(GalacticSlicerDbContext context, string path)
+    private static async Task SeedQuestionsAsync(GalacticSlicerDbContext context, string path)
     {
         if (!File.Exists(path))
         {
@@ -117,13 +117,13 @@ public static class DBInit
         }
 
         var seeds = JsonSerializer.Deserialize<List<QuestionSeed>>(
-            File.ReadAllText(path),
+            await File.ReadAllTextAsync(path),
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<QuestionSeed>();
 
-        var planets = context.Planets.ToList();
+        var planets = await context.Planets.ToListAsync();
         // Subjects without their own planet are placed on the mixed planet (Endor)
         var mixedPlanet = planets.FirstOrDefault(p => p.Subject == null) ?? planets.OrderBy(p => p.Order).Last();
-        var existing = context.Challenges.Where(c => c.SourceId != null).ToDictionary(c => c.SourceId!);
+        var existing = await context.Challenges.Where(c => c.SourceId != null).ToDictionaryAsync(c => c.SourceId!);
 
         foreach (var seed in seeds)
         {
@@ -135,7 +135,7 @@ public static class DBInit
 
             if (!existing.TryGetValue(seed.Id, out var challenge))
             {
-                challenge = new Challenge { SourceId = seed.Id, CreditReward = 100 };
+                challenge = new Challenge { SourceId = seed.Id };
                 context.Challenges.Add(challenge);
             }
 
@@ -150,7 +150,7 @@ public static class DBInit
             challenge.Explanation = seed.Explanation;
             challenge.PlanetId = (planets.FirstOrDefault(p => p.Subject == seed.Subject) ?? mixedPlanet).PlanetId;
         }
-        context.SaveChanges();
+        await context.SaveChangesAsync();
     }
 
     // One question as written in questions.json

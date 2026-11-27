@@ -86,7 +86,7 @@
   margin-top: 1.25rem;
 }
 
-/* "Coruscant unlocks at 4000 XP" under the buttons */
+/* "Pass the Naboo mission to unlock Coruscant" under the buttons */
 .pilot-hint {
   margin: 0.6rem 0 0;
   font-size: 0.85rem;
@@ -166,6 +166,72 @@ a.pilot-chart-link:hover {
 
 .pilot-chart-item--locked .pilot-chart-planet {
   filter: grayscale(0.5) brightness(0.6);
+}
+
+/* mission history under the progress bars, same width as the bars */
+.history {
+  max-width: 640px;
+  margin: 0 auto 4rem;
+}
+
+.history-title {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.history-empty {
+  color: var(--gs-text-muted);
+}
+
+.history-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* one attempt: planet, score, result and date in a row (wraps on phones) */
+.history-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1rem;
+  padding: 0.7rem 1rem;
+  background: var(--gs-bg-card);
+  border: 1px solid var(--gs-border);
+  border-radius: var(--gs-radius-sm);
+  font-size: 0.9rem;
+}
+
+.history-planet {
+  font-weight: 700;
+  color: var(--gs-text);
+  min-width: 6rem;
+}
+
+.history-score {
+  color: var(--gs-text-muted);
+}
+
+.history-result {
+  font-weight: 600;
+}
+
+.history-result--passed {
+  color: #3ecf8e;
+}
+
+.history-result--failed {
+  color: #f59a9a;
+}
+
+/* date pushed to the right */
+.history-date {
+  margin-left: auto;
+  color: var(--gs-text-muted);
+  font-size: 0.8rem;
 }
 
 /* phones: three planets per row, buttons full width */
