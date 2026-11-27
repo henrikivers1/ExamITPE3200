@@ -83,10 +83,12 @@
                tabindex="-1" so the script can move focus here when a new question appears *@
             <h2 class="gs-quiz-question" id="quizQuestionText" tabindex="-1"></h2>
             <div class="gs-quiz-options" id="quizOptions"></div>
-            @* appears once an answer is picked *@
-            <button type="button" class="gs-btn gs-btn--primary gs-quiz-next" id="quizNextBtn" hidden>
-                Next question
-            </button>
+            @* move between questions; answers can be changed until the mission is finished.
+               Next/Finish is only enabled once the current question has an answer *@
+            <div class="mission-nav">
+                <button type="button" class="gs-btn gs-btn--outline" id="quizPrevBtn">&larr; Previous</button>
+                <button type="button" class="gs-btn gs-btn--primary" id="quizNextBtn" disabled>Next question</button>
+            </div>
         </div>
 
         @* 3a. passed *@
@@ -160,11 +162,10 @@
         // values from the server (C# variables at the top of this file)
         const passPercent = @passPercent;
 
-        // quiz state: which question we're on, how many are right, and whether this one is answered
+        // quiz state: which question we're on, and the chosen option for each question
+        // (one slot per question, so going back and changing an answer overwrites it)
         let currentIndex = 0;
-        let correctCount = 0;
-        let answered = false;
-        let selectedAnswers = [];
+        let chosenAnswers = [];
 
         // page elements the script shows, hides and fills in
         const intro = document.getElementById("missionIntro");
@@ -174,6 +175,7 @@
         const questionText = document.getElementById("quizQuestionText");
         const optionsContainer = document.getElementById("quizOptions");
         const nextBtn = document.getElementById("quizNextBtn");
+        const prevBtn = document.getElementById("quizPrevBtn");
         const progressLabel = document.getElementById("quizProgressLabel");
         const progressFill = document.getElementById("quizProgressFill");
         const progressBar = document.getElementById("quizProgressBar");
@@ -181,11 +183,10 @@
         // show the real number of questions in the briefing text
         document.getElementById("missionQuestionCount").textContent = quizQuestions.length;
 
-        // resets the score and shows the first question
+        // clears the answers and shows the first question
         function startMission() {
             currentIndex = 0;
-            correctCount = 0;
-            selectedAnswers = [];
+            chosenAnswers = new Array(quizQuestions.length).fill(null);
 
             intro.hidden = true;
             completeArea.hidden = true;
@@ -194,68 +195,67 @@
             renderQuestion();
         }
 
-        // draws the current question, its answer buttons and the progress bar
+        // draws the current question with its answer buttons (the chosen one marked), and the progress bar
         function renderQuestion() {
-            answered = false;
             const q = quizQuestions[currentIndex];
 
             progressLabel.textContent = "Question " + (currentIndex + 1) + " of " + quizQuestions.length;
-            progressFill.style.width = Math.round((currentIndex / quizQuestions.length) * 100) + "%";
-            progressBar.setAttribute("aria-valuenow", currentIndex);
+            updateProgressBar();
 
             questionText.textContent = q.question;
             optionsContainer.innerHTML = "";
-            nextBtn.hidden = true;
 
-            q.options.forEach(function (optionText, index) {
+            q.options.forEach(function (optionText) {
                 const btn = document.createElement("button");
                 btn.type = "button";
                 btn.className = "gs-quiz-option";
                 btn.textContent = optionText;
+                // aria-pressed tells screen readers which option is chosen
+                const isChosen = chosenAnswers[currentIndex] === optionText;
+                btn.setAttribute("aria-pressed", isChosen ? "true" : "false");
+                if (isChosen) {
+                    btn.classList.add("gs-quiz-option--selected");
+                }
                 btn.addEventListener("click", function () {
-                    selectAnswer(index);
+                    selectAnswer(optionText);
                 });
                 optionsContainer.appendChild(btn);
             });
+
+            updateNavButtons();
 
             // keyboard and screen reader users start at the new question
             questionText.focus();
         }
 
-        // locks the answers, marks right (green) and wrong (red), and counts the score
-        function selectAnswer(selectedIndex) {
-            if (answered) {
-                return;
-            }
+        // chooses (or changes) the answer for the current question; nothing is graded until Finish
+        function selectAnswer(optionText) {
+            chosenAnswers[currentIndex] = optionText;
 
-            answered = true;
-
-            const q = quizQuestions[currentIndex];
-
-            selectedAnswers.push({
-                challengeId: q.challengeId,
-                selectedAnswer: q.options[selectedIndex]
+            optionsContainer.querySelectorAll(".gs-quiz-option").forEach(function (btn) {
+                const isChosen = btn.textContent === optionText;
+                btn.classList.toggle("gs-quiz-option--selected", isChosen);
+                btn.setAttribute("aria-pressed", isChosen ? "true" : "false");
             });
 
-            const optionButtons =
-                optionsContainer.querySelectorAll(".gs-quiz-option");
+            updateProgressBar();
+            updateNavButtons();
+        }
 
-            optionButtons.forEach(function (btn, index) {
-                btn.disabled = true;
+        // The bar follows where the player is: the questions before this one, plus this one once it has an answer.
+        // So it moves back when going to a previous question and forward again when moving on.
+        function updateProgressBar() {
+            const position = currentIndex + (chosenAnswers[currentIndex] !== null ? 1 : 0);
+            progressFill.style.width = Math.round((position / quizQuestions.length) * 100) + "%";
+            progressBar.setAttribute("aria-valuenow", position);
+        }
 
-                if (index === selectedIndex) {
-                    btn.classList.add("gs-quiz-option--selected");
-                }
-            });
-
-            nextBtn.hidden = false;
-            nextBtn.textContent =
-                currentIndex === quizQuestions.length - 1
-                    ? "Finish mission"
-                    : "Next question";
-
-            // the clicked option is now disabled, so move focus to the button that continues
-            nextBtn.focus();
+        // Previous is off on the first question; Next/Finish needs an answer to the current question
+        function updateNavButtons() {
+            const isLast = currentIndex === quizQuestions.length - 1;
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = chosenAnswers[currentIndex] === null;
+            nextBtn.textContent = isLast ? "Finish mission" : "Next question →";
         }
 
     async function finishMission() {
@@ -276,7 +276,10 @@
                         },
                         body: JSON.stringify({
                             planetId: @Model.Planet.PlanetId,
-                            answers: selectedAnswers
+                            // the final answer for every question, in the order they were asked
+                            answers: quizQuestions.map(function (q, index) {
+                                return { challengeId: q.challengeId, selectedAnswer: chosenAnswers[index] };
+                            })
                         })
                     }
                 );
@@ -399,12 +402,25 @@
             startBtn.addEventListener("click", startMission);
         }
 
-        // go to the next question, or finish after the last one
+        // go to the next question, or finish after the last one (only when every question has an answer)
         nextBtn.addEventListener("click", function () {
+            if (chosenAnswers[currentIndex] === null) {
+                return;
+            }
+            if (currentIndex === quizQuestions.length - 1) {
+                if (chosenAnswers.every(function (a) { return a !== null; })) {
+                    finishMission();
+                }
+                return;
+            }
             currentIndex++;
-            if (currentIndex >= quizQuestions.length) {
-                finishMission();
-            } else {
+            renderQuestion();
+        });
+
+        // back to the previous question, with its answer still chosen so it can be changed
+        prevBtn.addEventListener("click", function () {
+            if (currentIndex > 0) {
+                currentIndex--;
                 renderQuestion();
             }
         });

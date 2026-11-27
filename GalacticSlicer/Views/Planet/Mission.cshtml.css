@@ -80,3 +80,27 @@
   color: #a993ff;
   font-weight: 700;
 }
+
+/* Previous / Next under the question, side by side */
+.mission-nav {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.mission-nav .gs-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+/* Previous on the first question, and Next before the question has an answer */
+.mission-nav .gs-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* the mission bar glides back and forth with Previous / Next (switched off for reduced motion in site.css) */
+.gs-quiz-progress-bar .gs-progress-bar-fill {
+  transition: width 0.3s ease;
+}
