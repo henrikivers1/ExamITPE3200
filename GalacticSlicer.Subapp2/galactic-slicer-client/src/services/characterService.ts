@@ -1,13 +1,51 @@
-import type { Character } from "../types/Character.ts";
-import { apiRequest } from "./api.ts";
 
-// TODO: the API has no characters endpoint yet, so this request fails (404) and the Shop
-// shows "Could not load the characters.". Check the address and the JSON shape with Jonas
-// when he adds it (GET /api/characters is a guess that follows /api/planets).
+import type { Character } from "../types/Character";
+import { apiRequest } from "./api";
+
+// GET /api/characters
+// Returns all available characters in the shop.
 export async function getCharacters(): Promise<Character[]> {
     return apiRequest<Character[]>("/api/characters");
 }
 
-// TODO: Buy, Equip and Unequip need login and endpoints in the API, e.g.
-// POST /api/characters/{id}/buy, POST /api/characters/{id}/equip, POST /api/characters/unequip.
-// Add them here when they exist, so the Shop page only calls this service.
+// GET /api/characters/owned
+// Returns character IDs owned by the logged-in player.
+export async function getOwnedCharacterIds(): Promise<number[]> {
+    return apiRequest<number[]>("/api/characters/owned");
+}
+
+// POST /api/characters/{id}/buy
+// The API checks Credits, ownership and purchase rules.
+export async function buyCharacter(
+    characterId: number
+): Promise<void> {
+    await apiRequest<unknown>(
+        `/api/characters/${characterId}/buy`,
+        {
+            method: "POST",
+        }
+    );
+}
+
+// POST /api/characters/{id}/equip
+// The API checks that the player owns the character.
+export async function equipCharacter(
+    characterId: number
+): Promise<void> {
+    await apiRequest<unknown>(
+        `/api/characters/${characterId}/equip`,
+        {
+            method: "POST",
+        }
+    );
+}
+
+// POST /api/characters/unequip
+export async function unequipCharacter(): Promise<void> {
+    await apiRequest<unknown>(
+        "/api/characters/unequip",
+        {
+            method: "POST",
+        }
+    );
+}

@@ -83,80 +83,113 @@ public class MissionsController : ControllerBase
     }
 
     // POST /api/missions/1/submit
-    [HttpPost("{planetId:int}/submit")]
-    public async Task<IActionResult> SubmitMission(
-        int planetId,
-        [FromBody] MissionSubmitDto dto)
+   
+[HttpPost("{planetId:int}/submit")]
+public async Task<IActionResult> SubmitMission(
+    int planetId,
+    [FromBody] MissionSubmitDto dto)
+{
+    if (UserId == null) return Unauthorized();
+
+    var planet = await _db.Planets.FindAsync(planetId);
+    if (planet == null) return NotFound();
+
+    if (IsFinalExam(planet))
+        return Conflict(new
+        {
+            message = "Final exam is not configured yet."
+        });
+
+    var progress = await _progressService
+        .GetOrCreateProgressAsync(UserId);
+
+    if (!_planetProgressService.IsPlanetUnlocked(
+        planet, progress))
     {
-        if (UserId == null) return Unauthorized();
-
-        var planet = await _db.Planets.FindAsync(planetId);
-        if (planet == null) return NotFound();
-
-        if (IsFinalExam(planet))
-            return Conflict("Final exam is not configured yet.");
-
-        var progress = await _progressService
-            .GetOrCreateProgressAsync(UserId);
-
-        if (!_planetProgressService.IsPlanetUnlocked(
-            planet, progress))
+        return StatusCode(403, new
         {
-            return StatusCode(403, "Planet is locked.");
-        }
-
-        var questions = await GetMissionQuestions(planet);
-
-        if (questions.Count == 0)
-            return NotFound("No mission questions configured.");
-
-        var expectedIds = questions
-            .Select(c => c.ChallengeId)
-            .ToHashSet();
-
-        var submittedIds = dto.Answers.Keys.ToHashSet();
-
-        // All mission questions must be answered.
-        if (!expectedIds.SetEquals(submittedIds))
-        {
-            return BadRequest(new
-            {
-                message = "You must answer all mission questions."
-            });
-        }
-
-        if (dto.Answers.Values.Any(string.IsNullOrWhiteSpace))
-        {
-            return BadRequest(new
-            {
-                message = "Answers cannot be empty."
-            });
-        }
-
-        var success = await _completionService
-            .CompletePassedMissionAsync(
-                UserId, planetId, dto.Answers);
-
-        if (!success)
-        {
-            return Ok(new
-            {
-                passed = false,
-                message = "Mission not passed or could not be saved."
-            });
-        }
-
-        var updated = await _progressService
-            .GetOrCreateProgressAsync(UserId);
-
-        return Ok(new
-        {
-            passed = true,
-            credits = updated.Credits,
-            experiencePoints = updated.ExperiencePoints,
-            rank = updated.Rank
+            message = "Planet is locked."
         });
     }
+
+    // Prevent replaying completed missions.
+    var alreadyCompleted = await _db.CompletedMissions
+        .AnyAsync(m =>
+            m.UserId == UserId &&
+            m.PlanetId == planetId);
+
+    if (alreadyCompleted)
+    {
+        return Conflict(new
+        {
+            message = "Mission already completed."
+        });
+    }
+
+    var questions = await GetMissionQuestions(planet);
+
+    if (questions.Count == 0)
+        return NotFound(new
+        {
+            message = "No mission questions configured."
+        });
+
+    if (dto?.Answers == null || dto.Answers.Count == 0)
+    {
+        return BadRequest(new
+        {
+            message = "Mission answers are required."
+        });
+    }
+
+    var expectedIds = questions
+        .Select(c => c.ChallengeId)
+        .ToHashSet();
+
+    var submittedIds = dto.Answers.Keys.ToHashSet();
+
+    // All mission questions must be answered.
+    if (!expectedIds.SetEquals(submittedIds))
+    {
+        return BadRequest(new
+        {
+            message = "You must answer all mission questions."
+        });
+    }
+
+    if (dto.Answers.Values.Any(string.IsNullOrWhiteSpace))
+    {
+        return BadRequest(new
+        {
+            message = "Answers cannot be empty."
+        });
+    }
+
+    var success = await _completionService
+        .CompletePassedMissionAsync(
+            UserId, planetId, dto.Answers);
+
+    if (!success)
+    {
+        return Ok(new
+        {
+            passed = false,
+            message = "Mission not passed or could not be saved."
+        });
+    }
+
+    var updated = await _progressService
+        .GetOrCreateProgressAsync(UserId);
+
+    return Ok(new
+    {
+        passed = true,
+        credits = updated.Credits,
+        experiencePoints = updated.ExperiencePoints,
+        rank = updated.Rank
+    });
+}
+
 
     private async Task<List<Challenge>> GetMissionQuestions(
         Planet planet)
