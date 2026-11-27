@@ -305,6 +305,11 @@ public class PlanetController : Controller
             }
         }
 
+        // Every graded attempt goes into the mission history, passed or not.
+        // A failed save is logged by the service and doesn't stop the player from seeing the result.
+        await _completionService.SaveAttemptAsync(
+            userId, planet.PlanetId, correctCount, challenges.Count, passed);
+
         // Review for the result screen: the correct answer and explanation for every question
         var review = challenges.Select(challenge =>
         {

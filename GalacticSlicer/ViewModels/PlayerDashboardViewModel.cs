@@ -7,6 +7,9 @@ public class PlayerDashboardViewModel
 {
     public string Username { get; set; } = string.Empty;
 
+    // The player's latest mission attempts, newest first (passed and failed)
+    public List<MissionAttemptViewModel> RecentAttempts { get; set; } = new();
+
     // Equipped character, shown as a badge next to the username (null = nothing equipped)
     public Character? ActiveCharacter { get; set; }
     public string Rank { get; set; } = string.Empty;

@@ -167,6 +167,40 @@ namespace GalacticSlicer.Migrations
                     b.ToTable("CompletedMissions");
                 });
 
+            modelBuilder.Entity("GalacticSlicer.Models.MissionAttempt", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("AttemptedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CorrectCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Passed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PlanetId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TotalQuestions")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlanetId");
+
+                    b.HasIndex("UserId", "AttemptedAt");
+
+                    b.ToTable("MissionAttempts");
+                });
+
             modelBuilder.Entity("GalacticSlicer.Models.Planet", b =>
                 {
                     b.Property<int>("PlanetId")
@@ -486,6 +520,23 @@ namespace GalacticSlicer.Migrations
                 });
 
             modelBuilder.Entity("GalacticSlicer.Models.CompletedMission", b =>
+                {
+                    b.HasOne("GalacticSlicer.Models.Planet", "Planet")
+                        .WithMany()
+                        .HasForeignKey("PlanetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Planet");
+                });
+
+            modelBuilder.Entity("GalacticSlicer.Models.MissionAttempt", b =>
                 {
                     b.HasOne("GalacticSlicer.Models.Planet", "Planet")
                         .WithMany()

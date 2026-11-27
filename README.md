@@ -56,7 +56,7 @@ dotnet test GalacticSlicer.Tests/GalacticSlicer.Tests.csproj
 - **Practice:** practice any subject with instant feedback and explanations. Players' own challenges are included in practice.
 - **Own challenges:** players can create, read, edit and delete their own practice questions, and search them by text and subject.
 - **Shop:** buy, equip and unequip character badges, with search by text, maximum price, sorting and "owned only".
-- **Progress:** pilot panel with rank, Credits, the next mission, a mini starchart and progress bars.
+- **Progress:** pilot panel with rank, Credits, the next mission, a mini starchart, progress bars and the mission history (the latest attempts, passed or failed).
 - **Admin:** manage planets and characters (create, edit, delete), with delete rules so the game can't be broken.
 
 ### Project structure
@@ -82,13 +82,14 @@ SQLite with Entity Framework Core. Main tables:
 - `PlayerProgresses`: each player's Credits, XP, rank and equipped badge
 - `UserCharacters`: which characters each player owns (the many-to-many relationship between players and characters)
 - `CompletedChallenges` and `CompletedMissions`: what each player has answered and passed
+- `MissionAttempts`: every graded mission (score, passed or failed, time) for the mission history
 - the ASP.NET Core Identity tables (users and roles)
 
 ### Validation, error handling and logging
 
 - **Server-side validation:** Data Annotations (`Required`, `StringLength`, `Range`, ...) on the models and ViewModels, checked with `ModelState.IsValid`, plus game rules in the controllers and services (for example a challenge's correct answer must be one of its options).
 - **Client-side validation:** jQuery Validation on all forms.
-- **Security:** antiforgery tokens on every form that changes data, `[Authorize]` on player actions and `[Authorize(Roles = "Admin")]` on admin pages, owner checks on players' own challenges, and missions are graded on the server.
+- **Security:** antiforgery tokens on every form that changes data, accounts locked for 5 minutes after 5 wrong passwords, `[Authorize]` on player actions and `[Authorize(Roles = "Admin")]` on admin pages, owner checks on players' own challenges, and missions are graded on the server.
 - **Error handling:** create, edit, delete, purchase, log in and sign up use `try/catch` and show a friendly message instead of crashing. Any other unexpected error in a controller is logged by `LogExceptionFilter` (registered in `Program.cs`) and the player sees a friendly 500 page. Unknown pages and pages without access show a friendly 404 or 403 page.
 - **Logging:** Serilog writes to `logs/log-<date>.txt` (configured in `Program.cs`). Controllers, services and repositories log errors and important game events with `ILogger`.
 

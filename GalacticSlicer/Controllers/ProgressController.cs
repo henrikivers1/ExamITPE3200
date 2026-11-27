@@ -85,9 +85,21 @@ _characterRepository.GetCharacterById(progress.ActiveCharacterId.Value);
 
         var xpRange = _rankService.GetXpRange(progress.ExperiencePoints);
 
+        // The 5 latest missions, passed or failed, for the mission history
+        var recentAttempts = await _completionService.GetRecentAttemptsAsync(userId, 5);
+
         var model = new PlayerDashboardViewModel
         {
             Username = User.Identity?.Name ?? "Unknown slicer",
+            RecentAttempts = recentAttempts.Select(a => new MissionAttemptViewModel
+            {
+                PlanetName = a.Planet.Name,
+                CorrectCount = a.CorrectCount,
+                TotalQuestions = a.TotalQuestions,
+                Passed = a.Passed,
+                // Saved as UTC; SQLite returns it without a time zone, so mark it before the view converts it to local time
+                AttemptedAt = DateTime.SpecifyKind(a.AttemptedAt, DateTimeKind.Utc)
+            }).ToList(),
             ActiveCharacter = activeCharacter,
             Credits = progress.Credits,
             ChallengesCompleted = completedCount,

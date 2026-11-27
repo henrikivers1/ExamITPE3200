@@ -80,7 +80,7 @@ public class AccountController : Controller
         try
         {
             var result = await _signInManager.PasswordSignInAsync(
-                model.Username, model.Password, model.RememberMe, lockoutOnFailure: false);
+                model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);
 
             if (result.Succeeded)
             {
@@ -91,6 +91,14 @@ public class AccountController : Controller
                     return Redirect(model.ReturnUrl);
 
                 return RedirectToAction("Index", "Home");
+            }
+
+            // Too many wrong passwords in a row (rules in Program.cs)
+            if (result.IsLockedOut)
+            {
+                _logger.LogWarning("[AccountController] Locked out after failed logins: {Username}", model.Username);
+                ModelState.AddModelError(string.Empty, "Too many failed attempts. Please wait 5 minutes and try again.");
+                return View(model);
             }
 
             _logger.LogWarning("[AccountController] Failed login attempt for {Username}", model.Username);
