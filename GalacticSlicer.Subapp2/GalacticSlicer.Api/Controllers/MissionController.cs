@@ -44,28 +44,43 @@ public class MissionsController : ControllerBase
     [HttpGet("{planetId:int}")]
     public async Task<IActionResult> GetMission(int planetId)
     {
-        if (UserId == null) return Unauthorized();
+        var userId = UserId;
+
+        if (userId == null) return Unauthorized();
 
         var planet = await _db.Planets.FindAsync(planetId);
         if (planet == null) return NotFound();
 
-        // Endor needs a separate question-selection flow.
-        if (IsFinalExam(planet))
-            return Conflict("Final exam is not configured yet.");
-
         var progress = await _progressService
-            .GetOrCreateProgressAsync(UserId);
+            .GetOrCreateProgressAsync(userId);
 
-        if (!_planetProgressService.IsPlanetUnlocked(
-            planet, progress))
+        if (!await IsPlanetUnlockedAsync(
+            planet,
+            progress,
+            userId))
         {
             return StatusCode(403, "Planet is locked.");
         }
 
         var challenges = await GetMissionQuestions(planet);
 
-        if (challenges.Count == 0)
-            return NotFound("No mission questions configured.");
+        if (!HasRequiredQuestionCount(planet, challenges))
+        {
+            if (IsFinalExam(planet))
+            {
+                return Conflict(new
+                {
+                    message =
+                        "The final mission requires three official " +
+                        "questions from each of the five subjects."
+                });
+            }
+
+            return NotFound(new
+            {
+                message = "No mission questions are configured."
+            });
+        }
 
         return Ok(challenges.Select(c => new ChallengeDto
         {
@@ -89,22 +104,20 @@ public async Task<IActionResult> SubmitMission(
     int planetId,
     [FromBody] MissionSubmitDto dto)
 {
-    if (UserId == null) return Unauthorized();
+    var userId = UserId;
+
+    if (userId == null) return Unauthorized();
 
     var planet = await _db.Planets.FindAsync(planetId);
     if (planet == null) return NotFound();
 
-    if (IsFinalExam(planet))
-        return Conflict(new
-        {
-            message = "Final exam is not configured yet."
-        });
-
     var progress = await _progressService
-        .GetOrCreateProgressAsync(UserId);
+        .GetOrCreateProgressAsync(userId);
 
-    if (!_planetProgressService.IsPlanetUnlocked(
-        planet, progress))
+    if (!await IsPlanetUnlockedAsync(
+        planet,
+        progress,
+        userId))
     {
         return StatusCode(403, new
         {
@@ -115,7 +128,7 @@ public async Task<IActionResult> SubmitMission(
     // Prevent replaying completed missions.
     var alreadyCompleted = await _db.CompletedMissions
         .AnyAsync(m =>
-            m.UserId == UserId &&
+            m.UserId == userId &&
             m.PlanetId == planetId);
 
     if (alreadyCompleted)
@@ -128,11 +141,23 @@ public async Task<IActionResult> SubmitMission(
 
     var questions = await GetMissionQuestions(planet);
 
-    if (questions.Count == 0)
+    if (!HasRequiredQuestionCount(planet, questions))
+    {
+        if (IsFinalExam(planet))
+        {
+            return Conflict(new
+            {
+                message =
+                    "The final mission requires three official " +
+                    "questions from each of the five subjects."
+            });
+        }
+
         return NotFound(new
         {
-            message = "No mission questions configured."
+            message = "No mission questions are configured."
         });
+    }
 
     if (dto?.Answers == null || dto.Answers.Count == 0)
     {
@@ -167,7 +192,7 @@ public async Task<IActionResult> SubmitMission(
 
     var success = await _completionService
         .CompletePassedMissionAsync(
-            UserId, planetId, dto.Answers);
+            userId, planetId, dto.Answers);
 
     if (!success)
     {
@@ -179,7 +204,7 @@ public async Task<IActionResult> SubmitMission(
     }
 
     var updated = await _progressService
-        .GetOrCreateProgressAsync(UserId);
+        .GetOrCreateProgressAsync(userId);
 
     return Ok(new
     {
@@ -194,6 +219,11 @@ public async Task<IActionResult> SubmitMission(
     private async Task<List<Challenge>> GetMissionQuestions(
         Planet planet)
     {
+        if (IsFinalExam(planet))
+        {
+            return await GetFinalMissionQuestions(planet);
+        }
+
         return await _db.Challenges
             .AsNoTracking()
             .Where(c =>
@@ -202,6 +232,105 @@ public async Task<IActionResult> SubmitMission(
                 c.SourceId != null &&
                 c.CreatedByUserId == null)
             .OrderBy(c => c.ChallengeId)
+            .Take(ChallengeCompletionService.QuestionsPerMission)
             .ToListAsync();
+    }
+
+    private async Task<List<Challenge>> GetFinalMissionQuestions(
+        Planet endor)
+    {
+        var subjectPlanets = await _db.Planets
+            .AsNoTracking()
+            .Where(p =>
+                p.Order < endor.Order &&
+                p.Subject != null)
+            .OrderBy(p => p.Order)
+            .Take(ChallengeCompletionService.FinalMissionSubjectCount)
+            .Select(p => new
+            {
+                p.PlanetId,
+                Subject = p.Subject!
+            })
+            .ToListAsync();
+
+        if (subjectPlanets.Count !=
+                ChallengeCompletionService.FinalMissionSubjectCount ||
+            subjectPlanets
+                .Select(p => p.Subject)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Count() !=
+                ChallengeCompletionService.FinalMissionSubjectCount)
+        {
+            return new List<Challenge>();
+        }
+
+        var planetIds = subjectPlanets
+            .Select(p => p.PlanetId)
+            .ToList();
+
+        var pool = await _db.Challenges
+            .AsNoTracking()
+            .Where(c =>
+                c.PlanetId.HasValue &&
+                planetIds.Contains(c.PlanetId.Value) &&
+                c.SourceId != null &&
+                c.CreatedByUserId == null)
+            .OrderBy(c => c.ChallengeId)
+            .ToListAsync();
+
+        var subjectQuestions = subjectPlanets
+            .Select(planet => pool
+                .Where(c => string.Equals(
+                    c.Subject,
+                    planet.Subject,
+                    StringComparison.OrdinalIgnoreCase))
+                .Take(ChallengeCompletionService.QuestionsPerFinalSubject)
+                .ToList())
+            .ToList();
+
+        if (subjectQuestions.Any(questions =>
+            questions.Count !=
+                ChallengeCompletionService.QuestionsPerFinalSubject))
+        {
+            return new List<Challenge>();
+        }
+
+        return Enumerable
+            .Range(
+                0,
+                ChallengeCompletionService.QuestionsPerFinalSubject)
+            .SelectMany(index => subjectQuestions
+                .Select(questions => questions[index]))
+            .ToList();
+    }
+
+    private static bool HasRequiredQuestionCount(
+        Planet planet,
+        IReadOnlyCollection<Challenge> questions)
+    {
+        return IsFinalExam(planet)
+            ? questions.Count ==
+              ChallengeCompletionService.QuestionsPerFinalMission
+            : questions.Count > 0;
+    }
+
+    private async Task<bool> IsPlanetUnlockedAsync(
+        Planet planet,
+        PlayerProgress progress,
+        string userId)
+    {
+        var planets = await _db.Planets
+            .AsNoTracking()
+            .OrderBy(p => p.Order)
+            .ToListAsync();
+
+        var completedPlanetIds = await _completionService
+            .GetCompletedPlanetIdsAsync(userId);
+
+        return _planetProgressService.IsPlanetUnlocked(
+            planet,
+            progress,
+            planets,
+            completedPlanetIds);
     }
 }

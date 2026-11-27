@@ -25,8 +25,7 @@ function PlanetCard({
         isLoggedIn &&
         status !== undefined &&
         isUnlocked &&
-        !isCompleted &&
-        planet.name.toLowerCase() !== "endor";
+        !isCompleted;
 
     const stateClass = !isLoggedIn || !status
         ? ""
@@ -80,10 +79,6 @@ function PlanetCard({
                             <strong>
                                 🔒 Locked — Requires{" "}
                                 {requiredXp.toLocaleString()} XP
-                            </strong>
-                        ) : planet.name.toLowerCase() === "endor" ? (
-                            <strong>
-                                Final mission coming soon
                             </strong>
                         ) : (
                             <strong>
