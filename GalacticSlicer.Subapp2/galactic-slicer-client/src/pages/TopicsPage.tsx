@@ -6,7 +6,6 @@ import { getTopics, QUESTIONS_PER_ROUND } from "../services/challengeService";
 import type { Topic } from "../types/Question";
 
 // One card per subject; clicking a card starts a practice round (like Challenge/Topics in Subapp 1)
-// TODO: shows "Could not load the challenges." until challengeService gets the questions from the API
 function TopicsPage() {
     usePageTitle("Challenges");
 

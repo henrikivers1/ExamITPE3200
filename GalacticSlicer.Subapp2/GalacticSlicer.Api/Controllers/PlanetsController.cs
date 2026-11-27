@@ -19,8 +19,10 @@ public class PlanetsController : ControllerBase
         _planetService = planetService;
     }
 
-    // GET: /api/planets
-    // Public - everyone can view planets
+    // ============================================
+    // GET ALL - PUBLIC
+    // ============================================
+
     [HttpGet]
     public async Task<ActionResult<IEnumerable<PlanetDto>>> GetPlanets()
     {
@@ -29,8 +31,10 @@ public class PlanetsController : ControllerBase
         return Ok(planets);
     }
 
-    // GET: /api/planets/1
-    // Public - everyone can view a specific planet
+    // ============================================
+    // GET BY ID - PUBLIC
+    // ============================================
+
     [HttpGet("{id:int}")]
     public async Task<ActionResult<PlanetDto>> GetPlanet(int id)
     {
@@ -44,41 +48,84 @@ public class PlanetsController : ControllerBase
         return Ok(planet);
     }
 
-    // POST: /api/planets
-    // Admin only - create a planet
+    // ============================================
+    // CREATE - ADMIN
+    // ============================================
+
     [HttpPost]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<PlanetDto>> CreatePlanet(
         [FromBody] PlanetUpsertDto dto)
     {
-        var planet = await _planetService.CreateAsync(dto);
+        try
+        {
+            var planet = await _planetService.CreateAsync(dto);
 
-        return CreatedAtAction(
-            nameof(GetPlanet),
-            new { id = planet.PlanetId },
-            planet);
+            return CreatedAtAction(
+                nameof(GetPlanet),
+                new { id = planet.PlanetId },
+                planet);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new
+            {
+                message = ex.Message
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new
+            {
+                message = ex.Message
+            });
+        }
     }
 
-    // PUT: /api/planets/1
-    // Admin only - update a planet
+    // ============================================
+    // UPDATE - ADMIN
+    // ============================================
+
     [HttpPut("{id:int}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdatePlanet(
         int id,
         [FromBody] PlanetUpsertDto dto)
     {
-        var updated = await _planetService.UpdateAsync(id, dto);
-
-        if (!updated)
+        try
         {
-            return NotFound();
-        }
+            var updated = await _planetService.UpdateAsync(id, dto);
 
-        return NoContent();
+            if (!updated)
+            {
+                return NotFound(new
+                {
+                    message = "Planet not found."
+                });
+            }
+
+            return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new
+            {
+                message = ex.Message
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new
+            {
+                message = ex.Message
+            });
+        }
     }
 
-    // DELETE: /api/planets/1
-    // Admin only - delete a planet
+    // ============================================
+    // DELETE - ADMIN
+    // ============================================
+
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeletePlanet(int id)
@@ -89,17 +136,31 @@ public class PlanetsController : ControllerBase
 
             if (!deleted)
             {
-                return NotFound();
+                return NotFound(new
+                {
+                    message = "Planet not found."
+                });
             }
 
             return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new
+            {
+                message = ex.Message
+            });
         }
         catch (DbUpdateException ex)
             when (ex.InnerException is SqliteException
                 { SqliteErrorCode: 19 })
         {
-            return Conflict(
-                "Planet cannot be deleted because related data exists.");
+            return Conflict(new
+            {
+                message =
+                    "Planet cannot be deleted because " +
+                    "related data exists."
+            });
         }
     }
 }

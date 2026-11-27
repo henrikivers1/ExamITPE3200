@@ -57,7 +57,6 @@ public static class DBInit
         var adminEmail = configuration["BootstrapAdmin:Email"];
         var adminPassword = configuration["BootstrapAdmin:Password"];
 
-        // Skip account creation if no credentials are configured.
         if (string.IsNullOrWhiteSpace(adminEmail) &&
             string.IsNullOrWhiteSpace(adminPassword))
         {
@@ -104,8 +103,10 @@ public static class DBInit
         }
         else
         {
-            // Never promote an existing ordinary account automatically.
-            if (!await userManager.IsInRoleAsync(admin, adminRole))
+            // Do not promote an existing ordinary account.
+            if (!await userManager.IsInRoleAsync(
+                admin,
+                adminRole))
             {
                 throw new InvalidOperationException(
                     "Bootstrap admin email already belongs to " +
@@ -118,7 +119,9 @@ public static class DBInit
                 "Administrator account already exists.");
         }
 
-        if (!await userManager.IsInRoleAsync(admin, adminRole))
+        if (!await userManager.IsInRoleAsync(
+            admin,
+            adminRole))
         {
             var roleResult = await userManager.AddToRoleAsync(
                 admin,
@@ -160,7 +163,7 @@ public static class DBInit
 
         const int startingCredits = 1_000_000;
 
-        // Check whether Admin has already received the bonus.
+        // Avoid granting the test balance again.
         var claims = await userManager.GetClaimsAsync(admin);
 
         if (claims.Any(c => c.Type == markerType))
@@ -171,7 +174,7 @@ public static class DBInit
         var progressService = services
             .GetRequiredService<PlayerProgressService>();
 
-        // Ensure that the Admin has a PlayerProgress record.
+        // Ensure that the administrator has progress.
         await progressService.GetOrCreateProgressAsync(admin.Id);
 
         var context = services
@@ -180,14 +183,14 @@ public static class DBInit
         var progress = await context.PlayerProgresses
             .SingleAsync(p => p.UserId == admin.Id);
 
-        // Preserve a higher existing balance.
+        // Preserve an existing balance above 1,000,000.
         progress.Credits = Math.Max(
             progress.Credits,
             startingCredits);
 
         await context.SaveChangesAsync();
 
-        // Record that the one-time bonus has been granted.
+        // Record that the bonus has been granted.
         var claimResult = await userManager.AddClaimAsync(
             admin,
             new Claim(markerType, "granted"));
@@ -213,6 +216,13 @@ public static class DBInit
     private static async Task SeedPlanetsAsync(
         GalacticSlicerDbContext context)
     {
+        // Only create default planets when no planets exist.
+        // Do not overwrite administrator changes on startup.
+        if (await context.Planets.AnyAsync())
+        {
+            return;
+        }
+
         var seedPlanets = new List<Planet>
         {
             new()
@@ -221,7 +231,9 @@ public static class DBInit
                 Order = 1,
                 CssClass = "tatooine",
                 Subject = "Linux Command Line",
-                Description = "A desert world where every slicer starts by mastering the command line."
+                Description =
+                    "A desert world where every slicer starts " +
+                    "by mastering the command line."
             },
             new()
             {
@@ -229,7 +241,9 @@ public static class DBInit
                 Order = 2,
                 CssClass = "naboo",
                 Subject = "Network Security",
-                Description = "Peaceful on the surface, but its networks are full of open ports and eavesdroppers."
+                Description =
+                    "Peaceful on the surface, but its networks " +
+                    "are full of open ports and eavesdroppers."
             },
             new()
             {
@@ -237,7 +251,9 @@ public static class DBInit
                 Order = 3,
                 CssClass = "coruscant",
                 Subject = "Software Security",
-                Description = "A city planet full of web applications and the bugs hiding inside them."
+                Description =
+                    "A city planet full of web applications " +
+                    "and the bugs hiding inside them."
             },
             new()
             {
@@ -245,7 +261,8 @@ public static class DBInit
                 Order = 4,
                 CssClass = "kamino",
                 Subject = "Access Control & Authentication",
-                Description = "Clone labs guarded by strict access control."
+                Description =
+                    "Clone labs guarded by strict access control."
             },
             new()
             {
@@ -253,7 +270,8 @@ public static class DBInit
                 Order = 5,
                 CssClass = "hoth",
                 Subject = "Cryptography Basics",
-                Description = "Frozen secrets locked away behind ciphers and keys."
+                Description =
+                    "Frozen secrets locked away behind ciphers and keys."
             },
             new()
             {
@@ -261,34 +279,13 @@ public static class DBInit
                 Order = 6,
                 CssClass = "endor",
                 Subject = null,
-                Description = "The final test for a legendary slicer: questions from every subject."
+                Description =
+                    "The final test for a legendary slicer: " +
+                    "questions from every subject."
             }
         };
 
-        var existingPlanets = await context.Planets.ToListAsync();
-
-        foreach (var seed in seedPlanets)
-        {
-            var existing = existingPlanets.FirstOrDefault(
-                p => string.Equals(
-                    p.Name,
-                    seed.Name,
-                    StringComparison.OrdinalIgnoreCase));
-
-            if (existing == null)
-            {
-                context.Planets.Add(seed);
-            }
-            else
-            {
-                // Repair old seed data without changing PlanetId.
-                existing.Order = seed.Order;
-                existing.CssClass = seed.CssClass;
-                existing.Subject = seed.Subject;
-                existing.Description = seed.Description;
-            }
-        }
-
+        await context.Planets.AddRangeAsync(seedPlanets);
         await context.SaveChangesAsync();
     }
 
@@ -305,31 +302,37 @@ public static class DBInit
             {
                 Name = "Rookie Slicer",
                 Price = 0,
-                Description = "Every hacker starts somewhere. Free starter character."
+                Description =
+                    "Every hacker starts somewhere. " +
+                    "Free starter character."
             },
             new()
             {
                 Name = "Astromech Hacker",
                 Price = 150,
-                Description = "A droid that plugs straight into any terminal."
+                Description =
+                    "A droid that plugs straight into any terminal."
             },
             new()
             {
                 Name = "Smuggler",
                 Price = 300,
-                Description = "Knows every back door in the Outer Rim."
+                Description =
+                    "Knows every back door in the Outer Rim."
             },
             new()
             {
                 Name = "Bounty Hunter",
                 Price = 500,
-                Description = "Tracks down malware for a price."
+                Description =
+                    "Tracks down malware for a price."
             },
             new()
             {
                 Name = "Shadow Operative",
                 Price = 1000,
-                Description = "Leaves no logs behind. Legendary."
+                Description =
+                    "Leaves no logs behind. Legendary."
             }
         };
 

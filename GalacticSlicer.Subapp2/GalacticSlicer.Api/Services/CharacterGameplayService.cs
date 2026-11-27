@@ -8,11 +8,11 @@ namespace GalacticSlicer.Api.Services;
 public class CharacterGameplayService
 {
     private readonly GalacticSlicerDbContext _context;
-    private readonly ILogger<CharacterService> _logger;
+    private readonly ILogger<CharacterGameplayService> _logger;
 
     public CharacterGameplayService(
         GalacticSlicerDbContext context,
-        ILogger<CharacterService> logger)
+        ILogger<CharacterGameplayService> logger)
     {
         _context = context;
         _logger = logger;

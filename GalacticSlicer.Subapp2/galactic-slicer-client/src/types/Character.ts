@@ -1,5 +1,4 @@
-// A character in the Shop, same fields as the Character model in Subapp 1.
-// TODO: match this to the API's character DTO once Jonas has the endpoint.
+// A character returned by the API for the Shop and active pilot badge.
 export interface Character {
     characterId: number;
     name: string;
@@ -8,8 +7,7 @@ export interface Character {
     imageUrl: string | null;
 }
 
-// What the Shop needs to know about the logged-in player.
-// TODO: comes from the API once login and player progress exist.
+// Player data assembled from the progress and character ownership APIs.
 export interface ShopPlayer {
     credits: number;
     ownedCharacterIds: number[];

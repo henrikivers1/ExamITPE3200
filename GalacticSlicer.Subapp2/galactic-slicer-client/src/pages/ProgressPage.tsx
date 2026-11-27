@@ -39,9 +39,6 @@ function ProgressPage() {
     // Load real player progress from the API
     useEffect(() => {
         if (!isLoggedIn) {
-            setProgress(null);
-            setError(null);
-            setLoading(false);
             return;
         }
 

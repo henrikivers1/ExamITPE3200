@@ -5,6 +5,8 @@ import Layout from "./components/Layout";
 import HomePage from "./pages/HomePage";
 import PlanetsPage from "./pages/PlanetsPage";
 import MissionPage from "./pages/MissionPage";
+import AdminPlanetsPage from "./pages/AdminPlanetsPage";
+import AdminCharactersPage from "./pages/AdminCharactersPage";
 import ManageChallengesPage from "./pages/ManageChallengesPage";
 import TopicsPage from "./pages/TopicsPage";
 import PracticePage from "./pages/PracticePage";
@@ -14,16 +16,11 @@ import NotFoundPage from "./pages/NotFoundPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 
-// Every page is rendered inside Layout
-// (navbar, main content and footer).
 function App() {
     return (
         <Routes>
             <Route element={<Layout />}>
-                <Route
-                    index
-                    element={<HomePage />}
-                />
+                <Route index element={<HomePage />} />
 
                 <Route
                     path="planets"
@@ -33,6 +30,16 @@ function App() {
                 <Route
                     path="planets/:planetId/mission"
                     element={<MissionPage />}
+                />
+
+                <Route
+                    path="admin/planets"
+                    element={<AdminPlanetsPage />}
+                />
+
+                <Route
+                    path="admin/characters"
+                    element={<AdminCharactersPage />}
                 />
 
                 <Route

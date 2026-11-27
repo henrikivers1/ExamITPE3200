@@ -158,5 +158,29 @@ public class CharacterRepository : ICharacterRepository
             throw;
         }
     }
+
+    public async Task<bool> NameExists(
+        string name,
+        int? excludedCharacterId = null)
+    {
+        try
+        {
+            var normalizedName = name.Trim().ToUpperInvariant();
+
+            return await _db.Characters.AnyAsync(c =>
+                (!excludedCharacterId.HasValue ||
+                 c.CharacterId != excludedCharacterId.Value) &&
+                c.Name.Trim().ToUpper() == normalizedName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to check whether Character name {CharacterName} exists",
+                name);
+
+            throw;
+        }
+    }
 }
 

@@ -88,8 +88,18 @@ export async function apiRequest<T>(
     }
 
     if (!response.ok) {
-        const problem: unknown = await response.json()
-            .catch(() => null);
+        const responseText = await response.text()
+            .catch(() => "");
+
+        let problem: unknown = null;
+
+        if (responseText.trim()) {
+            try {
+                problem = JSON.parse(responseText);
+            } catch {
+                problem = responseText.trim();
+            }
+        }
 
         let message =
             `Request failed with status ${response.status}`;
@@ -108,14 +118,22 @@ export async function apiRequest<T>(
             if (descriptions.length > 0) {
                 message = descriptions.join(" ");
             }
+        } else if (typeof problem === "string") {
+            message = problem;
         } else if (problem && typeof problem === "object") {
             const data = problem as {
                 title?: string;
+                detail?: string;
                 message?: string;
+                error?: string;
                 errors?: Record<string, string[]>;
             };
 
-            message = data.message ?? data.title ?? message;
+            message = data.message
+                ?? data.detail
+                ?? data.title
+                ?? data.error
+                ?? message;
             errors = data.errors ?? {};
         }
 

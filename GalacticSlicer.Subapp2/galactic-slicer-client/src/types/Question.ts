@@ -1,5 +1,4 @@
 // One question, same shape as an entry in Subapp 1's questions.json.
-// TODO: match this to the API's challenge DTO once Jonas has the endpoint.
 export interface Question {
     id: string;
     subject: string;
