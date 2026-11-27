@@ -48,7 +48,7 @@ public class CharacterControllerTests
         repo.Create(Arg.Any<Character>()).Returns(true);
         var controller = CreateController(repo);
 
-        var result = await controller.Create(new Character { Name = "Bounty Hunter", Price = 500 });
+        var result = await controller.Create(new CharacterFormViewModel { Name = "Bounty Hunter", Price = 500 });
 
         var redirect = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal("Manage", redirect.ActionName);
@@ -65,7 +65,7 @@ public class CharacterControllerTests
         repo.Update(Arg.Any<Character>()).Returns(true);
         var controller = CreateController(repo);
 
-        var result = await controller.Edit(2, new Character { CharacterId = 2, Name = "Smuggler", Price = 350 });
+        var result = await controller.Edit(2, new CharacterFormViewModel { CharacterId = 2, Name = "Smuggler", Price = 350 });
 
         var redirect = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal("Manage", redirect.ActionName);
@@ -117,7 +117,7 @@ public class CharacterControllerTests
         var controller = CreateController(repo);
 
         // "smuggler" already exists (the check ignores upper/lower case)
-        var result = await controller.Create(new Character { Name = "smuggler", Price = 100 });
+        var result = await controller.Create(new CharacterFormViewModel { Name = "smuggler", Price = 100 });
 
         Assert.IsType<ViewResult>(result);
         Assert.False(controller.ModelState.IsValid);
@@ -134,7 +134,7 @@ public class CharacterControllerTests
         var controller = CreateController(repo);
 
         // Domain rule: at least one character must stay free for new players
-        var result = await controller.Edit(1, new Character { CharacterId = 1, Name = "Rookie Slicer", Price = 50 });
+        var result = await controller.Edit(1, new CharacterFormViewModel { CharacterId = 1, Name = "Rookie Slicer", Price = 50 });
 
         Assert.IsType<ViewResult>(result);
         Assert.True(controller.ModelState.ContainsKey(nameof(Character.Price)));
@@ -147,7 +147,7 @@ public class CharacterControllerTests
         var repo = Substitute.For<ICharacterRepository>();
         var controller = CreateController(repo);
 
-        var result = await controller.Edit(1, new Character { CharacterId = 2, Name = "Smuggler" });
+        var result = await controller.Edit(1, new CharacterFormViewModel { CharacterId = 2, Name = "Smuggler" });
 
         Assert.IsType<BadRequestResult>(result);
     }
@@ -177,7 +177,7 @@ public class CharacterControllerTests
         repo.Create(Arg.Any<Character>()).ThrowsAsync(new Exception("database down"));
         var controller = CreateController(repo);
 
-        var result = await controller.Create(new Character { Name = "Bounty Hunter", Price = 500 });
+        var result = await controller.Create(new CharacterFormViewModel { Name = "Bounty Hunter", Price = 500 });
 
         Assert.IsType<ViewResult>(result);
         Assert.False(controller.ModelState.IsValid);

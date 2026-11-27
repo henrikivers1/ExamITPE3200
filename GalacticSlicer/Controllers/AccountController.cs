@@ -32,27 +32,36 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var user = new IdentityUser { UserName = model.Username };
-        var result = await _userManager.CreateAsync(user, model.Password);
-
-        if (result.Succeeded)
+        try
         {
-            await _progressService.GetOrCreateProgressAsync(user.Id);
+            var user = new IdentityUser { UserName = model.Username };
+            var result = await _userManager.CreateAsync(user, model.Password);
 
-            _logger.LogInformation(
-                "[AccountController] New user registered: {Username}",
-                model.Username);
+            if (result.Succeeded)
+            {
+                await _progressService.GetOrCreateProgressAsync(user.Id);
 
-            await _signInManager.SignInAsync(user, isPersistent: false);
+                _logger.LogInformation(
+                    "[AccountController] New user registered: {Username}",
+                    model.Username);
 
-            return RedirectToAction("Index", "Home");
+                await _signInManager.SignInAsync(user, isPersistent: false);
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Identity explains what was wrong (username taken, password too weak, ...)
+            foreach (var error in result.Errors)
+                ModelState.AddModelError(string.Empty, error.Description);
+
+            _logger.LogWarning("[AccountController] Sign up failed for {Username}", model.Username);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[AccountController] Sign up crashed for {Username}", model.Username);
+            ModelState.AddModelError(string.Empty, "Could not create your account right now. Please try again.");
         }
 
-        // Identity explains what was wrong (username taken, password too weak, ...)
-        foreach (var error in result.Errors)
-            ModelState.AddModelError(string.Empty, error.Description);
-
-        _logger.LogWarning("[AccountController] Sign up failed for {Username}", model.Username);
         return View(model);
     }
 
@@ -68,22 +77,31 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var result = await _signInManager.PasswordSignInAsync(
-            model.Username, model.Password, model.RememberMe, lockoutOnFailure: false);
-
-        if (result.Succeeded)
+        try
         {
-            _logger.LogInformation("[AccountController] User logged in: {Username}", model.Username);
+            var result = await _signInManager.PasswordSignInAsync(
+                model.Username, model.Password, model.RememberMe, lockoutOnFailure: false);
 
-            // Only redirect to local URLs, never to another website
-            if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
-                return Redirect(model.ReturnUrl);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("[AccountController] User logged in: {Username}", model.Username);
 
-            return RedirectToAction("Index", "Home");
+                // Only redirect to local URLs, never to another website
+                if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
+                    return Redirect(model.ReturnUrl);
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            _logger.LogWarning("[AccountController] Failed login attempt for {Username}", model.Username);
+            ModelState.AddModelError(string.Empty, "Invalid username or password.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[AccountController] Login crashed for {Username}", model.Username);
+            ModelState.AddModelError(string.Empty, "Could not log you in right now. Please try again.");
         }
 
-        _logger.LogWarning("[AccountController] Failed login attempt for {Username}", model.Username);
-        ModelState.AddModelError(string.Empty, "Invalid username or password.");
         return View(model);
     }
 
@@ -93,9 +111,17 @@ public class AccountController : Controller
     public async Task<IActionResult> Logout()
     {
         var username = User.Identity?.Name;
-        await _signInManager.SignOutAsync();
 
-        _logger.LogInformation("[AccountController] User logged out: {Username}", username);
+        try
+        {
+            await _signInManager.SignOutAsync();
+            _logger.LogInformation("[AccountController] User logged out: {Username}", username);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[AccountController] Logout failed for {Username}", username);
+        }
+
         return RedirectToAction("Index", "Home");
     }
 }

@@ -14,13 +14,16 @@ public class NavUserViewComponent : ViewComponent
     private readonly UserManager<IdentityUser> _userManager;
     private readonly IPlayerProgressService _progressService;
     private readonly ICharacterRepository _characterRepository;
+    private readonly ILogger<NavUserViewComponent> _logger;
 
     public NavUserViewComponent(UserManager<IdentityUser> userManager,
-        IPlayerProgressService progressService, ICharacterRepository characterRepository)
+        IPlayerProgressService progressService, ICharacterRepository characterRepository,
+        ILogger<NavUserViewComponent> logger)
     {
         _userManager = userManager;
         _progressService = progressService;
         _characterRepository = characterRepository;
+        _logger = logger;
     }
 
     public async Task<IViewComponentResult> InvokeAsync()
@@ -32,11 +35,22 @@ public class NavUserViewComponent : ViewComponent
             return Content(string.Empty);
         }
 
-        var progress = await _progressService.GetOrCreateProgressAsync(userId);
+        PlayerProgress progress;
+        Character? activeCharacter;
+        try
+        {
+            progress = await _progressService.GetOrCreateProgressAsync(userId);
 
-        Character? activeCharacter = progress.ActiveCharacterId == null
-            ? null
-            : await _characterRepository.GetCharacterById(progress.ActiveCharacterId.Value);
+            activeCharacter = progress.ActiveCharacterId == null
+                ? null
+                : await _characterRepository.GetCharacterById(progress.ActiveCharacterId.Value);
+        }
+        catch (Exception ex)
+        {
+            // Runs inside the layout, so an error here would break every page: log it and hide the badge and Credits
+            _logger.LogError(ex, "[NavUserViewComponent] Could not load the navbar data for the player");
+            return Content(string.Empty);
+        }
 
         var model = new NavUserViewModel
         {

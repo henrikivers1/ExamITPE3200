@@ -168,6 +168,23 @@ public class CharacterController : Controller
 
     // ---------- Manage characters (CRUD) ----------
 
+    // A character in the Create/Edit form, and the form's values back as a character
+    private static CharacterFormViewModel ToFormViewModel(Character character) => new CharacterFormViewModel
+    {
+        CharacterId = character.CharacterId,
+        Name = character.Name,
+        Description = character.Description,
+        Price = character.Price
+    };
+
+    private static Character ToCharacter(CharacterFormViewModel model) => new Character
+    {
+        CharacterId = model.CharacterId,
+        Name = model.Name,
+        Description = model.Description,
+        Price = model.Price
+    };
+
     // Domain rules for characters, checked on the server for both Create and Edit
     private async Task ValidateCharacterRules(Character character)
     {
@@ -230,17 +247,17 @@ public class CharacterController : Controller
     [Authorize(Roles = "Admin")]
     public IActionResult Create()
     {
-        return View();
+        return View(new CharacterFormViewModel());
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Character character)
+    public async Task<IActionResult> Create(CharacterFormViewModel model)
     {
-        // Set on the server: always a new id, and no image URL from the form
+        // Set on the server: always a new id, and no image URL (the form has none)
+        var character = ToCharacter(model);
         character.CharacterId = 0;
-        character.ImageUrl = null;
 
         await ValidateCharacterRules(character);
 
@@ -259,7 +276,7 @@ public class CharacterController : Controller
             }
         }
         _logger.LogWarning("[CharacterController] Character creation failed for {Name}", character.Name);
-        return View(character);
+        return View(model);
     }
     [HttpGet]
     [Authorize(Roles = "Admin")]
@@ -272,14 +289,15 @@ public class CharacterController : Controller
             return NotFound();
         }
 
-        return View(character);
+        return View(ToFormViewModel(character));
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, Character character)
+    public async Task<IActionResult> Edit(int id, CharacterFormViewModel model)
     {
+        var character = ToCharacter(model);
         if (id != character.CharacterId)
         {
             _logger.LogWarning("[CharacterController] Edit id mismatch: route {RouteId}, form {FormId}", id, character.CharacterId);
@@ -313,7 +331,7 @@ public class CharacterController : Controller
             }
         }
         _logger.LogWarning("[CharacterController] Character update failed for CharacterId {CharacterId}", id);
-        return View(character);
+        return View(model);
     }
 
 
