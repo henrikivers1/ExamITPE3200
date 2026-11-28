@@ -19,7 +19,6 @@ function PlanetCard({
 }: PlanetCardProps) {
     const isUnlocked = status?.isUnlocked ?? false;
     const isCompleted = status?.isCompleted ?? false;
-    const requiredXp = status?.requiredXp ?? 0;
 
     const canStart =
         isLoggedIn &&
@@ -53,12 +52,6 @@ function PlanetCard({
                     {planet.name}
                 </span>
 
-                {planet.description && (
-                    <span className="gs-star-node-meta">
-                        {planet.description}
-                    </span>
-                )}
-
                 {planet.subject && (
                     <span className="gs-star-node-meta">
                         {planet.subject}
@@ -76,10 +69,7 @@ function PlanetCard({
                         {isCompleted ? (
                             <strong>✓ Completed</strong>
                         ) : !isUnlocked ? (
-                            <strong>
-                                🔒 Locked — Requires{" "}
-                                {requiredXp.toLocaleString()} XP
-                            </strong>
+                            <strong>🔒 Locked</strong>
                         ) : (
                             <strong>
                                 ▶ Start Mission

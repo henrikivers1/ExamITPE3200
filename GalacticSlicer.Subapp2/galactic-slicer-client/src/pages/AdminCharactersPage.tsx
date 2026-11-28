@@ -17,6 +17,8 @@ import {
     type CharacterInput,
 } from "../services/characterService";
 import type { Character } from "../types/Character";
+import CharacterBadge from "../components/CharacterBadge";
+import { getTier } from "../utils/characterTier";
 
 type EditorState =
     | { mode: "create" }
@@ -359,52 +361,52 @@ function AdminCharactersPage() {
             <section className="gs-page-intro">
                 <h1>Manage Characters</h1>
 
-                <p>
-                    Create, edit and manage characters
-                    available in Galactic Slicer.
-                </p>
-
-                <div className="gs-button-row">
-                    <button
-                        type="button"
-                        className="gs-btn gs-btn--primary"
-                        onClick={openCreate}
-                        disabled={saving}
-                    >
-                        Create New Character
-                    </button>
-
-                    <Link
-                        to="/characters"
-                        className="gs-btn gs-btn--outline"
-                    >
-                        View Shop
-                    </Link>
-                </div>
+                <p>Add, edit and remove the characters in the Shop.</p>
             </section>
 
+            {/* Message after saving or deleting, like TempData in Subapp 1 */}
+            {notice && (
+                <div
+                    className="gs-admin-message gs-admin-message--success"
+                    role="status"
+                >
+                    {notice}
+                </div>
+            )}
+
             {error && (
-                <p
-                    className="challenge-empty"
+                <div
+                    className="gs-admin-message gs-admin-message--error"
                     role="alert"
                 >
                     {error}
-                </p>
+                </div>
             )}
 
-            {notice && (
-                <p role="status">{notice}</p>
-            )}
+            <div className="gs-admin-actions">
+                <button
+                    type="button"
+                    className="gs-btn gs-btn--primary"
+                    onClick={openCreate}
+                    disabled={saving}
+                >
+                    Add Character
+                </button>
+
+                <Link
+                    to="/characters"
+                    className="gs-btn gs-btn--ghost"
+                >
+                    Back to the Shop
+                </Link>
+            </div>
 
             {/* CREATE / EDIT FORM */}
 
             {editor && (
                 <section
                     ref={editorRef}
-                    className="gs-page-intro"
-                    style={{
-                        scrollMarginTop: "90px",
-                    }}
+                    className="gs-auth-card gs-admin-editor"
                 >
                     <h2>
                         {editor.mode === "create"
@@ -537,64 +539,63 @@ function AdminCharactersPage() {
                 </section>
             )}
 
-            {/* CHARACTER LIST */}
+            {/* CHARACTER LIST: same table as Character/Manage in Subapp 1 */}
 
-            <section>
-                <h2>Existing Characters</h2>
+            {loading ? (
+                <p className="gs-page-intro" role="status">
+                    Loading characters...
+                </p>
+            ) : characters.length === 0 ? (
+                <p className="gs-page-intro">
+                    No characters yet. Add the first one above.
+                </p>
+            ) : (
+                <section
+                    className="gs-admin-table-wrap"
+                    aria-label="Characters"
+                >
+                    <table className="gs-admin-table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <span className="gs-sr-only">
+                                        Badge
+                                    </span>
+                                </th>
+                                <th>Name</th>
+                                <th>Tier</th>
+                                <th>Price</th>
+                                <th className="gs-admin-actions-cell">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
 
-                {loading ? (
-                    <p role="status">
-                        Loading characters...
-                    </p>
-                ) : characters.length === 0 ? (
-                    <p className="challenge-empty">
-                        No characters found.
-                    </p>
-                ) : (
-                    <div className="gs-challenge-list">
-                        {characters.map(character => {
-                            const official =
-                                isOfficialCharacter(character);
-
-                            return (
-                                <article
-                                    key={character.characterId}
-                                    className="gs-page-intro"
-                                >
-                                    <h3>{character.name}</h3>
-
-                                    {official && (
-                                        <p>Official Character</p>
-                                    )}
-
-                                    <p>
-                                        <strong>Price:</strong>{" "}
-                                        {character.price} Credits
-                                    </p>
-
-                                    {character.description && (
-                                        <p>
-                                            {character.description}
-                                        </p>
-                                    )}
-
-                                    {character.imageUrl && (
-                                        <p>
-                                            <a
-                                                href={character.imageUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                View Character Image
-                                            </a>
-                                        </p>
-                                    )}
-
-                                    <div className="gs-button-row">
+                        <tbody>
+                            {characters.map(character => (
+                                <tr key={character.characterId}>
+                                    <td>
+                                        <span className="gs-admin-badge">
+                                            <CharacterBadge
+                                                character={character}
+                                            />
+                                        </span>
+                                    </td>
+                                    <td>{character.name}</td>
+                                    <td>
+                                        {getTier(character.price).label}
+                                    </td>
+                                    <td>
+                                        {character.price === 0
+                                            ? "Free"
+                                            : `${character.price} Credits`}
+                                    </td>
+                                    <td className="gs-admin-actions-cell">
                                         <button
                                             type="button"
-                                            className="gs-btn gs-btn--outline"
+                                            className="gs-btn gs-btn--outline gs-btn--sm"
                                             disabled={saving}
+                                            aria-label={`Edit ${character.name}`}
                                             onClick={() =>
                                                 openEdit(character)
                                             }
@@ -602,11 +603,19 @@ function AdminCharactersPage() {
                                             Edit
                                         </button>
 
-                                        {!official && (
+                                        {isOfficialCharacter(character) ? (
+                                            <span
+                                                className="gs-btn gs-btn--sm gs-btn--ghost"
+                                                title="Standard characters can't be deleted"
+                                            >
+                                                Locked
+                                            </span>
+                                        ) : (
                                             <button
                                                 type="button"
-                                                className="gs-btn gs-btn--outline"
+                                                className="gs-btn gs-btn--sm gs-btn--danger"
                                                 disabled={saving}
+                                                aria-label={`Delete ${character.name}`}
                                                 onClick={() =>
                                                     void handleDelete(
                                                         character
@@ -616,13 +625,13 @@ function AdminCharactersPage() {
                                                 Delete
                                             </button>
                                         )}
-                                    </div>
-                                </article>
-                            );
-                        })}
-                    </div>
-                )}
-            </section>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </section>
+            )}
         </>
     );
 }

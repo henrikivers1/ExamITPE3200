@@ -4,6 +4,8 @@
 @import "./theme.css";
 @import "./shop.css";
 @import "./progress.css";
+@import "./admin.css";
+@import "./mission.css";
 
 /* React renders into #root, so #root (not body) is the column that keeps the footer at the bottom */
 #root {

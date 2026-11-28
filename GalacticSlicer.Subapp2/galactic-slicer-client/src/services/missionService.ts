@@ -1,6 +1,16 @@
 
 import { apiRequest } from "./api";
 
+// Same values as ChallengeCompletionService in the API:
+// pass at 80%, 2000 XP per mission and 500 Credits per chapter.
+// Shown in the mission briefing; the API decides the real rewards.
+export const PASS_PERCENT = 80;
+export const XP_PER_MISSION = 2000;
+
+export function creditsForMission(chapter: number): number {
+    return 500 * chapter;
+}
+
 // The API returns questions without correct answers.
 export interface MissionQuestion {
     challengeId: number;

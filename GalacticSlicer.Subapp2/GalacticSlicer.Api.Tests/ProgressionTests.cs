@@ -318,7 +318,7 @@ public class ProgressionTests
     public async Task Endor_InsufficientXp_IsLocked()
     {
         await using var database = await TestDatabase.CreateAsync(
-            experiencePoints: 5_999);
+            experiencePoints: 9_999);
         await database.CompleteMissionsAsync(1, 2, 3, 4, 5);
         var endor = await database.PlanetByOrderAsync(6);
 
@@ -333,7 +333,7 @@ public class ProgressionTests
     public async Task Endor_AllRequirementsMet_IsUnlocked()
     {
         await using var database = await TestDatabase.CreateAsync(
-            experiencePoints: 6_000);
+            experiencePoints: 10_000);
         await database.CompleteMissionsAsync(1, 2, 3, 4, 5);
 
         var result = await database.CreateProgressController()
@@ -349,7 +349,7 @@ public class ProgressionTests
     public async Task Endor_Get_ReturnsBalancedFifteenWithoutAnswers()
     {
         await using var database = await TestDatabase.CreateAsync(
-            experiencePoints: 6_000);
+            experiencePoints: 10_000);
         await database.CompleteMissionsAsync(1, 2, 3, 4, 5);
         var endor = await database.PlanetByOrderAsync(6);
 
@@ -378,7 +378,7 @@ public class ProgressionTests
     [Fact]
     public async Task Endor_ElevenCorrect_AwardsNothing()
     {
-        const int startingXp = 6_000;
+        const int startingXp = 10_000;
         const int startingCredits = 100;
 
         await using var database = await TestDatabase.CreateAsync(
@@ -410,7 +410,7 @@ public class ProgressionTests
     [Fact]
     public async Task Endor_TwelveCorrect_AwardsFinalRewardsAndCompletes()
     {
-        const int startingXp = 6_000;
+        const int startingXp = 10_000;
         const int startingCredits = 100;
 
         await using var database = await TestDatabase.CreateAsync(
@@ -437,7 +437,7 @@ public class ProgressionTests
             startingXp + ChallengeCompletionService.XpPerMission,
             progress.ExperiencePoints);
         Assert.Equal(startingCredits + 3_000, progress.Credits);
-        Assert.Equal("System Architect", progress.Rank);
+        Assert.Equal("Galactic Slicer", progress.Rank);
         Assert.True(await database.Context.CompletedMissions.AnyAsync(
             m => m.PlanetId == endor.PlanetId));
 
@@ -453,7 +453,7 @@ public class ProgressionTests
     public async Task Endor_RepeatedSubmission_DoesNotAwardTwice()
     {
         await using var database = await TestDatabase.CreateAsync(
-            experiencePoints: 6_000);
+            experiencePoints: 10_000);
         await database.CompleteMissionsAsync(1, 2, 3, 4, 5);
         var endor = await database.PlanetByOrderAsync(6);
         var controller = database.CreateMissionsController();
@@ -476,7 +476,7 @@ public class ProgressionTests
 
         database.Context.ChangeTracker.Clear();
         var progress = await database.ProgressAsync();
-        Assert.Equal(8_000, progress.ExperiencePoints);
+        Assert.Equal(12_000, progress.ExperiencePoints);
         Assert.Equal(3_000, progress.Credits);
         Assert.Equal(
             1,
