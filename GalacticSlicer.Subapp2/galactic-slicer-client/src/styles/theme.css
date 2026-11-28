@@ -224,6 +224,13 @@ a:hover {
   font-size: 0.875rem;
 }
 
+/* "Manage planets" / "Manage characters", only shown to admins */
+.gs-admin-link {
+  display: flex;
+  justify-content: center;
+  margin: 0.75rem 0 1rem;
+}
+
 .gs-btn--lg {
   padding: 0.85rem 1.6rem;
   font-size: 1rem;

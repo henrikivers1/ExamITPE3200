@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ShopCard from "../components/ShopCard";
 import { usePageTitle } from "../hooks/usePageTitle";
-import { getToken } from "../services/api";
+import { getToken, isAdminUser } from "../services/api";
 import {
     getCharacters,
     getOwnedCharacterIds,
@@ -37,6 +37,7 @@ function ShopPage() {
         useState<string | null>(null);
 
     const isLoggedIn = Boolean(getToken());
+    const isAdmin = isAdminUser();
 
     // ============================================
     // LOAD SHOP DATA
@@ -266,6 +267,18 @@ function ShopPage() {
                         to buy and equip characters.
                     </p>
                 ) : null}
+
+                {/* Only admins can manage characters */}
+                {isAdmin && (
+                    <div className="gs-admin-link">
+                        <Link
+                            to="/admin/characters"
+                            className="gs-btn gs-btn--outline gs-btn--sm"
+                        >
+                            Manage characters
+                        </Link>
+                    </div>
+                )}
             </section>
 
             <div aria-live="polite">

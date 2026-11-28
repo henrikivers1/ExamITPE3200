@@ -8,15 +8,15 @@ import {
 import { Link } from "react-router-dom";
 
 import { usePageTitle } from "../hooks/usePageTitle";
-import { apiRequest, getToken } from "../services/api";
+import { getToken, isAdminUser } from "../services/api";
+import {
+    getCharacters,
+    createCharacter,
+    updateCharacter,
+    deleteCharacter,
+    type CharacterInput,
+} from "../services/characterService";
 import type { Character } from "../types/Character";
-
-interface CharacterInput {
-    name: string;
-    description: string | null;
-    price: number;
-    imageUrl: string | null;
-}
 
 type EditorState =
     | { mode: "create" }
@@ -42,72 +42,6 @@ function isOfficialCharacter(character: Character): boolean {
     return officialCharacterNames.has(
         character.name.trim().toLowerCase()
     );
-}
-
-// Client-side check for controlling the admin UI.
-// Actual authorization is enforced by ASP.NET Core.
-function hasAdminRole(token: string | null): boolean {
-    if (!token) return false;
-
-    try {
-        const parts = token.split(".");
-        if (parts.length !== 3) return false;
-
-        const base64 = parts[1]
-            .replace(/-/g, "+")
-            .replace(/_/g, "/");
-
-        const payload = JSON.parse(
-            atob(base64)
-        ) as Record<string, unknown>;
-
-        const role =
-            payload.role ??
-            payload.roles ??
-            payload[
-                "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-            ];
-
-        return (
-            role === "Admin" ||
-            (Array.isArray(role) && role.includes("Admin"))
-        );
-    } catch {
-        return false;
-    }
-}
-
-// ============================================
-// ADMIN API
-// ============================================
-
-function getCharacters(): Promise<Character[]> {
-    return apiRequest<Character[]>("/api/characters");
-}
-
-function createCharacter(
-    data: CharacterInput
-): Promise<Character> {
-    return apiRequest<Character>("/api/characters", {
-        method: "POST",
-        body: JSON.stringify(data),
-    });
-}
-
-async function updateCharacter(
-    id: number,
-    data: CharacterInput
-): Promise<void> {
-    await apiRequest<unknown>(`/api/characters/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
-    });
-}
-
-async function deleteCharacter(id: number): Promise<void> {
-    await apiRequest<unknown>(`/api/characters/${id}`, {
-        method: "DELETE",
-    });
 }
 
 // ============================================
@@ -136,9 +70,8 @@ function AdminCharactersPage() {
 
     const editorRef = useRef<HTMLElement>(null);
 
-    const token = getToken();
-    const isLoggedIn = Boolean(token);
-    const isAdmin = hasAdminRole(token);
+    const isLoggedIn = Boolean(getToken());
+    const isAdmin = isAdminUser();
 
     const editingOfficialCharacter =
         editor?.mode === "edit" &&

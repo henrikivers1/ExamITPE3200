@@ -8,7 +8,7 @@ import {
 import { Link } from "react-router-dom";
 
 import { usePageTitle } from "../hooks/usePageTitle";
-import { getToken } from "../services/api";
+import { getToken, isAdminUser } from "../services/api";
 import {
     getPlanets,
     createPlanet,
@@ -47,42 +47,6 @@ function isOfficialPlanet(planet: Planet): boolean {
     );
 }
 
-// Used to control the visibility of the admin interface.
-// The API enforces the actual authorization.
-function hasAdminRole(token: string | null): boolean {
-    if (!token) return false;
-
-    try {
-        const parts = token.split(".");
-        if (parts.length !== 3) return false;
-
-        const base64 = parts[1]
-            .replace(/-/g, "+")
-            .replace(/_/g, "/");
-
-        const payload = JSON.parse(
-            atob(base64)
-        ) as Record<string, unknown>;
-
-        const roleClaim =
-            payload.role ??
-            payload.roles ??
-            payload[
-                "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-            ];
-
-        return (
-            roleClaim === "Admin" ||
-            (
-                Array.isArray(roleClaim) &&
-                roleClaim.includes("Admin")
-            )
-        );
-    } catch {
-        return false;
-    }
-}
-
 function AdminPlanetsPage() {
     usePageTitle("Manage Planets");
 
@@ -105,9 +69,8 @@ function AdminPlanetsPage() {
 
     const editorRef = useRef<HTMLElement>(null);
 
-    const token = getToken();
-    const isLoggedIn = Boolean(token);
-    const isAdmin = hasAdminRole(token);
+    const isLoggedIn = Boolean(getToken());
+    const isAdmin = isAdminUser();
 
     const editingOfficialPlanet =
         editor?.mode === "edit" &&

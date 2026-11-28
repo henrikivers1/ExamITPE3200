@@ -41,6 +41,38 @@ export function getToken(): string | null {
     }
 }
 
+// Reads the role from the JWT, so the client can show admin links and pages.
+// The API still checks the Admin role on every write.
+export function isAdminUser(): boolean {
+    const token = getToken();
+
+    if (!token) return false;
+
+    try {
+        const payload = JSON.parse(
+            atob(
+                token.split(".")[1]
+                    .replace(/-/g, "+")
+                    .replace(/_/g, "/")
+            )
+        ) as Record<string, unknown>;
+
+        const role =
+            payload.role ??
+            payload.roles ??
+            payload[
+                "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+            ];
+
+        return (
+            role === "Admin" ||
+            (Array.isArray(role) && role.includes("Admin"))
+        );
+    } catch {
+        return false;
+    }
+}
+
 export class ApiError extends Error {
     status: number;
     errors: Record<string, string[]>;
