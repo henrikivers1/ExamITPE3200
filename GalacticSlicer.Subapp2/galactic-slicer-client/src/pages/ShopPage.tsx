@@ -11,7 +11,10 @@ import {
     equipCharacter,
     unequipCharacter,
 } from "../services/characterService";
-import { getProgress } from "../services/progressService";
+import {
+    getProgress,
+    notifyProgressChanged,
+} from "../services/progressService";
 import type {
     Character,
     ShopPlayer,
@@ -119,6 +122,9 @@ function ShopPage() {
             activeCharacterId: progress.activeCharacterId,
             ownedCharacterIds: ownedIds,
         });
+
+        // the navbar shows the Credits and the equipped badge too
+        notifyProgressChanged();
     }
 
     // ============================================

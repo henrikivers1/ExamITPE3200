@@ -8,7 +8,10 @@ import { Link, useParams } from "react-router-dom";
 
 import { usePageTitle } from "../hooks/usePageTitle";
 import { getToken } from "../services/api";
-import { getProgress } from "../services/progressService";
+import {
+    getProgress,
+    notifyProgressChanged,
+} from "../services/progressService";
 
 import {
     getMission,
@@ -249,6 +252,9 @@ function MissionPage() {
             );
 
             setResult(response);
+
+            // new Credits in the navbar after a first pass
+            notifyProgressChanged();
         } catch (err) {
             setError(
                 err instanceof Error
