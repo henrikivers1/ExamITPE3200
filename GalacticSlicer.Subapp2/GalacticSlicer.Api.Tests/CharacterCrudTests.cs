@@ -243,7 +243,8 @@ public class CharacterCrudTests
         ICharacterRepository repository)
     {
         return new CharactersController(
-            new CharacterService(repository));
+            new CharacterService(repository),
+            NullLogger<CharactersController>.Instance);
     }
 
     private static string MessageFrom(ObjectResult result)

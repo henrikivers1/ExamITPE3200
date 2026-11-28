@@ -22,6 +22,7 @@ public class ProgressController : ControllerBase
     private readonly RankService _rankService;
     private readonly PlanetProgressService _planetProgressService;
     private readonly ChallengeCompletionService _completionService;
+    private readonly ILogger<ProgressController> _logger;
 
     public ProgressController(
         PlayerProgressService progressService,
@@ -29,8 +30,10 @@ public class ProgressController : ControllerBase
         UserManager<IdentityUser> userManager,
         RankService rankService,
         PlanetProgressService planetProgressService,
-        ChallengeCompletionService completionService)
+        ChallengeCompletionService completionService,
+        ILogger<ProgressController> logger)
     {
+        _logger = logger;
         _progressService = progressService;
         _context = context;
         _userManager = userManager;
@@ -55,6 +58,11 @@ public class ProgressController : ControllerBase
 
         if (user == null)
         {
+            // a valid token for a user that no longer exists
+            _logger.LogWarning(
+                "Progress requested for unknown user {UserId}",
+                userId);
+
             return Unauthorized();
         }
 

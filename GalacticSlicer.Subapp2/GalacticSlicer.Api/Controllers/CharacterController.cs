@@ -14,10 +14,14 @@ namespace GalacticSlicer.Api.Controllers;
 public class CharactersController : ControllerBase
 {
     private readonly ICharacterService _service;
+    private readonly ILogger<CharactersController> _logger;
 
-    public CharactersController(ICharacterService service)
+    public CharactersController(
+        ICharacterService service,
+        ILogger<CharactersController> logger)
     {
         _service = service;
+        _logger = logger;
     }
 
     // GET /api/characters
@@ -59,6 +63,10 @@ public class CharactersController : ControllerBase
         {
             var character = await _service.CreateAsync(dto);
 
+            _logger.LogInformation(
+                "Character {CharacterId} created",
+                character.CharacterId);
+
             return CreatedAtAction(
                 nameof(GetById),
                 new { id = character.CharacterId },
@@ -66,6 +74,11 @@ public class CharactersController : ControllerBase
         }
         catch (ValidationException ex)
         {
+            _logger.LogWarning(
+                "Character rejected ({Error}): {Message}",
+                "ValidationException",
+                ex.Message);
+
             return BadRequest(new
             {
                 message = ex.Message
@@ -73,6 +86,11 @@ public class CharactersController : ControllerBase
         }
         catch (CharacterConflictException ex)
         {
+            _logger.LogWarning(
+                "Character rejected ({Error}): {Message}",
+                "CharacterConflictException",
+                ex.Message);
+
             return Conflict(new
             {
                 message = ex.Message
@@ -92,6 +110,11 @@ public class CharactersController : ControllerBase
         {
             var updated = await _service.UpdateAsync(id, dto);
 
+            _logger.LogInformation(
+                "Update of character {CharacterId}: {Updated}",
+                id,
+                updated);
+
             if (!updated)
             {
                 return NotFound(new
@@ -104,6 +127,11 @@ public class CharactersController : ControllerBase
         }
         catch (ValidationException ex)
         {
+            _logger.LogWarning(
+                "Character rejected ({Error}): {Message}",
+                "ValidationException",
+                ex.Message);
+
             return BadRequest(new
             {
                 message = ex.Message
@@ -111,6 +139,11 @@ public class CharactersController : ControllerBase
         }
         catch (CharacterConflictException ex)
         {
+            _logger.LogWarning(
+                "Character rejected ({Error}): {Message}",
+                "CharacterConflictException",
+                ex.Message);
+
             return Conflict(new
             {
                 message = ex.Message
@@ -127,6 +160,11 @@ public class CharactersController : ControllerBase
         try
         {
             var result = await _service.DeleteAsync(id);
+
+            _logger.LogInformation(
+                "Delete of character {CharacterId}: {Result}",
+                id,
+                result);
 
             return result switch
             {
@@ -152,6 +190,11 @@ public class CharactersController : ControllerBase
             when (ex.InnerException is SqliteException
                 { SqliteErrorCode: 19 })
         {
+            _logger.LogWarning(
+                "Character rejected ({Error}): {Message}",
+                "DbUpdateException",
+                ex.Message);
+
             return Conflict(new
             {
                 message =

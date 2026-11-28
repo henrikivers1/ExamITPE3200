@@ -13,11 +13,14 @@ namespace GalacticSlicer.Api.Controllers;
 public class CharacterGameplayController : ControllerBase
 {
     private readonly CharacterGameplayService _gameplay;
+    private readonly ILogger<CharacterGameplayController> _logger;
 
     public CharacterGameplayController(
-        CharacterGameplayService gameplay)
+        CharacterGameplayService gameplay,
+        ILogger<CharacterGameplayController> logger)
     {
         _gameplay = gameplay;
+        _logger = logger;
     }
 
     private string? UserId =>
@@ -41,6 +44,12 @@ public class CharacterGameplayController : ControllerBase
 
         var success = await _gameplay.BuyCharacterAsync(UserId, id);
 
+        _logger.LogInformation(
+            "User {UserId} buying character {CharacterId}: {Success}",
+            UserId,
+            id,
+            success);
+
         return success
             ? Ok(new { message = "Character purchased" })
             : Conflict(new { message = "Purchase rejected" });
@@ -54,6 +63,12 @@ public class CharacterGameplayController : ControllerBase
 
         var success = await _gameplay.EquipCharacterAsync(UserId, id);
 
+        _logger.LogInformation(
+            "User {UserId} equipping character {CharacterId}: {Success}",
+            UserId,
+            id,
+            success);
+
         return success
             ? Ok(new { message = "Character equipped" })
             : Conflict(new { message = "Equip rejected" });
@@ -66,6 +81,11 @@ public class CharacterGameplayController : ControllerBase
         if (UserId == null) return Unauthorized();
 
         var success = await _gameplay.UnequipCharacterAsync(UserId);
+
+        _logger.LogInformation(
+            "User {UserId} unequipping: {Success}",
+            UserId,
+            success);
 
         return success
             ? Ok(new { message = "Character unequipped" })

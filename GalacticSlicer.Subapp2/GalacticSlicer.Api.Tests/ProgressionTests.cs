@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GalacticSlicer.Api.Tests;
 
@@ -653,7 +654,8 @@ public class ProgressionTests
                 _scope.ServiceProvider
                     .GetRequiredService<PlanetProgressService>(),
                 _scope.ServiceProvider
-                    .GetRequiredService<MissionQuestionStore>());
+                    .GetRequiredService<MissionQuestionStore>(),
+                NullLogger<MissionsController>.Instance);
 
             SetAuthenticatedUser(controller);
             return controller;
@@ -671,7 +673,8 @@ public class ProgressionTests
                     .GetRequiredService<RankService>(),
                 _scope.ServiceProvider
                     .GetRequiredService<PlanetProgressService>(),
-                CompletionService);
+                CompletionService,
+                NullLogger<ProgressController>.Instance);
 
             SetAuthenticatedUser(controller);
             return controller;

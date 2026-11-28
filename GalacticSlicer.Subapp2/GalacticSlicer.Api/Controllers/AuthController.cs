@@ -16,12 +16,15 @@ public class AuthController : ControllerBase
     private readonly UserManager<IdentityUser> _userManager;
     private readonly IConfiguration _configuration;
     private readonly PlayerProgressService _progressService;
+    private readonly ILogger<AuthController> _logger;
 
     public AuthController(
         UserManager<IdentityUser> userManager,
         IConfiguration configuration,
-        PlayerProgressService progressService)
+        PlayerProgressService progressService,
+        ILogger<AuthController> logger)
     {
+        _logger = logger;
         _userManager = userManager;
         _configuration = configuration;
         _progressService = progressService;
@@ -46,6 +49,10 @@ public class AuthController : ControllerBase
 
         if (!result.Succeeded)
         {
+            _logger.LogWarning(
+                "Registration rejected: {Errors}",
+                string.Join(", ", result.Errors.Select(e => e.Code)));
+
             return BadRequest(result.Errors.Select(e => new
             {
                 e.Code,
@@ -55,6 +62,10 @@ public class AuthController : ControllerBase
 
         // Automatically create progress for a new player.
         await _progressService.GetOrCreateProgressAsync(user.Id);
+
+        _logger.LogInformation(
+            "New player registered: {UserId}",
+            user.Id);
 
         return StatusCode(201, new
         {
@@ -75,6 +86,8 @@ public class AuthController : ControllerBase
 
         if (user == null)
         {
+            _logger.LogWarning("Login failed: unknown email");
+
             return Unauthorized(new
             {
                 message = "Invalid credentials"
@@ -86,6 +99,10 @@ public class AuthController : ControllerBase
 
         if (!validPassword)
         {
+            _logger.LogWarning(
+                "Login failed: wrong password for {UserId}",
+                user.Id);
+
             return Unauthorized(new
             {
                 message = "Invalid credentials"
@@ -94,6 +111,8 @@ public class AuthController : ControllerBase
 
         // Generate a JWT containing the user's Identity roles.
         var token = await GenerateTokenAsync(user);
+
+        _logger.LogInformation("User {UserId} logged in", user.Id);
 
         return Ok(new
         {

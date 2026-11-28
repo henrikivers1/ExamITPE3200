@@ -13,10 +13,14 @@ namespace GalacticSlicer.Api.Controllers;
 public class PlanetsController : ControllerBase
 {
     private readonly IPlanetService _planetService;
+    private readonly ILogger<PlanetsController> _logger;
 
-    public PlanetsController(IPlanetService planetService)
+    public PlanetsController(
+        IPlanetService planetService,
+        ILogger<PlanetsController> logger)
     {
         _planetService = planetService;
+        _logger = logger;
     }
 
     // ============================================
@@ -61,6 +65,10 @@ public class PlanetsController : ControllerBase
         {
             var planet = await _planetService.CreateAsync(dto);
 
+            _logger.LogInformation(
+                "Planet {PlanetId} created",
+                planet.PlanetId);
+
             return CreatedAtAction(
                 nameof(GetPlanet),
                 new { id = planet.PlanetId },
@@ -68,6 +76,11 @@ public class PlanetsController : ControllerBase
         }
         catch (ArgumentException ex)
         {
+            _logger.LogWarning(
+                "Planet rejected ({Error}): {Message}",
+                "ArgumentException",
+                ex.Message);
+
             return BadRequest(new
             {
                 message = ex.Message
@@ -75,6 +88,11 @@ public class PlanetsController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
+            _logger.LogWarning(
+                "Planet rejected ({Error}): {Message}",
+                "InvalidOperationException",
+                ex.Message);
+
             return Conflict(new
             {
                 message = ex.Message
@@ -96,6 +114,11 @@ public class PlanetsController : ControllerBase
         {
             var updated = await _planetService.UpdateAsync(id, dto);
 
+            _logger.LogInformation(
+                "Update of planet {PlanetId}: {Updated}",
+                id,
+                updated);
+
             if (!updated)
             {
                 return NotFound(new
@@ -108,6 +131,11 @@ public class PlanetsController : ControllerBase
         }
         catch (ArgumentException ex)
         {
+            _logger.LogWarning(
+                "Planet rejected ({Error}): {Message}",
+                "ArgumentException",
+                ex.Message);
+
             return BadRequest(new
             {
                 message = ex.Message
@@ -115,6 +143,11 @@ public class PlanetsController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
+            _logger.LogWarning(
+                "Planet rejected ({Error}): {Message}",
+                "InvalidOperationException",
+                ex.Message);
+
             return Conflict(new
             {
                 message = ex.Message
@@ -134,6 +167,11 @@ public class PlanetsController : ControllerBase
         {
             var deleted = await _planetService.DeleteAsync(id);
 
+            _logger.LogInformation(
+                "Delete of planet {PlanetId}: {Deleted}",
+                id,
+                deleted);
+
             if (!deleted)
             {
                 return NotFound(new
@@ -146,6 +184,11 @@ public class PlanetsController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
+            _logger.LogWarning(
+                "Planet rejected ({Error}): {Message}",
+                "InvalidOperationException",
+                ex.Message);
+
             return Conflict(new
             {
                 message = ex.Message
@@ -155,6 +198,11 @@ public class PlanetsController : ControllerBase
             when (ex.InnerException is SqliteException
                 { SqliteErrorCode: 19 })
         {
+            _logger.LogWarning(
+                "Planet rejected ({Error}): {Message}",
+                "DbUpdateException",
+                ex.Message);
+
             return Conflict(new
             {
                 message =

@@ -1,6 +1,65 @@
-@GalacticSlicer.Api_HostAddress = http://localhost:5190
+# Test requests for the Galactic Slicer API (Visual Studio, Rider or the VS Code REST Client).
+# Start the API first (dotnet run), then send the requests one by one.
+# 1. Register and log in, 2. copy the "token" from the login response into @token below.
 
-GET {{GalacticSlicer.Api_HostAddress}}/weatherforecast/
+@GalacticSlicer.Api_HostAddress = http://localhost:5190
+@token = paste-the-token-from-the-login-response-here
+
+### Register a player
+POST {{GalacticSlicer.Api_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "pilot@galacticslicer.local",
+  "password": "User123!"
+}
+
+### Log in (returns the JWT)
+POST {{GalacticSlicer.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "pilot@galacticslicer.local",
+  "password": "User123!"
+}
+
+### Planets (public)
+GET {{GalacticSlicer.Api_HostAddress}}/api/planets
 Accept: application/json
 
-###
+### Characters in the Shop (public)
+GET {{GalacticSlicer.Api_HostAddress}}/api/characters
+Accept: application/json
+
+### The logged-in player's progress
+GET {{GalacticSlicer.Api_HostAddress}}/api/progress/me
+Authorization: Bearer {{token}}
+
+### Start the Tatooine mission: 10 random questions without the answers
+GET {{GalacticSlicer.Api_HostAddress}}/api/missions/1
+Authorization: Bearer {{token}}
+
+### Search the player's own challenges
+GET {{GalacticSlicer.Api_HostAddress}}/api/challenges/search?searchString=firewall&subject=Network%20Security
+Authorization: Bearer {{token}}
+
+### Practice: 10 random questions from one subject
+GET {{GalacticSlicer.Api_HostAddress}}/api/practice/questions?subject=Linux%20Command%20Line
+Authorization: Bearer {{token}}
+
+### Buy a character (409 when the player has too few Credits)
+POST {{GalacticSlicer.Api_HostAddress}}/api/characters/2/buy
+Authorization: Bearer {{token}}
+
+### Admin only: create a planet (401 without a token, 403 for a normal player)
+POST {{GalacticSlicer.Api_HostAddress}}/api/planets
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Dagobah",
+  "order": 7,
+  "cssClass": "dagobah",
+  "subject": "Network Security",
+  "description": "A swamp planet for testing."
+}

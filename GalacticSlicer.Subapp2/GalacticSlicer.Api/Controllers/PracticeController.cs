@@ -67,6 +67,11 @@ public class PracticeController : ControllerBase
             .Take(QuestionsPerRound)
             .ToList();
 
+        _logger.LogInformation(
+            "Practice round for {Subject}: {Count} questions",
+            subject,
+            selected.Count);
+
         return Ok(selected);
     }
 
@@ -94,6 +99,10 @@ public class PracticeController : ControllerBase
 
         if (challenge == null)
         {
+            _logger.LogWarning(
+                "Practice answer for unknown question {ChallengeId}",
+                dto.ChallengeId);
+
             return NotFound(new
             {
                 message = "Practice question not found."

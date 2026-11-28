@@ -19,14 +19,17 @@ public class MissionsController : ControllerBase
     private readonly PlayerProgressService _progressService;
     private readonly PlanetProgressService _planetProgressService;
     private readonly MissionQuestionStore _questionStore;
+    private readonly ILogger<MissionsController> _logger;
 
     public MissionsController(
         GalacticSlicerDbContext db,
         ChallengeCompletionService completionService,
         PlayerProgressService progressService,
         PlanetProgressService planetProgressService,
-        MissionQuestionStore questionStore)
+        MissionQuestionStore questionStore,
+        ILogger<MissionsController> logger)
     {
+        _logger = logger;
         _db = db;
         _completionService = completionService;
         _progressService = progressService;
@@ -63,6 +66,11 @@ public class MissionsController : ControllerBase
             progress,
             userId))
         {
+            _logger.LogWarning(
+                "User {UserId} tried locked planet {PlanetId}",
+                userId,
+                planetId);
+
             return StatusCode(403, new
             {
                 message = "Planet is locked."
@@ -78,6 +86,12 @@ public class MissionsController : ControllerBase
                 message = "No mission questions are configured."
             });
         }
+
+        _logger.LogInformation(
+            "Mission {PlanetId} started by {UserId} with {Count} questions",
+            planetId,
+            userId,
+            challenges.Count);
 
         // Only these questions can be submitted for this mission
         _questionStore.Save(
@@ -123,6 +137,11 @@ public class MissionsController : ControllerBase
             progress,
             userId))
         {
+            _logger.LogWarning(
+                "User {UserId} tried locked planet {PlanetId}",
+                userId,
+                planetId);
+
             return StatusCode(403, new
             {
                 message = "Planet is locked."
@@ -141,6 +160,11 @@ public class MissionsController : ControllerBase
 
         if (handedOut == null)
         {
+            _logger.LogWarning(
+                "Mission {PlanetId} submitted by {UserId} without an active mission",
+                planetId,
+                userId);
+
             return Conflict(new
             {
                 // already submitted, expired, or never started
@@ -153,6 +177,11 @@ public class MissionsController : ControllerBase
         // Exactly the handed-out questions, all answered
         if (!handedOut.SetEquals(dto.Answers.Keys))
         {
+            _logger.LogWarning(
+                "Mission {PlanetId} submitted by {UserId} with questions that were not handed out",
+                planetId,
+                userId);
+
             return BadRequest(new
             {
                 message = "You must answer all mission questions."
@@ -200,6 +229,11 @@ public class MissionsController : ControllerBase
 
             if (!saved)
             {
+                _logger.LogError(
+                    "Mission {PlanetId} rewards for {UserId} could not be saved",
+                    planetId,
+                    userId);
+
                 return StatusCode(500, new
                 {
                     message = "Mission results could not be saved."
@@ -212,6 +246,15 @@ public class MissionsController : ControllerBase
 
         var updated = await _progressService
             .GetOrCreateProgressAsync(userId);
+
+        _logger.LogInformation(
+            "Mission {PlanetId} by {UserId}: {Correct}/{Total}, passed {Passed}, replay {Replay}",
+            planetId,
+            userId,
+            correctCount,
+            questions.Count,
+            passed,
+            alreadyCompleted);
 
         return Ok(new
         {
