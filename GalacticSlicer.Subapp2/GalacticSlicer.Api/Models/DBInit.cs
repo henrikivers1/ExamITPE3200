@@ -309,28 +309,28 @@ public static class DBInit
             new()
             {
                 Name = "Astromech Hacker",
-                Price = 150,
+                Price = 500,
                 Description =
                     "A droid that plugs straight into any terminal."
             },
             new()
             {
                 Name = "Smuggler",
-                Price = 300,
+                Price = 1000,
                 Description =
                     "Knows every back door in the Outer Rim."
             },
             new()
             {
                 Name = "Bounty Hunter",
-                Price = 500,
+                Price = 1500,
                 Description =
                     "Tracks down malware for a price."
             },
             new()
             {
                 Name = "Shadow Operative",
-                Price = 1000,
+                Price = 2000,
                 Description =
                     "Leaves no logs behind. Legendary."
             }

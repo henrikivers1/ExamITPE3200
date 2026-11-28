@@ -170,6 +170,71 @@ a.pilot-chart-link:hover {
 }
 
 /* phones: three planets per row, buttons full width */
+/* mission history under the progress bars, same width as the bars (like Subapp 1) */
+.history {
+  max-width: 640px;
+  margin: 0 auto 4rem;
+}
+
+.history-title {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.history-empty {
+  color: var(--gs-text-muted);
+}
+
+.history-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* one attempt: planet, score, result and date on one line (wraps on phones) */
+.history-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1rem;
+  padding: 0.7rem 1rem;
+  background: var(--gs-bg-card);
+  border: 1px solid var(--gs-border);
+  border-radius: var(--gs-radius-sm);
+}
+
+.history-planet {
+  font-weight: 700;
+  color: var(--gs-text);
+  min-width: 6rem;
+}
+
+.history-score {
+  color: var(--gs-text-muted);
+}
+
+.history-result {
+  font-weight: 600;
+}
+
+.history-result--passed {
+  color: #3ecf8e;
+}
+
+.history-result--failed {
+  color: #f59a9a;
+}
+
+/* date pushed to the right */
+.history-date {
+  margin-left: auto;
+  color: var(--gs-text-muted);
+  font-size: 0.8rem;
+}
+
 @media (max-width: 575.98px) {
   .pilot-chart {
     grid-template-columns: repeat(3, 1fr);

@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using GalacticSlicer.Api.Models;
 using GalacticSlicer.Api.DAL;
+using GalacticSlicer.Api.Filters;
 using GalacticSlicer.Api.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +33,9 @@ builder.Services
 // Controllers
 // ============================================
 
-builder.Services.AddControllers();
+// LogExceptionFilter logs every unhandled controller error and returns a 500 with a message
+builder.Services.AddControllers(options =>
+    options.Filters.Add<LogExceptionFilter>());
 builder.Services.AddOpenApi();
 
 // ============================================
@@ -60,6 +63,15 @@ builder.Services.AddScoped<CharacterGameplayService>();
 builder.Services.AddScoped<ChallengeCompletionService>();
 builder.Services.AddScoped<PlanetProgressService>();
 builder.Services.AddScoped<RankService>();
+
+// Data access for the Missions, Practice and Progress controllers
+builder.Services.AddScoped<MissionService>();
+builder.Services.AddScoped<PracticeService>();
+builder.Services.AddScoped<ProgressDashboardService>();
+
+// Remembers the questions each mission handed out (see MissionQuestionStore)
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<MissionQuestionStore>();
 
 // ============================================
 // JWT Authentication

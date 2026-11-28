@@ -1,6 +1,16 @@
 
 import { apiRequest } from "./api";
 
+// Same values as ChallengeCompletionService in the API:
+// pass at 80%, 2000 XP per mission and 500 Credits per chapter.
+// Shown in the mission briefing; the API decides the real rewards.
+export const PASS_PERCENT = 80;
+export const XP_PER_MISSION = 2000;
+
+export function creditsForMission(chapter: number): number {
+    return 500 * chapter;
+}
+
 // The API returns questions without correct answers.
 export interface MissionQuestion {
     challengeId: number;
@@ -21,17 +31,24 @@ export interface MissionAnswers {
     [challengeId: number]: string;
 }
 
-export type MissionResult =
-    | {
-          passed: false;
-          message: string;
-      }
-    | {
-          passed: true;
-          credits: number;
-          experiencePoints: number;
-          rank: string;
-      };
+// What POST /api/missions/{planetId}/submit returns.
+export interface MissionResult {
+    passed: boolean;
+    correctCount: number;
+    totalQuestions: number;
+
+    // true when the mission was passed before (a replay)
+    alreadyCompleted: boolean;
+
+    // the real rewards: 0 on a failed mission or a replay
+    awardedCredits: number;
+    awardedXp: number;
+
+    // the player's totals after the mission
+    credits: number;
+    experiencePoints: number;
+    rank: string;
+}
 
 // GET /api/missions/{planetId}
 export async function getMission(

@@ -1,18 +1,15 @@
 
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import FormField from "../components/FormField";
 import { usePageTitle } from "../hooks/usePageTitle";
-import { apiRequest, ApiError, saveToken } from "../services/api";
-
-type LoginValues = {
-    email: string;
-    password: string;
-};
-
-type LoginResponse = {
-    token: string;
-};
+import { ApiError, fieldErrors } from "../services/api";
+import { login } from "../services/authService";
+import {
+    validateLogin,
+    type FormErrors,
+    type LoginValues,
+} from "../validation/authValidation";
 
 const fields: (keyof LoginValues)[] = ["email", "password"];
 
@@ -32,28 +29,22 @@ function LoginPage() {
 
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [notice, setNotice] = useState<string | null>(null);
+    // "Account created ..." when the player comes here from Sign up
+    const location = useLocation();
+    const [notice, setNotice] = useState<string | null>(
+        (location.state as { message?: string } | null)?.message ?? null
+    );
 
-    function validate() {
-        const errors: Partial<Record<keyof LoginValues, string>> = {};
+    // errors the API sent back for a field (e.g. "email is already taken")
+    const [serverErrors, setServerErrors] =
+        useState<FormErrors<LoginValues>>({});
 
-        if (!values.email.trim()) {
-            errors.email = "Email is required.";
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
-            errors.email = "Enter a valid email address.";
-        }
+    const errors = validateLogin(values);
 
-        if (!values.password) {
-            errors.password = "Password is required.";
-        }
-
-        return errors;
-    }
-
-    const errors = validate();
-
+    // the client-side message first, otherwise the API's message for the field
     const visibleError = (field: keyof LoginValues) =>
-        touched[field] || submitted ? errors[field] : undefined;
+        (touched[field] || submitted ? errors[field] : undefined)
+        ?? serverErrors[field];
 
     function update(field: keyof LoginValues, value: string) {
         setValues(current => ({
@@ -62,6 +53,12 @@ function LoginPage() {
         }));
 
         setNotice(null);
+
+        // the API's message is about the old value, so drop it while typing
+        setServerErrors(current => ({
+            ...current,
+            [field]: undefined,
+        }));
     }
 
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -82,31 +79,23 @@ function LoginPage() {
         setLoading(true);
 
         try {
-            const response = await apiRequest<LoginResponse>(
-                "/api/auth/login",
-                {
-                    method: "POST",
-                    body: JSON.stringify({
-                        email: values.email.trim(),
-                        password: values.password,
-                    }),
-                }
-            );
-
-            if (!response.token) {
-                throw new Error("The API did not return a token.");
-            }
-
-            saveToken(response.token);
+            await login(values.email, values.password);
 
             navigate("/progress", { replace: true });
         } catch (error) {
-            if (error instanceof ApiError) {
+            // show the API's field errors under the fields, the rest above the form
+            const apiErrors = fieldErrors(error, fields);
+            const firstField = fields.find(field => apiErrors[field]);
+
+            setServerErrors(apiErrors);
+
+            if (firstField) {
+                setNotice("Please fix the highlighted fields.");
+                document.getElementById(firstField)?.focus();
+            } else if (error instanceof ApiError) {
                 setNotice(error.message);
             } else {
-                setNotice(
-                    "Login failed. Please try again."
-                );
+                setNotice("Login failed. Please try again.");
             }
         } finally {
             setLoading(false);

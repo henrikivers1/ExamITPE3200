@@ -1,0 +1,93 @@
+/* Mission page (MissionPage.tsx), same look as Views/Planet/Mission.cshtml.css in Subapp 1 */
+
+/* the planet, huge and dimmed, sitting behind the whole page */
+.mission-planet {
+  --gs-planet-size: min(115vmin, 1200px);
+  position: fixed;
+  left: 50%;
+  top: 55%;
+  z-index: -1;
+  translate: -50% -50%;
+  opacity: 0.45;
+  box-shadow: 0 0 160px var(--gs-planet-glow, rgba(255, 255, 255, 0.15));
+  pointer-events: none;
+  animation: mission-planet-turn 40s ease-in-out infinite;
+}
+
+/* the planet shading is tuned for small planets, so scale it up to match */
+.mission-planet::before {
+  box-shadow: inset -120px -120px 200px rgba(0, 0, 0, 0.55), inset 30px 30px 80px rgba(255, 255, 255, 0.12);
+}
+
+/* slow tilt and swell so the background planet feels alive without distracting */
+@keyframes mission-planet-turn {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(4deg) scale(1.03); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mission-planet {
+    animation: none;
+  }
+}
+
+/* space between the "Chapter 1" badge and the mission name */
+.mission-title {
+  margin-top: 1rem;
+}
+
+/* see-through card so the planet still shows behind the questions */
+.mission-card {
+  background: rgba(15, 22, 40, 0.82);
+  backdrop-filter: blur(8px);
+}
+
+/* the briefing shown before the first question */
+.mission-briefing {
+  text-align: center;
+}
+
+.mission-briefing h2 {
+  margin-bottom: 1rem;
+}
+
+/* row holding the reward pills, centered and wrapping on small screens */
+.mission-rewards {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+/* one reward pill, gold by default for credits */
+.mission-reward {
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  background: var(--gs-accent-soft);
+  color: var(--gs-accent);
+  font-weight: 700;
+}
+
+/* violet variant for the XP pill, matching the XP bar */
+.mission-reward--xp {
+  background: rgba(124, 92, 255, 0.16);
+  color: #a993ff;
+}
+
+.mission-start {
+  margin-top: 1.5rem;
+}
+
+/* "You got 8 of 10 correct", brighter than normal paragraph text */
+.mission-score {
+  color: var(--gs-text);
+  font-weight: 600;
+}
+
+/* shown in the briefing when the mission was already completed */
+.mission-replay-note {
+  margin-top: 1.25rem;
+  color: #3ecf8e;
+  font-weight: 500;
+}

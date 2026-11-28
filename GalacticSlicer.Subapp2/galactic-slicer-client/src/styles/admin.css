@@ -1,0 +1,147 @@
+/* Manage Planets / Manage Characters (AdminPlanetsPage, AdminCharactersPage).
+   Same look as Planet/Manage and Character/Manage in Subapp 1,
+   which use Bootstrap's "table table-dark table-hover". */
+
+/* "Add Planet" + "Back to the Starchart" under the heading */
+.gs-admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+/* the create / edit form, in the same card as the Log in form */
+.gs-admin-editor {
+  max-width: 560px;
+  margin: 0 auto 2rem;
+  scroll-margin-top: 90px;
+}
+
+/* labels and fields left-aligned like the forms in Subapp 1; the heading stays centred */
+.gs-admin-editor form {
+  text-align: left;
+}
+
+.gs-admin-editor label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gs-text);
+}
+
+/* the table scrolls sideways on small phones instead of the whole page */
+.gs-admin-table-wrap {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding-bottom: 3rem;
+  overflow-x: auto;
+}
+
+.gs-admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #212529;
+  color: #fff;
+  text-align: left;
+}
+
+.gs-admin-table th,
+.gs-admin-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #495057;
+  vertical-align: middle;
+}
+
+.gs-admin-table th {
+  font-weight: 700;
+}
+
+.gs-admin-table tbody tr:hover {
+  background: #2c3034;
+}
+
+/* Edit / Delete / Locked, right-aligned like "text-end" in Subapp 1 */
+.gs-admin-table .gs-admin-actions-cell {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.gs-admin-actions-cell .gs-btn + .gs-btn {
+  margin-left: 0.25rem;
+}
+
+/* phones: hide the less important columns, so Edit and Delete fit without scrolling
+   (the subject and tier are still shown in the edit form and the Shop) */
+@media (max-width: 575.98px) {
+  .gs-admin-hide-sm {
+    display: none;
+  }
+
+  .gs-admin-table th,
+  .gs-admin-table td {
+    padding: 0.5rem 0.35rem;
+  }
+
+  /* Edit above Delete/Locked instead of side by side */
+  .gs-admin-table .gs-admin-actions-cell {
+    white-space: normal;
+  }
+
+  .gs-admin-actions-cell .gs-btn {
+    display: flex;
+    width: fit-content;
+    margin-left: auto;
+  }
+
+  .gs-admin-actions-cell .gs-btn + .gs-btn {
+    margin-left: auto;
+    margin-top: 0.25rem;
+  }
+}
+
+/* small planet in the first column (a span, so it needs display: block to get a size) */
+.gs-admin-table .gs-planet {
+  --gs-planet-size: 36px;
+  display: block;
+}
+
+/* small character badge in the first column */
+.gs-admin-badge {
+  display: block;
+  width: 34px;
+}
+
+/* success / error message after saving or deleting, same as Subapp 1 */
+.gs-admin-message {
+  max-width: 1000px;
+  margin: 0 auto 1.25rem;
+  padding: 0.7rem 1rem;
+  border-radius: var(--gs-radius-sm);
+  text-align: center;
+  font-weight: 500;
+}
+
+.gs-admin-message--success {
+  background: rgba(62, 207, 142, 0.14);
+  border: 1px solid #3ecf8e;
+  color: #3ecf8e;
+}
+
+.gs-admin-message--error {
+  background: rgba(239, 91, 91, 0.12);
+  border: 1px solid rgba(239, 91, 91, 0.45);
+  color: #f59a9a;
+}
+
+/* delete button, same as Subapp 1 */
+.gs-btn--danger {
+  color: #f59a9a;
+  border: 1px solid rgba(239, 91, 91, 0.5);
+  background: transparent;
+}
+
+.gs-btn--danger:hover {
+  color: #fff;
+  background: #d94848;
+  border-color: #d94848;
+}

@@ -224,6 +224,13 @@ a:hover {
   font-size: 0.875rem;
 }
 
+/* "Manage planets" / "Manage characters", only shown to admins */
+.gs-admin-link {
+  display: flex;
+  justify-content: center;
+  margin: 0.75rem 0 1rem;
+}
+
 .gs-btn--lg {
   padding: 0.85rem 1.6rem;
   font-size: 1rem;
@@ -1207,6 +1214,52 @@ a.gs-star-node-link:hover .gs-star-node-name {
   gap: 0.5rem;
 }
 
+/* ---------- navbar: badge, name and Credits (NavUser, same as site.css) ---------- */
+
+.gs-nav-user {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.75rem 0.35rem 0.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--gs-border);
+  background: var(--gs-bg-elevated);
+}
+
+.gs-user-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--gs-text);
+}
+
+.gs-user-credits {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gs-accent);
+  border-left: 1px solid var(--gs-border);
+  padding-left: 0.6rem;
+}
+
+/* the equipped badge, small enough for the navbar */
+.gs-user-badge {
+  display: block;
+  width: 34px;
+  margin: -3px 0;
+}
+
+/* small glow in the tier color (set on the svg, since --tier is defined there) */
+.gs-user-badge .gs-badge {
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--tier) 60%, transparent));
+}
+
+/* thicker emblem lines so the emblem is still readable at navbar size */
+.gs-user-badge .gs-badge-icon {
+  stroke-width: 2.4;
+}
+
 /* ---------- auth forms (login / sign up) ---------- */
 
 .gs-auth-wrapper {
@@ -1597,8 +1650,8 @@ a.gs-star-node-link:hover .gs-star-node-name {
   overflow: visible;
 }
 
-/* tier colors (same as the Shop cards): starter grey-blue, uncommon teal, rare blue, epic violet, legendary gold */
-.gs-badge--starter { --tier: #8fa3c4; }
+/* tier colors (same as the Shop cards): common grey-blue, uncommon teal, rare blue, epic violet, legendary gold */
+.gs-badge--common { --tier: #8fa3c4; }
 .gs-badge--uncommon { --tier: #3ec9c0; }
 .gs-badge--rare { --tier: #4d8dff; }
 .gs-badge--epic { --tier: #8f73ff; }

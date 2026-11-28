@@ -16,8 +16,10 @@ function PilotPanel({ progress }: PilotPanelProps) {
     const nextPlanet = planets.find(p => p.isUnlocked && !p.isCompleted) ?? null;
     // last unlocked planet, for "Replay" when every unlocked mission is completed
     const lastUnlocked = [...planets].reverse().find(p => p.isUnlocked) ?? null;
-    // next locked planet, for "Kamino unlocks at 3000 XP"
-    const nextLocked = planets.find(p => !p.isUnlocked) ?? null;
+    // next locked planet and the mission before it, for "Pass the Naboo mission to unlock Coruscant"
+    const nextLockedIndex = planets.findIndex(p => !p.isUnlocked);
+    const nextLocked = nextLockedIndex > 0 ? planets[nextLockedIndex] : null;
+    const unlockedBy = nextLockedIndex > 0 ? planets[nextLockedIndex - 1] : null;
 
     return (
         <section className="pilot-wrapper">
@@ -57,8 +59,9 @@ function PilotPanel({ progress }: PilotPanelProps) {
                     )}
                     <Link className="gs-btn gs-btn--outline" to="/challenges/topics">Practice</Link>
                 </div>
-                {nextLocked && (
-                    <p className="pilot-hint">{nextLocked.name} unlocks at {nextLocked.requiredXp} XP</p>
+                {/* each passed mission unlocks the next planet, so name the mission to pass */}
+                {nextLocked && unlockedBy && (
+                    <p className="pilot-hint">Pass the {unlockedBy.name} mission to unlock {nextLocked.name}</p>
                 )}
 
                 {/* mini starchart: every planet with its status */}

@@ -62,22 +62,18 @@ public class PlanetProgressService
             .ToList();
     }
 
-    // Existing XP limits remain compatible with progress earned before
-    // mission rewards were standardized. The previous mission must also
-    // be completed, so XP alone can never skip a chapter.
+    // Same rule as Subapp 1: each chapter needs one more mission's worth of XP
+    // (Tatooine 0, Naboo 2000, Coruscant 4000 ... Endor 10000), so passing every
+    // mission once always unlocks the next planet. The previous missions must
+    // also be completed, so XP alone can never skip a chapter.
     public int GetRequiredXp(int planetOrder)
     {
-        return planetOrder switch
+        if (planetOrder < 1)
         {
-            1 => 0,         // Tatooine
-            2 => 500,       // Naboo
-            3 => 1500,      // Coruscant
-            4 => 3000,      // Kamino
-            5 => 5000,      // Hoth
-            6 => 6000,      // Endor
-            >= 7 => 6000 + (planetOrder - 6) * 2000,
-            _ => int.MaxValue // Invalid planet orders stay locked
-        };
+            return int.MaxValue; // Invalid planet orders stay locked
+        }
+
+        return (planetOrder - 1) * ChallengeCompletionService.XpPerMission;
     }
 }
 

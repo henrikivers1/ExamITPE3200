@@ -12,6 +12,17 @@ export interface PlanetStatus extends Planet {
     requiredXp: number;
 }
 
+// One graded mission, passed or failed (the mission history)
+export interface MissionAttempt {
+    planetName: string;
+    correctCount: number;
+    totalQuestions: number;
+    passed: boolean;
+
+    // ISO date in UTC, e.g. "2026-11-28T14:05:00Z"
+    attemptedAt: string;
+}
+
 // Everything the Progress page shows
 // for the logged-in player.
 export interface PlayerProgress {
@@ -37,4 +48,7 @@ export interface PlayerProgress {
 
     // Every planet in chapter order.
     planets: PlanetStatus[];
+
+    // The latest graded missions, newest first
+    recentAttempts: MissionAttempt[];
 }

@@ -8,7 +8,7 @@ import {
 import { Link } from "react-router-dom";
 
 import { usePageTitle } from "../hooks/usePageTitle";
-import { getToken } from "../services/api";
+import { getToken, isAdminUser } from "../services/api";
 import {
     getPlanets,
     createPlanet,
@@ -16,6 +16,7 @@ import {
     deletePlanet,
     type PlanetInput,
 } from "../services/planetService";
+import { getChallenges } from "../services/challengeService";
 
 import type { Planet } from "../types/Planet";
 
@@ -47,47 +48,15 @@ function isOfficialPlanet(planet: Planet): boolean {
     );
 }
 
-// Used to control the visibility of the admin interface.
-// The API enforces the actual authorization.
-function hasAdminRole(token: string | null): boolean {
-    if (!token) return false;
-
-    try {
-        const parts = token.split(".");
-        if (parts.length !== 3) return false;
-
-        const base64 = parts[1]
-            .replace(/-/g, "+")
-            .replace(/_/g, "/");
-
-        const payload = JSON.parse(
-            atob(base64)
-        ) as Record<string, unknown>;
-
-        const roleClaim =
-            payload.role ??
-            payload.roles ??
-            payload[
-                "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-            ];
-
-        return (
-            roleClaim === "Admin" ||
-            (
-                Array.isArray(roleClaim) &&
-                roleClaim.includes("Admin")
-            )
-        );
-    } catch {
-        return false;
-    }
-}
-
 function AdminPlanetsPage() {
     usePageTitle("Manage Planets");
 
     const [planets, setPlanets] =
         useState<Planet[]>([]);
+
+    // Official questions per planet (PlanetId -> count)
+    const [questionCounts, setQuestionCounts] =
+        useState<Record<number, number>>({});
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -105,9 +74,8 @@ function AdminPlanetsPage() {
 
     const editorRef = useRef<HTMLElement>(null);
 
-    const token = getToken();
-    const isLoggedIn = Boolean(token);
-    const isAdmin = hasAdminRole(token);
+    const isLoggedIn = Boolean(getToken());
+    const isAdmin = isAdminUser();
 
     const editingOfficialPlanet =
         editor?.mode === "edit" &&
@@ -137,9 +105,25 @@ function AdminPlanetsPage() {
 
         async function load() {
             try {
-                const data = await getPlanets();
+                const [data, challenges] = await Promise.all([
+                    getPlanets(),
+                    getChallenges(),
+                ]);
 
                 if (cancelled) return;
+
+                // Count the questions that belong to each planet.
+                // Players' own questions have no planet.
+                const counts: Record<number, number> = {};
+
+                for (const challenge of challenges) {
+                    if (challenge.planetId !== null) {
+                        counts[challenge.planetId] =
+                            (counts[challenge.planetId] ?? 0) + 1;
+                    }
+                }
+
+                setQuestionCounts(counts);
 
                 setPlanets(
                     [...data].sort(
@@ -389,54 +373,52 @@ function AdminPlanetsPage() {
             <section className="gs-page-intro">
                 <h1>Manage Planets</h1>
 
-                <p>
-                    Create, update and manage planets
-                    in Galactic Slicer.
-                </p>
-
-                <div className="gs-button-row">
-                    <button
-                        type="button"
-                        className="gs-btn gs-btn--primary"
-                        onClick={openCreate}
-                        disabled={saving}
-                    >
-                        Create New Planet
-                    </button>
-
-                    <Link
-                        to="/planets"
-                        className="gs-btn gs-btn--outline"
-                    >
-                        View Galaxy
-                    </Link>
-                </div>
+                <p>Add, edit and remove the planets on the Starchart.</p>
             </section>
 
+            {/* Message after saving or deleting, like TempData in Subapp 1 */}
+            {notice && (
+                <div
+                    className="gs-admin-message gs-admin-message--success"
+                    role="status"
+                >
+                    {notice}
+                </div>
+            )}
+
             {error && (
-                <p
-                    className="challenge-empty"
+                <div
+                    className="gs-admin-message gs-admin-message--error"
                     role="alert"
                 >
                     {error}
-                </p>
+                </div>
             )}
 
-            {notice && (
-                <p role="status">
-                    {notice}
-                </p>
-            )}
+            <div className="gs-admin-actions">
+                <button
+                    type="button"
+                    className="gs-btn gs-btn--primary"
+                    onClick={openCreate}
+                    disabled={saving}
+                >
+                    Add Planet
+                </button>
+
+                <Link
+                    to="/planets"
+                    className="gs-btn gs-btn--ghost"
+                >
+                    Back to the Starchart
+                </Link>
+            </div>
 
             {/* CREATE / EDIT FORM */}
 
             {editor && (
                 <section
                     ref={editorRef}
-                    className="gs-page-intro"
-                    style={{
-                        scrollMarginTop: "90px",
-                    }}
+                    className="gs-auth-card gs-admin-editor"
                 >
                     <h2>
                         {editor.mode === "create"
@@ -592,68 +574,63 @@ function AdminPlanetsPage() {
                 </section>
             )}
 
-            {/* PLANET LIST */}
+            {/* PLANET LIST: same table as Planet/Manage in Subapp 1 */}
 
-            <section>
-                <h2>Existing Planets</h2>
+            {loading ? (
+                <p className="gs-page-intro" role="status">
+                    Loading planets...
+                </p>
+            ) : planets.length === 0 ? (
+                <p className="gs-page-intro">
+                    No planets yet. Add the first one above.
+                </p>
+            ) : (
+                <section
+                    className="gs-admin-table-wrap"
+                    aria-label="Planets"
+                >
+                    <table className="gs-admin-table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <span className="gs-sr-only">
+                                        Planet
+                                    </span>
+                                </th>
+                                <th>Chapter</th>
+                                <th>Name</th>
+                                <th className="gs-admin-hide-sm">Mission subject</th>
+                                <th className="gs-admin-hide-sm">Questions</th>
+                                <th className="gs-admin-actions-cell">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
 
-                {loading ? (
-                    <p role="status">
-                        Loading planets...
-                    </p>
-                ) : planets.length === 0 ? (
-                    <p className="challenge-empty">
-                        No planets found.
-                    </p>
-                ) : (
-                    <div className="gs-challenge-list">
-                        {planets.map(planet => {
-                            const official =
-                                isOfficialPlanet(planet);
-
-                            return (
-                                <article
-                                    key={planet.planetId}
-                                    className="gs-page-intro"
-                                >
-                                    <h3>
-                                        Chapter {planet.order}:{" "}
-                                        {planet.name}
-                                    </h3>
-
-                                    {official && (
-                                        <p>
-                                            Official Planet
-                                        </p>
-                                    )}
-
-                                    {planet.subject && (
-                                        <p>
-                                            <strong>
-                                                Subject:
-                                            </strong>{" "}
-                                            {planet.subject}
-                                        </p>
-                                    )}
-
-                                    {planet.description && (
-                                        <p>
-                                            {planet.description}
-                                        </p>
-                                    )}
-
-                                    <p>
-                                        <strong>
-                                            CSS:
-                                        </strong>{" "}
-                                        {planet.cssClass}
-                                    </p>
-
-                                    <div className="gs-button-row">
+                        <tbody>
+                            {planets.map(planet => (
+                                <tr key={planet.planetId}>
+                                    <td>
+                                        <span
+                                            className={`gs-planet gs-planet--${planet.cssClass}`}
+                                            aria-hidden="true"
+                                        />
+                                    </td>
+                                    <td>{planet.order}</td>
+                                    <td>{planet.name}</td>
+                                    <td className="gs-admin-hide-sm">
+                                        {planet.subject ??
+                                            "Mixed (every subject)"}
+                                    </td>
+                                    <td className="gs-admin-hide-sm">
+                                        {questionCounts[planet.planetId] ?? 0}
+                                    </td>
+                                    <td className="gs-admin-actions-cell">
                                         <button
                                             type="button"
-                                            className="gs-btn gs-btn--outline"
+                                            className="gs-btn gs-btn--outline gs-btn--sm"
                                             disabled={saving}
+                                            aria-label={`Edit ${planet.name}`}
                                             onClick={() =>
                                                 openEdit(planet)
                                             }
@@ -661,11 +638,19 @@ function AdminPlanetsPage() {
                                             Edit
                                         </button>
 
-                                        {!official && (
+                                        {isOfficialPlanet(planet) ? (
+                                            <span
+                                                className="gs-btn gs-btn--sm gs-btn--ghost"
+                                                title="Official planets can't be deleted"
+                                            >
+                                                Locked
+                                            </span>
+                                        ) : (
                                             <button
                                                 type="button"
-                                                className="gs-btn gs-btn--outline"
+                                                className="gs-btn gs-btn--sm gs-btn--danger"
                                                 disabled={saving}
+                                                aria-label={`Delete ${planet.name}`}
                                                 onClick={() =>
                                                     void handleDelete(
                                                         planet
@@ -675,13 +660,13 @@ function AdminPlanetsPage() {
                                                 Delete
                                             </button>
                                         )}
-                                    </div>
-                                </article>
-                            );
-                        })}
-                    </div>
-                )}
-            </section>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </section>
+            )}
         </>
     );
 }

@@ -1,7 +1,9 @@
 
 import { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { clearToken, getToken } from "../services/api";
+import { getToken } from "../services/api";
+import { logout } from "../services/authService";
+import NavUser from "./NavUser";
 
 const links = [
     { to: "/", label: "Home" },
@@ -57,7 +59,7 @@ function Navbar() {
 
     // Remove JWT and return to the home page
     function handleLogout() {
-        clearToken();
+        logout();
         setIsLoggedIn(false);
         setMenuOpen(false);
         navigate("/", { replace: true });
@@ -138,13 +140,18 @@ function Navbar() {
 
                     <div className="gs-nav-auth">
                         {isLoggedIn ? (
-                            <button
-                                type="button"
-                                className="gs-btn gs-btn--ghost"
-                                onClick={handleLogout}
-                            >
-                                Log out
-                            </button>
+                            <>
+                                {/* badge, name and Credits, like NavUserViewComponent in Subapp 1 */}
+                                <NavUser />
+
+                                <button
+                                    type="button"
+                                    className="gs-btn gs-btn--ghost gs-btn--sm"
+                                    onClick={handleLogout}
+                                >
+                                    Log out
+                                </button>
+                            </>
                         ) : (
                             <>
                                 <Link

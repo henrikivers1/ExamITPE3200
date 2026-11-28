@@ -20,4 +20,7 @@ public class PlayerProgressDto
     public CharacterDto? ActiveCharacter { get; set; }
 
     public List<PlanetStatusDto> Planets { get; set; } = new();
+
+    // The latest graded missions, newest first (the mission history)
+    public List<MissionAttemptDto> RecentAttempts { get; set; } = new();
 }

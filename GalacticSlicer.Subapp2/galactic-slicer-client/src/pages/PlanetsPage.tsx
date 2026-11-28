@@ -14,7 +14,7 @@ import type {
 
 import { getPlanets } from "../services/planetService";
 import { getProgress } from "../services/progressService";
-import { getToken } from "../services/api";
+import { getToken, isAdminUser } from "../services/api";
 
 import PlanetCard from "../components/PlanetCard";
 import { usePageTitle } from "../hooks/usePageTitle";
@@ -37,6 +37,7 @@ function PlanetsPage() {
         useState<string | null>(null);
 
     const isLoggedIn = Boolean(getToken());
+    const isAdmin = isAdminUser();
 
     // ============================================
     // LOAD PLANETS AND PLAYER PROGRESS
@@ -240,6 +241,18 @@ function PlanetsPage() {
                         ))}
                     </ol>
                 </section>
+            )}
+
+            {/* Only admins can manage planets */}
+            {isAdmin && (
+                <div className="gs-admin-link">
+                    <Link
+                        to="/admin/planets"
+                        className="gs-btn gs-btn--outline gs-btn--sm"
+                    >
+                        Manage planets
+                    </Link>
+                </div>
             )}
         </>
     );

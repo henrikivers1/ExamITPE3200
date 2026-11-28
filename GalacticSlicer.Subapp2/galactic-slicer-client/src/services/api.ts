@@ -41,6 +41,38 @@ export function getToken(): string | null {
     }
 }
 
+// Reads the role from the JWT, so the client can show admin links and pages.
+// The API still checks the Admin role on every write.
+export function isAdminUser(): boolean {
+    const token = getToken();
+
+    if (!token) return false;
+
+    try {
+        const payload = JSON.parse(
+            atob(
+                token.split(".")[1]
+                    .replace(/-/g, "+")
+                    .replace(/_/g, "/")
+            )
+        ) as Record<string, unknown>;
+
+        const role =
+            payload.role ??
+            payload.roles ??
+            payload[
+                "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+            ];
+
+        return (
+            role === "Admin" ||
+            (Array.isArray(role) && role.includes("Admin"))
+        );
+    } catch {
+        return false;
+    }
+}
+
 export class ApiError extends Error {
     status: number;
     errors: Record<string, string[]>;
@@ -55,6 +87,28 @@ export class ApiError extends Error {
         this.status = status;
         this.errors = errors;
     }
+}
+
+// The API's per-field errors for the given form fields, e.g. { email: "..." }.
+// ASP.NET names the fields like the DTO ("Email", "$.email"), so the match ignores case.
+export function fieldErrors<T extends string>(
+    error: unknown,
+    fields: readonly T[]
+): Partial<Record<T, string>> {
+    const result: Partial<Record<T, string>> = {};
+
+    if (!(error instanceof ApiError)) return result;
+
+    for (const [key, messages] of Object.entries(error.errors)) {
+        const name = key.replace(/^\$\./, "").toLowerCase();
+        const field = fields.find(f => f.toLowerCase() === name);
+
+        if (field && messages.length > 0) {
+            result[field] = messages.join(" ");
+        }
+    }
+
+    return result;
 }
 
 export async function apiRequest<T>(
@@ -107,16 +161,25 @@ export async function apiRequest<T>(
         let errors: Record<string, string[]> = {};
 
         if (Array.isArray(problem)) {
-            const descriptions = problem
-                .filter(
-                    item =>
-                        item &&
-                        typeof item.description === "string"
-                )
-                .map(item => item.description as string);
+            // ASP.NET Identity errors: [{ code, description }]
+            const items = problem.filter(
+                item =>
+                    item &&
+                    typeof item.description === "string"
+            ) as { code?: string; description: string }[];
 
-            if (descriptions.length > 0) {
-                message = descriptions.join(" ");
+            if (items.length > 0) {
+                message = items
+                    .map(item => item.description)
+                    .join(" ");
+            }
+
+            for (const item of items) {
+                const key = item.code ?? "General";
+                errors[key] = [
+                    ...(errors[key] ?? []),
+                    item.description,
+                ];
             }
         } else if (typeof problem === "string") {
             message = problem;
@@ -129,12 +192,18 @@ export async function apiRequest<T>(
                 errors?: Record<string, string[]>;
             };
 
+            errors = data.errors ?? {};
+
+            const fieldMessages = Object.values(errors).flat();
+
             message = data.message
                 ?? data.detail
+                ?? (fieldMessages.length > 0
+                    ? fieldMessages.join(" ")
+                    : undefined)
                 ?? data.title
                 ?? data.error
                 ?? message;
-            errors = data.errors ?? {};
         }
 
         // Invalid/expired authentication must not remain cached.

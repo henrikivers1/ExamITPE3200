@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GalacticSlicer.Api.Tests;
 
@@ -154,14 +155,16 @@ public class ProgressionTests
     {
         await using var database = await TestDatabase.CreateAsync();
         var tatooine = await database.PlanetByOrderAsync(1);
-        var answers = await database.AnswersForPlanetAsync(
-            tatooine.PlanetId,
-            correctAnswers: 8);
+        var controller = database.CreateMissionsController();
+        var questions = MissionQuestionsFrom(
+            await controller.GetMission(tatooine.PlanetId));
 
-        var result = await database.CreateMissionsController()
-            .SubmitMission(
-                tatooine.PlanetId,
-                new MissionSubmitDto { Answers = answers });
+        var result = await controller.SubmitMission(
+            tatooine.PlanetId,
+            new MissionSubmitDto
+            {
+                Answers = AnswersFor(questions, correctAnswers: 8)
+            });
 
         Assert.True(PassedFrom(result));
 
@@ -185,14 +188,16 @@ public class ProgressionTests
     {
         await using var database = await TestDatabase.CreateAsync();
         var tatooine = await database.PlanetByOrderAsync(1);
-        var answers = await database.AnswersForPlanetAsync(
-            tatooine.PlanetId,
-            correctAnswers: 7);
+        var controller = database.CreateMissionsController();
+        var questions = MissionQuestionsFrom(
+            await controller.GetMission(tatooine.PlanetId));
 
-        var result = await database.CreateMissionsController()
-            .SubmitMission(
-                tatooine.PlanetId,
-                new MissionSubmitDto { Answers = answers });
+        var result = await controller.SubmitMission(
+            tatooine.PlanetId,
+            new MissionSubmitDto
+            {
+                Answers = AnswersFor(questions, correctAnswers: 7)
+            });
 
         Assert.False(PassedFrom(result));
 
@@ -205,24 +210,36 @@ public class ProgressionTests
     }
 
     [Fact]
-    public async Task CompletedMission_CannotAwardRewardsTwice()
+    public async Task CompletedMission_Replay_PassesWithoutSecondReward()
     {
         await using var database = await TestDatabase.CreateAsync();
         var tatooine = await database.PlanetByOrderAsync(1);
-        var answers = await database.AnswersForPlanetAsync(
-            tatooine.PlanetId,
-            correctAnswers: 10);
         var controller = database.CreateMissionsController();
 
+        var firstQuestions = MissionQuestionsFrom(
+            await controller.GetMission(tatooine.PlanetId));
         var firstResult = await controller.SubmitMission(
             tatooine.PlanetId,
-            new MissionSubmitDto { Answers = answers });
-        var secondResult = await controller.SubmitMission(
+            new MissionSubmitDto
+            {
+                Answers = AnswersFor(firstQuestions, correctAnswers: 10)
+            });
+
+        // the completed mission can be fetched and played again
+        var replayQuestions = MissionQuestionsFrom(
+            await controller.GetMission(tatooine.PlanetId));
+        var replayResult = await controller.SubmitMission(
             tatooine.PlanetId,
-            new MissionSubmitDto { Answers = answers });
+            new MissionSubmitDto
+            {
+                Answers = AnswersFor(replayQuestions, correctAnswers: 10)
+            });
 
         Assert.True(PassedFrom(firstResult));
-        Assert.IsType<ConflictObjectResult>(secondResult);
+        Assert.True(PassedFrom(replayResult));
+        Assert.True(ValueFrom<bool>(replayResult, "alreadyCompleted"));
+        Assert.Equal(0, ValueFrom<int>(replayResult, "awardedXp"));
+        Assert.Equal(0, ValueFrom<int>(replayResult, "awardedCredits"));
 
         database.Context.ChangeTracker.Clear();
         var progress = await database.ProgressAsync();
@@ -233,6 +250,40 @@ public class ProgressionTests
             ChallengeCompletionService.CreditsForMission(1),
             progress.Credits);
         Assert.Single(await database.Context.CompletedMissions.ToListAsync());
+    }
+
+    [Fact]
+    public async Task Submit_QuestionsThatWereNotHandedOut_IsRejected()
+    {
+        await using var database = await TestDatabase.CreateAsync();
+        var tatooine = await database.PlanetByOrderAsync(1);
+        var controller = database.CreateMissionsController();
+        var questions = MissionQuestionsFrom(
+            await controller.GetMission(tatooine.PlanetId));
+
+        // swap one handed-out question for another Tatooine question
+        var handedOut = questions.Select(q => q.ChallengeId).ToHashSet();
+        int otherId = await database.Context.Challenges
+            .Where(c =>
+                c.PlanetId == tatooine.PlanetId &&
+                !handedOut.Contains(c.ChallengeId))
+            .Select(c => c.ChallengeId)
+            .FirstAsync();
+
+        var answers = AnswersFor(questions, correctAnswers: 10);
+        answers.Remove(questions[0].ChallengeId);
+        answers[otherId] = "A";
+
+        var result = await controller.SubmitMission(
+            tatooine.PlanetId,
+            new MissionSubmitDto { Answers = answers });
+
+        Assert.IsType<BadRequestObjectResult>(result);
+
+        database.Context.ChangeTracker.Clear();
+        var progress = await database.ProgressAsync();
+        Assert.Equal(0, progress.ExperiencePoints);
+        Assert.Empty(await database.Context.CompletedMissions.ToListAsync());
     }
 
     [Fact]
@@ -280,6 +331,80 @@ public class ProgressionTests
     }
 
     [Fact]
+    public async Task FailedMission_IsSavedInMissionHistory()
+    {
+        await using var database = await TestDatabase.CreateAsync();
+        var tatooine = await database.PlanetByOrderAsync(1);
+        var controller = database.CreateMissionsController();
+        var questions = MissionQuestionsFrom(
+            await controller.GetMission(tatooine.PlanetId));
+
+        await controller.SubmitMission(
+            tatooine.PlanetId,
+            new MissionSubmitDto
+            {
+                Answers = AnswersFor(questions, correctAnswers: 5)
+            });
+
+        var progress = ProgressFrom(
+            await database.CreateProgressController().GetMyProgress());
+
+        var attempt = Assert.Single(progress.RecentAttempts);
+        Assert.Equal("Tatooine", attempt.PlanetName);
+        Assert.Equal(5, attempt.CorrectCount);
+        Assert.Equal(10, attempt.TotalQuestions);
+        Assert.False(attempt.Passed);
+        Assert.Equal(DateTimeKind.Utc, attempt.AttemptedAt.Kind);
+    }
+
+    [Fact]
+    public async Task Replay_IsSavedInMissionHistoryNewestFirst()
+    {
+        await using var database = await TestDatabase.CreateAsync();
+        var tatooine = await database.PlanetByOrderAsync(1);
+        var controller = database.CreateMissionsController();
+
+        // first a fail, then a pass
+        foreach (int correct in new[] { 6, 9 })
+        {
+            var questions = MissionQuestionsFrom(
+                await controller.GetMission(tatooine.PlanetId));
+
+            await controller.SubmitMission(
+                tatooine.PlanetId,
+                new MissionSubmitDto
+                {
+                    Answers = AnswersFor(questions, correct)
+                });
+        }
+
+        var progress = ProgressFrom(
+            await database.CreateProgressController().GetMyProgress());
+
+        Assert.Equal(2, progress.RecentAttempts.Count);
+        Assert.True(progress.RecentAttempts[0].Passed);
+        Assert.Equal(9, progress.RecentAttempts[0].CorrectCount);
+        Assert.False(progress.RecentAttempts[1].Passed);
+    }
+
+    [Fact]
+    public async Task SaveAttempt_ImpossibleScore_IsRejected()
+    {
+        await using var database = await TestDatabase.CreateAsync();
+        var tatooine = await database.PlanetByOrderAsync(1);
+
+        bool saved = await database.CompletionService.SaveAttemptAsync(
+            TestDatabase.UserId,
+            tatooine.PlanetId,
+            correctCount: 11,
+            totalQuestions: 10,
+            passed: true);
+
+        Assert.False(saved);
+        Assert.Empty(await database.Context.MissionAttempts.ToListAsync());
+    }
+
+    [Fact]
     public async Task Endor_NewPlayer_IsLockedForGetAndSubmit()
     {
         await using var database = await TestDatabase.CreateAsync();
@@ -318,7 +443,7 @@ public class ProgressionTests
     public async Task Endor_InsufficientXp_IsLocked()
     {
         await using var database = await TestDatabase.CreateAsync(
-            experiencePoints: 5_999);
+            experiencePoints: 9_999);
         await database.CompleteMissionsAsync(1, 2, 3, 4, 5);
         var endor = await database.PlanetByOrderAsync(6);
 
@@ -333,7 +458,7 @@ public class ProgressionTests
     public async Task Endor_AllRequirementsMet_IsUnlocked()
     {
         await using var database = await TestDatabase.CreateAsync(
-            experiencePoints: 6_000);
+            experiencePoints: 10_000);
         await database.CompleteMissionsAsync(1, 2, 3, 4, 5);
 
         var result = await database.CreateProgressController()
@@ -346,39 +471,37 @@ public class ProgressionTests
     }
 
     [Fact]
-    public async Task Endor_Get_ReturnsBalancedFifteenWithoutAnswers()
+    public async Task Endor_Get_ReturnsTenFromEverySubjectWithoutAnswers()
     {
         await using var database = await TestDatabase.CreateAsync(
-            experiencePoints: 6_000);
+            experiencePoints: 10_000);
         await database.CompleteMissionsAsync(1, 2, 3, 4, 5);
         var endor = await database.PlanetByOrderAsync(6);
+
+        var subjectPlanetIds = await database.Context.Planets
+            .Where(p => p.Subject != null)
+            .Select(p => p.PlanetId)
+            .ToListAsync();
 
         var result = await database.CreateMissionsController()
             .GetMission(endor.PlanetId);
         var questions = MissionQuestionsFrom(result);
 
         Assert.Equal(
-            ChallengeCompletionService.QuestionsPerFinalMission,
+            ChallengeCompletionService.QuestionsPerMission,
             questions.Count);
-        Assert.Equal(
-            ChallengeCompletionService.FinalMissionSubjectCount,
-            questions.Select(q => q.Subject).Distinct().Count());
-        Assert.All(
-            questions.GroupBy(q => q.Subject),
-            group => Assert.Equal(
-                ChallengeCompletionService.QuestionsPerFinalSubject,
-                group.Count()));
         Assert.All(questions, question =>
         {
+            Assert.Contains(question.PlanetId!.Value, subjectPlanetIds);
             Assert.Null(question.CorrectAnswer);
             Assert.Null(question.Explanation);
         });
     }
 
     [Fact]
-    public async Task Endor_ElevenCorrect_AwardsNothing()
+    public async Task Endor_SevenCorrect_AwardsNothing()
     {
-        const int startingXp = 6_000;
+        const int startingXp = 10_000;
         const int startingCredits = 100;
 
         await using var database = await TestDatabase.CreateAsync(
@@ -394,7 +517,7 @@ public class ProgressionTests
             endor.PlanetId,
             new MissionSubmitDto
             {
-                Answers = AnswersFor(questions, correctAnswers: 11)
+                Answers = AnswersFor(questions, correctAnswers: 7)
             });
 
         Assert.False(PassedFrom(result));
@@ -408,9 +531,9 @@ public class ProgressionTests
     }
 
     [Fact]
-    public async Task Endor_TwelveCorrect_AwardsFinalRewardsAndCompletes()
+    public async Task Endor_EightCorrect_AwardsFinalRewardsAndCompletes()
     {
-        const int startingXp = 6_000;
+        const int startingXp = 10_000;
         const int startingCredits = 100;
 
         await using var database = await TestDatabase.CreateAsync(
@@ -426,7 +549,7 @@ public class ProgressionTests
             endor.PlanetId,
             new MissionSubmitDto
             {
-                Answers = AnswersFor(questions, correctAnswers: 12)
+                Answers = AnswersFor(questions, correctAnswers: 8)
             });
 
         Assert.True(PassedFrom(result));
@@ -437,7 +560,7 @@ public class ProgressionTests
             startingXp + ChallengeCompletionService.XpPerMission,
             progress.ExperiencePoints);
         Assert.Equal(startingCredits + 3_000, progress.Credits);
-        Assert.Equal("System Architect", progress.Rank);
+        Assert.Equal("Galactic Slicer", progress.Rank);
         Assert.True(await database.Context.CompletedMissions.AnyAsync(
             m => m.PlanetId == endor.PlanetId));
 
@@ -453,7 +576,7 @@ public class ProgressionTests
     public async Task Endor_RepeatedSubmission_DoesNotAwardTwice()
     {
         await using var database = await TestDatabase.CreateAsync(
-            experiencePoints: 6_000);
+            experiencePoints: 10_000);
         await database.CompleteMissionsAsync(1, 2, 3, 4, 5);
         var endor = await database.PlanetByOrderAsync(6);
         var controller = database.CreateMissionsController();
@@ -461,7 +584,7 @@ public class ProgressionTests
             await controller.GetMission(endor.PlanetId));
         var submission = new MissionSubmitDto
         {
-            Answers = AnswersFor(questions, correctAnswers: 15)
+            Answers = AnswersFor(questions, correctAnswers: 10)
         };
 
         var firstResult = await controller.SubmitMission(
@@ -476,7 +599,7 @@ public class ProgressionTests
 
         database.Context.ChangeTracker.Clear();
         var progress = await database.ProgressAsync();
-        Assert.Equal(8_000, progress.ExperiencePoints);
+        Assert.Equal(12_000, progress.ExperiencePoints);
         Assert.Equal(3_000, progress.Credits);
         Assert.Equal(
             1,
@@ -498,6 +621,16 @@ public class ProgressionTests
             .GetProperty("passed");
 
         return Assert.IsType<bool>(property?.GetValue(ok.Value));
+    }
+
+    private static T ValueFrom<T>(IActionResult result, string name)
+    {
+        var ok = Assert.IsType<OkObjectResult>(result);
+        var property = ok.Value?
+            .GetType()
+            .GetProperty(name);
+
+        return Assert.IsType<T>(property?.GetValue(ok.Value));
     }
 
     private static List<ChallengeDto> MissionQuestionsFrom(
@@ -569,6 +702,10 @@ public class ProgressionTests
             services.AddScoped<PlanetProgressService>();
             services.AddScoped<RankService>();
             services.AddScoped<ChallengeCompletionService>();
+            services.AddScoped<MissionService>();
+            services.AddScoped<ProgressDashboardService>();
+            services.AddMemoryCache();
+            services.AddSingleton<MissionQuestionStore>();
 
             var provider = services.BuildServiceProvider();
             var scope = provider.CreateScope();
@@ -586,12 +723,14 @@ public class ProgressionTests
         public MissionsController CreateMissionsController()
         {
             var controller = new MissionsController(
-                Context,
+                _scope.ServiceProvider
+                    .GetRequiredService<MissionService>(),
                 CompletionService,
                 _scope.ServiceProvider
                     .GetRequiredService<PlayerProgressService>(),
                 _scope.ServiceProvider
-                    .GetRequiredService<PlanetProgressService>());
+                    .GetRequiredService<MissionQuestionStore>(),
+                NullLogger<MissionsController>.Instance);
 
             SetAuthenticatedUser(controller);
             return controller;
@@ -601,15 +740,10 @@ public class ProgressionTests
         {
             var controller = new ProgressController(
                 _scope.ServiceProvider
-                    .GetRequiredService<PlayerProgressService>(),
-                Context,
+                    .GetRequiredService<ProgressDashboardService>(),
                 _scope.ServiceProvider
                     .GetRequiredService<UserManager<IdentityUser>>(),
-                _scope.ServiceProvider
-                    .GetRequiredService<RankService>(),
-                _scope.ServiceProvider
-                    .GetRequiredService<PlanetProgressService>(),
-                CompletionService);
+                NullLogger<ProgressController>.Instance);
 
             SetAuthenticatedUser(controller);
             return controller;

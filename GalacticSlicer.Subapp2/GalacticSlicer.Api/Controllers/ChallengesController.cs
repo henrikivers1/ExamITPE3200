@@ -15,10 +15,14 @@ namespace GalacticSlicer.Api.Controllers;
 public class ChallengesController : ControllerBase
 {
     private readonly IChallengeService _service;
+    private readonly ILogger<ChallengesController> _logger;
 
-    public ChallengesController(IChallengeService service)
+    public ChallengesController(
+        IChallengeService service,
+        ILogger<ChallengesController> logger)
     {
         _service = service;
+        _logger = logger;
     }
 
     private string? UserId =>
@@ -69,6 +73,11 @@ public class ChallengesController : ControllerBase
         {
             var challenge = await _service.CreateAsync(dto, UserId);
 
+            _logger.LogInformation(
+                "Challenge {ChallengeId} created by {UserId}",
+                challenge.ChallengeId,
+                UserId);
+
             return CreatedAtAction(
                 nameof(GetById),
                 new { id = challenge.ChallengeId },
@@ -76,6 +85,11 @@ public class ChallengesController : ControllerBase
         }
         catch (ValidationException ex)
         {
+            _logger.LogWarning(
+                "Challenge rejected ({Error}): {Message}",
+                "ValidationException",
+                ex.Message);
+
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -92,10 +106,21 @@ public class ChallengesController : ControllerBase
             var updated = await _service.UpdateAsync(
                 id, dto, UserId);
 
+            _logger.LogInformation(
+                "Update of challenge {ChallengeId} by {UserId}: {Updated}",
+                id,
+                UserId,
+                updated);
+
             return updated ? NoContent() : NotFound();
         }
         catch (ValidationException ex)
         {
+            _logger.LogWarning(
+                "Challenge rejected ({Error}): {Message}",
+                "ValidationException",
+                ex.Message);
+
             return BadRequest(new { error = ex.Message });
         }
     }
@@ -107,6 +132,12 @@ public class ChallengesController : ControllerBase
         if (UserId == null) return Unauthorized();
 
         var deleted = await _service.DeleteAsync(id, UserId);
+
+        _logger.LogInformation(
+            "Delete of challenge {ChallengeId} by {UserId}: {Deleted}",
+            id,
+            UserId,
+            deleted);
 
         return deleted ? NoContent() : NotFound();
     }

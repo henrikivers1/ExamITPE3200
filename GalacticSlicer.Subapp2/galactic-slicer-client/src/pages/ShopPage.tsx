@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ShopCard from "../components/ShopCard";
 import { usePageTitle } from "../hooks/usePageTitle";
-import { getToken } from "../services/api";
+import { getToken, isAdminUser } from "../services/api";
 import {
     getCharacters,
     getOwnedCharacterIds,
@@ -11,7 +11,10 @@ import {
     equipCharacter,
     unequipCharacter,
 } from "../services/characterService";
-import { getProgress } from "../services/progressService";
+import {
+    getProgress,
+    notifyProgressChanged,
+} from "../services/progressService";
 import type {
     Character,
     ShopPlayer,
@@ -37,6 +40,7 @@ function ShopPage() {
         useState<string | null>(null);
 
     const isLoggedIn = Boolean(getToken());
+    const isAdmin = isAdminUser();
 
     // ============================================
     // LOAD SHOP DATA
@@ -118,6 +122,9 @@ function ShopPage() {
             activeCharacterId: progress.activeCharacterId,
             ownedCharacterIds: ownedIds,
         });
+
+        // the navbar shows the Credits and the equipped badge too
+        notifyProgressChanged();
     }
 
     // ============================================
@@ -266,6 +273,18 @@ function ShopPage() {
                         to buy and equip characters.
                     </p>
                 ) : null}
+
+                {/* Only admins can manage characters */}
+                {isAdmin && (
+                    <div className="gs-admin-link">
+                        <Link
+                            to="/admin/characters"
+                            className="gs-btn gs-btn--outline gs-btn--sm"
+                        >
+                            Manage characters
+                        </Link>
+                    </div>
+                )}
             </section>
 
             <div aria-live="polite">
