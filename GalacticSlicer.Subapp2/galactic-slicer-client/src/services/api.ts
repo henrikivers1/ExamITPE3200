@@ -89,6 +89,28 @@ export class ApiError extends Error {
     }
 }
 
+// The API's per-field errors for the given form fields, e.g. { email: "..." }.
+// ASP.NET names the fields like the DTO ("Email", "$.email"), so the match ignores case.
+export function fieldErrors<T extends string>(
+    error: unknown,
+    fields: readonly T[]
+): Partial<Record<T, string>> {
+    const result: Partial<Record<T, string>> = {};
+
+    if (!(error instanceof ApiError)) return result;
+
+    for (const [key, messages] of Object.entries(error.errors)) {
+        const name = key.replace(/^\$\./, "").toLowerCase();
+        const field = fields.find(f => f.toLowerCase() === name);
+
+        if (field && messages.length > 0) {
+            result[field] = messages.join(" ");
+        }
+    }
+
+    return result;
+}
+
 export async function apiRequest<T>(
     path: string,
     options: RequestInit = {}
@@ -139,16 +161,25 @@ export async function apiRequest<T>(
         let errors: Record<string, string[]> = {};
 
         if (Array.isArray(problem)) {
-            const descriptions = problem
-                .filter(
-                    item =>
-                        item &&
-                        typeof item.description === "string"
-                )
-                .map(item => item.description as string);
+            // ASP.NET Identity errors: [{ code, description }]
+            const items = problem.filter(
+                item =>
+                    item &&
+                    typeof item.description === "string"
+            ) as { code?: string; description: string }[];
 
-            if (descriptions.length > 0) {
-                message = descriptions.join(" ");
+            if (items.length > 0) {
+                message = items
+                    .map(item => item.description)
+                    .join(" ");
+            }
+
+            for (const item of items) {
+                const key = item.code ?? "General";
+                errors[key] = [
+                    ...(errors[key] ?? []),
+                    item.description,
+                ];
             }
         } else if (typeof problem === "string") {
             message = problem;
@@ -161,12 +192,18 @@ export async function apiRequest<T>(
                 errors?: Record<string, string[]>;
             };
 
+            errors = data.errors ?? {};
+
+            const fieldMessages = Object.values(errors).flat();
+
             message = data.message
                 ?? data.detail
+                ?? (fieldMessages.length > 0
+                    ? fieldMessages.join(" ")
+                    : undefined)
                 ?? data.title
                 ?? data.error
                 ?? message;
-            errors = data.errors ?? {};
         }
 
         // Invalid/expired authentication must not remain cached.

@@ -3,14 +3,14 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import FormField from "../components/FormField";
 import { usePageTitle } from "../hooks/usePageTitle";
-import { passwordRules } from "../validation/authValidation";
-import { apiRequest, ApiError } from "../services/api";
-
-type SignUpValues = {
-    email: string;
-    password: string;
-    confirmPassword: string;
-};
+import {
+    passwordRules,
+    validateSignUp,
+    type FormErrors,
+    type SignUpValues,
+} from "../validation/authValidation";
+import { ApiError, fieldErrors } from "../services/api";
+import { register } from "../services/authService";
 
 const fields: (keyof SignUpValues)[] = [
     "email",
@@ -37,34 +37,16 @@ function RegisterPage() {
     const [loading, setLoading] = useState(false);
     const [notice, setNotice] = useState<string | null>(null);
 
-    function validate() {
-        const errors: Partial<Record<keyof SignUpValues, string>> = {};
+    // errors the API sent back for a field (e.g. "email is already taken")
+    const [serverErrors, setServerErrors] =
+        useState<FormErrors<SignUpValues>>({});
 
-        if (!values.email.trim()) {
-            errors.email = "Email is required.";
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
-            errors.email = "Enter a valid email address.";
-        }
+    const errors = validateSignUp(values);
 
-        if (!values.password) {
-            errors.password = "Password is required.";
-        } else if (!passwordRules.every(rule => rule.test(values.password))) {
-            errors.password = "Password does not meet all requirements.";
-        }
-
-        if (!values.confirmPassword) {
-            errors.confirmPassword = "Please confirm your password.";
-        } else if (values.password !== values.confirmPassword) {
-            errors.confirmPassword = "Passwords do not match.";
-        }
-
-        return errors;
-    }
-
-    const errors = validate();
-
+    // the client-side message first, otherwise the API's message for the field
     const visibleError = (field: keyof SignUpValues) =>
-        touched[field] || submitted ? errors[field] : undefined;
+        (touched[field] || submitted ? errors[field] : undefined)
+        ?? serverErrors[field];
 
     function update(field: keyof SignUpValues, value: string) {
         setValues(current => ({
@@ -73,6 +55,12 @@ function RegisterPage() {
         }));
 
         setNotice(null);
+
+        // the API's message is about the old value, so drop it while typing
+        setServerErrors(current => ({
+            ...current,
+            [field]: undefined,
+        }));
     }
 
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -93,16 +81,7 @@ function RegisterPage() {
         setLoading(true);
 
         try {
-            await apiRequest<unknown>(
-                "/api/auth/register",
-                {
-                    method: "POST",
-                    body: JSON.stringify({
-                        email: values.email.trim(),
-                        password: values.password,
-                    }),
-                }
-            );
+            await register(values.email, values.password);
 
             navigate("/login", {
                 replace: true,
@@ -112,12 +91,19 @@ function RegisterPage() {
                 },
             });
         } catch (error) {
-            if (error instanceof ApiError) {
+            // show the API's field errors under the fields, the rest above the form
+            const apiErrors = fieldErrors(error, fields);
+            const firstField = fields.find(field => apiErrors[field]);
+
+            setServerErrors(apiErrors);
+
+            if (firstField) {
+                setNotice("Please fix the highlighted fields.");
+                document.getElementById(firstField)?.focus();
+            } else if (error instanceof ApiError) {
                 setNotice(error.message);
             } else {
-                setNotice(
-                    "Registration failed. Please try again."
-                );
+                setNotice("Registration failed. Please try again.");
             }
         } finally {
             setLoading(false);

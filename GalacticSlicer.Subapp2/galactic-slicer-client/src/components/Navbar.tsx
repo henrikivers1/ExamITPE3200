@@ -1,7 +1,8 @@
 
 import { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { clearToken, getToken } from "../services/api";
+import { getToken } from "../services/api";
+import { logout } from "../services/authService";
 
 const links = [
     { to: "/", label: "Home" },
@@ -57,7 +58,7 @@ function Navbar() {
 
     // Remove JWT and return to the home page
     function handleLogout() {
-        clearToken();
+        logout();
         setIsLoggedIn(false);
         setMenuOpen(false);
         navigate("/", { replace: true });

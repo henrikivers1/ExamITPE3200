@@ -1,15 +1,15 @@
 // Client-side validation for the Log in and Sign up forms.
-// Same rules and messages as LoginViewModel and SignUpViewModel in Subapp 1,
-// plus ASP.NET Identity's default password rules (the API uses Identity's defaults).
-// The API must still check everything again: client-side checks only give faster feedback.
+// The API logs in with email (LoginDto and RegisterDto have [Required] and [EmailAddress])
+// and uses ASP.NET Identity's default password rules.
+// The API still checks everything again: client-side checks only give faster feedback.
 
 export interface LoginValues {
-    username: string;
+    email: string;
     password: string;
 }
 
 export interface SignUpValues {
-    username: string;
+    email: string;
     password: string;
     confirmPassword: string;
 }
@@ -26,14 +26,24 @@ export const passwordRules = [
     { label: "A symbol, like ! or #", test: (p: string) => /[^a-zA-Z0-9]/.test(p) },
 ];
 
+function validateEmail(email: string): string | undefined {
+    if (!email.trim()) {
+        return "Email is required.";
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+        return "Enter a valid email address.";
+    }
+    return undefined;
+}
+
 export function validateLogin(values: LoginValues): FormErrors<LoginValues> {
     const errors: FormErrors<LoginValues> = {};
 
-    if (!values.username.trim()) {
-        errors.username = "Please enter your username.";
-    }
+    const email = validateEmail(values.email);
+    if (email) errors.email = email;
+
     if (!values.password) {
-        errors.password = "Please enter your password.";
+        errors.password = "Password is required.";
     }
 
     return errors;
@@ -41,24 +51,20 @@ export function validateLogin(values: LoginValues): FormErrors<LoginValues> {
 
 export function validateSignUp(values: SignUpValues): FormErrors<SignUpValues> {
     const errors: FormErrors<SignUpValues> = {};
-    const username = values.username.trim();
 
-    if (!username) {
-        errors.username = "Please choose a username.";
-    } else if (username.length < 3 || username.length > 30) {
-        errors.username = "Username must be between 3 and 30 characters.";
-    } else if (!/^[a-zA-Z0-9_.-]+$/.test(username)) {
-        errors.username = "Username can only contain letters, numbers, _ . and -";
-    }
+    const email = validateEmail(values.email);
+    if (email) errors.email = email;
 
     if (!values.password) {
-        errors.password = "Please choose a password.";
+        errors.password = "Password is required.";
     } else if (!passwordRules.every(rule => rule.test(values.password))) {
-        errors.password = "The password doesn't meet all the rules below.";
+        errors.password = "Password does not meet all requirements.";
     }
 
-    if (values.confirmPassword !== values.password) {
-        errors.confirmPassword = "The passwords do not match.";
+    if (!values.confirmPassword) {
+        errors.confirmPassword = "Please confirm your password.";
+    } else if (values.password !== values.confirmPassword) {
+        errors.confirmPassword = "Passwords do not match.";
     }
 
     return errors;
