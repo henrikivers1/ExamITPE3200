@@ -6,10 +6,8 @@ namespace GalacticSlicer.Api.Services;
 
 public class ChallengeCompletionService
 {
+    // Every mission, Endor included, hands out 10 random questions (like Subapp 1)
     public const int QuestionsPerMission = 10;
-    public const int QuestionsPerFinalMission = 15;
-    public const int FinalMissionSubjectCount = 5;
-    public const int QuestionsPerFinalSubject = 3;
     public const int PassPercent = 80;
     public const int XpPerMission = 2000;
     public const int CreditsPerChapter = 500;
@@ -256,10 +254,6 @@ public class ChallengeCompletionService
                     StringComparison.OrdinalIgnoreCase) &&
                 planet.Subject == null;
 
-            int requiredQuestionCount = isFinalExam
-                ? QuestionsPerFinalMission
-                : QuestionsPerMission;
-
             var previousPlanetIds = planets
                 .Where(p => p.Order < planet.Order)
                 .Select(p => p.PlanetId)
@@ -274,8 +268,6 @@ public class ChallengeCompletionService
             // Normal planets only accept their own subject questions.
             // Endor accepts official questions from previous planets.
             bool invalidQuestions =
-                (isFinalExam &&
-                 submittedAnswers.Count != requiredQuestionCount) ||
                 challenges.Count != submittedAnswers.Count ||
                 challenges.Any(c =>
                     string.IsNullOrWhiteSpace(c.SourceId) ||
@@ -286,21 +278,6 @@ public class ChallengeCompletionService
                             c.PlanetId.Value)
                         : c.PlanetId != planetId ||
                           c.Subject != planet.Subject));
-
-            if (isFinalExam && !invalidQuestions)
-            {
-                var subjectGroups = challenges
-                    .Where(c => !string.IsNullOrWhiteSpace(c.Subject))
-                    .GroupBy(
-                        c => c.Subject!,
-                        StringComparer.OrdinalIgnoreCase)
-                    .ToList();
-
-                invalidQuestions =
-                    subjectGroups.Count != FinalMissionSubjectCount ||
-                    subjectGroups.Any(group =>
-                        group.Count() != QuestionsPerFinalSubject);
-            }
 
             if (invalidQuestions)
             {

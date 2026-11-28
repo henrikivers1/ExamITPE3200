@@ -108,10 +108,8 @@ function MissionPage() {
 
                 setPlanet(currentPlanet);
 
-                if (currentPlanet.isCompleted) {
-                    setAlreadyCompleted(true);
-                    return;
-                }
+                // completed missions can be replayed, without new rewards
+                setAlreadyCompleted(currentPlanet.isCompleted);
 
                 if (!currentPlanet.isUnlocked) {
                     setLocked(true);
@@ -264,14 +262,28 @@ function MissionPage() {
     }
 
     // ============================================
-    // TRY AGAIN AFTER FAILED MISSION
+    // TRY AGAIN / PLAY AGAIN
     // ============================================
 
-    function tryAgain() {
+    // A new set of 10 random questions, straight to question 1
+    async function playAgain() {
         setAnswers({});
         setCurrentIndex(0);
         setResult(null);
         setError(null);
+
+        try {
+            setQuestions(await getMission(planetId));
+
+            // after a pass the mission counts as completed
+            if (result?.passed) setAlreadyCompleted(true);
+        } catch (err) {
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : "Could not load the mission."
+            );
+        }
     }
 
     // ============================================
@@ -321,37 +333,6 @@ function MissionPage() {
             <p className="gs-page-intro" role="status">
                 Loading mission...
             </p>
-        );
-    }
-
-    if (alreadyCompleted) {
-        return (
-            <section className="gs-page-intro">
-                <h1>{planet?.name ?? "Mission"}</h1>
-
-                <h2>✓ Mission completed!</h2>
-
-                <p>
-                    You have already completed this mission.
-                    Rewards can only be earned once.
-                </p>
-
-                <div className="gs-button-row">
-                    <Link
-                        to="/progress"
-                        className="gs-btn gs-btn--primary"
-                    >
-                        View Progress
-                    </Link>
-
-                    <Link
-                        to="/planets"
-                        className="gs-btn gs-btn--outline"
-                    >
-                        Back to Galaxy
-                    </Link>
-                </div>
-            </section>
         );
     }
 
@@ -481,22 +462,32 @@ function MissionPage() {
                                 </p>
                             )}
 
-                            {/* what the player earns if they pass */}
-                            <div className="mission-rewards">
-                                <span className="mission-reward">
-                                    +{creditReward} credits
-                                </span>
-                                <span className="mission-reward mission-reward--xp">
-                                    +{XP_PER_MISSION} XP
-                                </span>
-                            </div>
+                            {/* what the player earns if they pass (only the first time) */}
+                            {alreadyCompleted ? (
+                                <p className="mission-replay-note">
+                                    ✓ You have already completed this
+                                    mission. You can play it again, but
+                                    the rewards are only given once.
+                                </p>
+                            ) : (
+                                <div className="mission-rewards">
+                                    <span className="mission-reward">
+                                        +{creditReward} credits
+                                    </span>
+                                    <span className="mission-reward mission-reward--xp">
+                                        +{XP_PER_MISSION} XP
+                                    </span>
+                                </div>
+                            )}
 
                             <button
                                 type="button"
                                 className="gs-btn gs-btn--primary gs-btn--lg mission-start"
                                 onClick={() => setStarted(true)}
                             >
-                                Start mission
+                                {alreadyCompleted
+                                    ? "Replay mission"
+                                    : "Start mission"}
                             </button>
                         </div>
                     ) : (
@@ -541,23 +532,43 @@ function MissionPage() {
                                             : "✓ Mission completed!"}
                                     </h2>
 
-                                    <p>
-                                        {isFinalMission
-                                            ? "Congratulations! You conquered Endor and completed the Galactic Slicer journey."
-                                            : "You passed the mission and earned your rewards!"}
+                                    <p className="mission-score">
+                                        You got {result.correctCount} of{" "}
+                                        {result.totalQuestions} correct.
                                     </p>
 
+                                    {result.alreadyCompleted ? (
+                                        <p>
+                                            You had already completed this
+                                            mission, so there are no new
+                                            rewards this time.
+                                        </p>
+                                    ) : (
+                                        <>
+                                            <p>
+                                                {isFinalMission
+                                                    ? "Congratulations! You conquered Endor and completed the Galactic Slicer journey."
+                                                    : "You passed the mission and earned your rewards!"}
+                                            </p>
+
+                                            <div className="mission-rewards">
+                                                <span className="mission-reward">
+                                                    +{result.awardedCredits} credits
+                                                </span>
+                                                <span className="mission-reward mission-reward--xp">
+                                                    +{result.awardedXp} XP
+                                                </span>
+                                            </div>
+                                        </>
+                                    )}
+
                                     <p>
-                                        <strong>Current Credits:</strong>{" "}
+                                        <strong>Credits:</strong>{" "}
                                         {result.credits.toLocaleString()}
-                                    </p>
-
-                                    <p>
-                                        <strong>Total XP:</strong>{" "}
+                                        {" · "}
+                                        <strong>XP:</strong>{" "}
                                         {result.experiencePoints.toLocaleString()}
-                                    </p>
-
-                                    <p>
+                                        {" · "}
                                         <strong>Rank:</strong>{" "}
                                         {result.rank}
                                     </p>
@@ -569,6 +580,14 @@ function MissionPage() {
                                         >
                                             View Progress
                                         </Link>
+
+                                        <button
+                                            type="button"
+                                            className="gs-btn gs-btn--outline"
+                                            onClick={() => void playAgain()}
+                                        >
+                                            Play Again
+                                        </button>
 
                                         <Link
                                             to="/planets"
@@ -589,10 +608,11 @@ function MissionPage() {
                                             : "Mission not passed"}
                                     </h2>
 
-                                    <p>
-                                        {isFinalMission
-                                            ? "You need at least 12 of 15 correct answers to pass."
-                                            : "You need at least 80% correct answers to pass."}
+                                    <p className="mission-score">
+                                        You got {result.correctCount} of{" "}
+                                        {result.totalQuestions} correct.
+                                        You need at least {passCount} to
+                                        pass.
                                     </p>
 
                                     <p>
@@ -603,7 +623,7 @@ function MissionPage() {
                                         <button
                                             type="button"
                                             className="gs-btn gs-btn--primary"
-                                            onClick={tryAgain}
+                                            onClick={() => void playAgain()}
                                         >
                                             Try Again
                                         </button>

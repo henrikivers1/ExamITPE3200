@@ -78,3 +78,16 @@
 .mission-start {
   margin-top: 1.5rem;
 }
+
+/* "You got 8 of 10 correct", brighter than normal paragraph text */
+.mission-score {
+  color: var(--gs-text);
+  font-weight: 600;
+}
+
+/* shown in the briefing when the mission was already completed */
+.mission-replay-note {
+  margin-top: 1.25rem;
+  color: #3ecf8e;
+  font-weight: 500;
+}

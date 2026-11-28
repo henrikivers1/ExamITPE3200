@@ -61,6 +61,10 @@ builder.Services.AddScoped<ChallengeCompletionService>();
 builder.Services.AddScoped<PlanetProgressService>();
 builder.Services.AddScoped<RankService>();
 
+// Remembers the questions each mission handed out (see MissionQuestionStore)
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<MissionQuestionStore>();
+
 // ============================================
 // JWT Authentication
 // ============================================

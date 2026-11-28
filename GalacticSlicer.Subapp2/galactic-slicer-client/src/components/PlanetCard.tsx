@@ -20,11 +20,11 @@ function PlanetCard({
     const isUnlocked = status?.isUnlocked ?? false;
     const isCompleted = status?.isCompleted ?? false;
 
+    // completed planets stay clickable, so the mission can be replayed
     const canStart =
         isLoggedIn &&
         status !== undefined &&
-        isUnlocked &&
-        !isCompleted;
+        isUnlocked;
 
     const stateClass = !isLoggedIn || !status
         ? ""
@@ -94,7 +94,9 @@ function PlanetCard({
                     className="gs-star-node-link"
                     to={`/planets/${planet.planetId}/mission`}
                     aria-label={
-                        `Start ${planet.name} mission`
+                        isCompleted
+                            ? `Replay ${planet.name} mission`
+                            : `Start ${planet.name} mission`
                     }
                 >
                     {content}

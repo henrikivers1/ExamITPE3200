@@ -31,17 +31,24 @@ export interface MissionAnswers {
     [challengeId: number]: string;
 }
 
-export type MissionResult =
-    | {
-          passed: false;
-          message: string;
-      }
-    | {
-          passed: true;
-          credits: number;
-          experiencePoints: number;
-          rank: string;
-      };
+// What POST /api/missions/{planetId}/submit returns.
+export interface MissionResult {
+    passed: boolean;
+    correctCount: number;
+    totalQuestions: number;
+
+    // true when the mission was passed before (a replay)
+    alreadyCompleted: boolean;
+
+    // the real rewards: 0 on a failed mission or a replay
+    awardedCredits: number;
+    awardedXp: number;
+
+    // the player's totals after the mission
+    credits: number;
+    experiencePoints: number;
+    rank: string;
+}
 
 // GET /api/missions/{planetId}
 export async function getMission(

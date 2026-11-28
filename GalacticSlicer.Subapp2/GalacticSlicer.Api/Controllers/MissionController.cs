@@ -1,4 +1,3 @@
-
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using GalacticSlicer.Api.DTOs;
@@ -19,17 +18,20 @@ public class MissionsController : ControllerBase
     private readonly ChallengeCompletionService _completionService;
     private readonly PlayerProgressService _progressService;
     private readonly PlanetProgressService _planetProgressService;
+    private readonly MissionQuestionStore _questionStore;
 
     public MissionsController(
         GalacticSlicerDbContext db,
         ChallengeCompletionService completionService,
         PlayerProgressService progressService,
-        PlanetProgressService planetProgressService)
+        PlanetProgressService planetProgressService,
+        MissionQuestionStore questionStore)
     {
         _db = db;
         _completionService = completionService;
         _progressService = progressService;
         _planetProgressService = planetProgressService;
+        _questionStore = questionStore;
     }
 
     private string? UserId =>
@@ -41,6 +43,8 @@ public class MissionsController : ControllerBase
         && planet.Subject == null;
 
     // GET /api/missions/1
+    // 10 random questions, sent without the correct answers.
+    // Completed missions can be played again (without new rewards).
     [HttpGet("{planetId:int}")]
     public async Task<IActionResult> GetMission(int planetId)
     {
@@ -59,28 +63,27 @@ public class MissionsController : ControllerBase
             progress,
             userId))
         {
-            return StatusCode(403, "Planet is locked.");
+            return StatusCode(403, new
+            {
+                message = "Planet is locked."
+            });
         }
 
-        var challenges = await GetMissionQuestions(planet);
+        var challenges = await GetMissionQuestionsAsync(planet);
 
-        if (!HasRequiredQuestionCount(planet, challenges))
+        if (challenges.Count == 0)
         {
-            if (IsFinalExam(planet))
-            {
-                return Conflict(new
-                {
-                    message =
-                        "The final mission requires three official " +
-                        "questions from each of the five subjects."
-                });
-            }
-
             return NotFound(new
             {
                 message = "No mission questions are configured."
             });
         }
+
+        // Only these questions can be submitted for this mission
+        _questionStore.Save(
+            userId,
+            planetId,
+            challenges.Select(c => c.ChallengeId));
 
         return Ok(challenges.Select(c => new ChallengeDto
         {
@@ -98,220 +101,171 @@ public class MissionsController : ControllerBase
     }
 
     // POST /api/missions/1/submit
-   
-[HttpPost("{planetId:int}/submit")]
-public async Task<IActionResult> SubmitMission(
-    int planetId,
-    [FromBody] MissionSubmitDto dto)
-{
-    var userId = UserId;
-
-    if (userId == null) return Unauthorized();
-
-    var planet = await _db.Planets.FindAsync(planetId);
-    if (planet == null) return NotFound();
-
-    var progress = await _progressService
-        .GetOrCreateProgressAsync(userId);
-
-    if (!await IsPlanetUnlockedAsync(
-        planet,
-        progress,
-        userId))
+    // Grades the questions GetMission handed out. Rewards are only given
+    // the first time a mission is passed; a replay shows the score only.
+    [HttpPost("{planetId:int}/submit")]
+    public async Task<IActionResult> SubmitMission(
+        int planetId,
+        [FromBody] MissionSubmitDto dto)
     {
-        return StatusCode(403, new
+        var userId = UserId;
+
+        if (userId == null) return Unauthorized();
+
+        var planet = await _db.Planets.FindAsync(planetId);
+        if (planet == null) return NotFound();
+
+        var progress = await _progressService
+            .GetOrCreateProgressAsync(userId);
+
+        if (!await IsPlanetUnlockedAsync(
+            planet,
+            progress,
+            userId))
         {
-            message = "Planet is locked."
-        });
-    }
-
-    // Prevent replaying completed missions.
-    var alreadyCompleted = await _db.CompletedMissions
-        .AnyAsync(m =>
-            m.UserId == userId &&
-            m.PlanetId == planetId);
-
-    if (alreadyCompleted)
-    {
-        return Conflict(new
-        {
-            message = "Mission already completed."
-        });
-    }
-
-    var questions = await GetMissionQuestions(planet);
-
-    if (!HasRequiredQuestionCount(planet, questions))
-    {
-        if (IsFinalExam(planet))
-        {
-            return Conflict(new
+            return StatusCode(403, new
             {
-                message =
-                    "The final mission requires three official " +
-                    "questions from each of the five subjects."
+                message = "Planet is locked."
             });
         }
 
-        return NotFound(new
+        if (dto?.Answers == null || dto.Answers.Count == 0)
         {
-            message = "No mission questions are configured."
-        });
-    }
+            return BadRequest(new
+            {
+                message = "Mission answers are required."
+            });
+        }
 
-    if (dto?.Answers == null || dto.Answers.Count == 0)
-    {
-        return BadRequest(new
+        var handedOut = _questionStore.Get(userId, planetId);
+
+        if (handedOut == null)
         {
-            message = "Mission answers are required."
-        });
-    }
+            return Conflict(new
+            {
+                // already submitted, expired, or never started
+                message =
+                    "This mission is no longer active. " +
+                    "Start it again to get new questions."
+            });
+        }
 
-    var expectedIds = questions
-        .Select(c => c.ChallengeId)
-        .ToHashSet();
-
-    var submittedIds = dto.Answers.Keys.ToHashSet();
-
-    // All mission questions must be answered.
-    if (!expectedIds.SetEquals(submittedIds))
-    {
-        return BadRequest(new
+        // Exactly the handed-out questions, all answered
+        if (!handedOut.SetEquals(dto.Answers.Keys))
         {
-            message = "You must answer all mission questions."
-        });
-    }
+            return BadRequest(new
+            {
+                message = "You must answer all mission questions."
+            });
+        }
 
-    if (dto.Answers.Values.Any(string.IsNullOrWhiteSpace))
-    {
-        return BadRequest(new
+        if (dto.Answers.Values.Any(string.IsNullOrWhiteSpace))
         {
-            message = "Answers cannot be empty."
-        });
-    }
+            return BadRequest(new
+            {
+                message = "Answers cannot be empty."
+            });
+        }
 
-    var success = await _completionService
-        .CompletePassedMissionAsync(
-            userId, planetId, dto.Answers);
+        // Grade on the server, for the result screen.
+        // CompletePassedMissionAsync checks the answers again before giving rewards.
+        var questions = await _db.Challenges
+            .AsNoTracking()
+            .Where(c => handedOut.Contains(c.ChallengeId))
+            .ToListAsync();
 
-    if (!success)
-    {
+        int correctCount = questions.Count(c => string.Equals(
+            dto.Answers[c.ChallengeId],
+            c.CorrectAnswer,
+            StringComparison.OrdinalIgnoreCase));
+
+        bool passed = questions.Count > 0 &&
+            correctCount * 100.0 / questions.Count >=
+                ChallengeCompletionService.PassPercent;
+
+        bool alreadyCompleted = await _db.CompletedMissions
+            .AnyAsync(m =>
+                m.UserId == userId &&
+                m.PlanetId == planetId);
+
+        int creditsBefore = progress.Credits;
+        int xpBefore = progress.ExperiencePoints;
+
+        // Rewards only on the first pass, so replays can't farm XP and Credits
+        if (passed && !alreadyCompleted)
+        {
+            bool saved = await _completionService
+                .CompletePassedMissionAsync(
+                    userId, planetId, dto.Answers);
+
+            if (!saved)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Mission results could not be saved."
+                });
+            }
+        }
+
+        // The answers are graded, so the same set can't be submitted again
+        _questionStore.Remove(userId, planetId);
+
+        var updated = await _progressService
+            .GetOrCreateProgressAsync(userId);
+
         return Ok(new
         {
-            passed = false,
-            message = "Mission not passed or could not be saved."
+            passed,
+            correctCount,
+            totalQuestions = questions.Count,
+            // true when this was a replay of a mission passed before
+            alreadyCompleted,
+            // the real rewards (0 on a failed mission or a replay)
+            awardedCredits = updated.Credits - creditsBefore,
+            awardedXp = updated.ExperiencePoints - xpBefore,
+            credits = updated.Credits,
+            experiencePoints = updated.ExperiencePoints,
+            rank = updated.Rank
         });
     }
 
-    var updated = await _progressService
-        .GetOrCreateProgressAsync(userId);
-
-    return Ok(new
-    {
-        passed = true,
-        credits = updated.Credits,
-        experiencePoints = updated.ExperiencePoints,
-        rank = updated.Rank
-    });
-}
-
-
-    private async Task<List<Challenge>> GetMissionQuestions(
+    // 10 random official questions, like QuestionService in Subapp 1:
+    // the planet's own subject, or every subject before it for Endor.
+    private async Task<List<Challenge>> GetMissionQuestionsAsync(
         Planet planet)
     {
+        var query = _db.Challenges
+            .AsNoTracking()
+            .Where(c =>
+                c.SourceId != null &&
+                c.CreatedByUserId == null &&
+                c.PlanetId.HasValue);
+
         if (IsFinalExam(planet))
         {
-            return await GetFinalMissionQuestions(planet);
-        }
+            var previousPlanetIds = await _db.Planets
+                .Where(p =>
+                    p.Order < planet.Order &&
+                    p.Subject != null)
+                .Select(p => p.PlanetId)
+                .ToListAsync();
 
-        return await _db.Challenges
-            .AsNoTracking()
-            .Where(c =>
+            query = query.Where(c =>
+                previousPlanetIds.Contains(c.PlanetId!.Value));
+        }
+        else
+        {
+            query = query.Where(c =>
                 c.PlanetId == planet.PlanetId &&
-                c.Subject == planet.Subject &&
-                c.SourceId != null &&
-                c.CreatedByUserId == null)
-            .OrderBy(c => c.ChallengeId)
+                c.Subject == planet.Subject);
+        }
+
+        var pool = await query.ToListAsync();
+
+        return pool
+            .OrderBy(_ => Random.Shared.Next())
             .Take(ChallengeCompletionService.QuestionsPerMission)
-            .ToListAsync();
-    }
-
-    private async Task<List<Challenge>> GetFinalMissionQuestions(
-        Planet endor)
-    {
-        var subjectPlanets = await _db.Planets
-            .AsNoTracking()
-            .Where(p =>
-                p.Order < endor.Order &&
-                p.Subject != null)
-            .OrderBy(p => p.Order)
-            .Take(ChallengeCompletionService.FinalMissionSubjectCount)
-            .Select(p => new
-            {
-                p.PlanetId,
-                Subject = p.Subject!
-            })
-            .ToListAsync();
-
-        if (subjectPlanets.Count !=
-                ChallengeCompletionService.FinalMissionSubjectCount ||
-            subjectPlanets
-                .Select(p => p.Subject)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .Count() !=
-                ChallengeCompletionService.FinalMissionSubjectCount)
-        {
-            return new List<Challenge>();
-        }
-
-        var planetIds = subjectPlanets
-            .Select(p => p.PlanetId)
             .ToList();
-
-        var pool = await _db.Challenges
-            .AsNoTracking()
-            .Where(c =>
-                c.PlanetId.HasValue &&
-                planetIds.Contains(c.PlanetId.Value) &&
-                c.SourceId != null &&
-                c.CreatedByUserId == null)
-            .OrderBy(c => c.ChallengeId)
-            .ToListAsync();
-
-        var subjectQuestions = subjectPlanets
-            .Select(planet => pool
-                .Where(c => string.Equals(
-                    c.Subject,
-                    planet.Subject,
-                    StringComparison.OrdinalIgnoreCase))
-                .Take(ChallengeCompletionService.QuestionsPerFinalSubject)
-                .ToList())
-            .ToList();
-
-        if (subjectQuestions.Any(questions =>
-            questions.Count !=
-                ChallengeCompletionService.QuestionsPerFinalSubject))
-        {
-            return new List<Challenge>();
-        }
-
-        return Enumerable
-            .Range(
-                0,
-                ChallengeCompletionService.QuestionsPerFinalSubject)
-            .SelectMany(index => subjectQuestions
-                .Select(questions => questions[index]))
-            .ToList();
-    }
-
-    private static bool HasRequiredQuestionCount(
-        Planet planet,
-        IReadOnlyCollection<Challenge> questions)
-    {
-        return IsFinalExam(planet)
-            ? questions.Count ==
-              ChallengeCompletionService.QuestionsPerFinalMission
-            : questions.Count > 0;
     }
 
     private async Task<bool> IsPlanetUnlockedAsync(
