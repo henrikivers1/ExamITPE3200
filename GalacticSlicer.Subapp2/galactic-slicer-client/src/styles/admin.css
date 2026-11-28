@@ -70,6 +70,35 @@
   margin-left: 0.25rem;
 }
 
+/* phones: hide the less important columns, so Edit and Delete fit without scrolling
+   (the subject and tier are still shown in the edit form and the Shop) */
+@media (max-width: 575.98px) {
+  .gs-admin-hide-sm {
+    display: none;
+  }
+
+  .gs-admin-table th,
+  .gs-admin-table td {
+    padding: 0.5rem 0.35rem;
+  }
+
+  /* Edit above Delete/Locked instead of side by side */
+  .gs-admin-table .gs-admin-actions-cell {
+    white-space: normal;
+  }
+
+  .gs-admin-actions-cell .gs-btn {
+    display: flex;
+    width: fit-content;
+    margin-left: auto;
+  }
+
+  .gs-admin-actions-cell .gs-btn + .gs-btn {
+    margin-left: auto;
+    margin-top: 0.25rem;
+  }
+}
+
 /* small planet in the first column (a span, so it needs display: block to get a size) */
 .gs-admin-table .gs-planet {
   --gs-planet-size: 36px;

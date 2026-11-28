@@ -647,24 +647,15 @@ function MissionPage() {
                                 /* SINGLE QUESTION FLASHCARD */
 
                                 <div>
+                                    {/* the question itself is the heading, like Subapp 1;
+                                        "Question 1 of 10" is already above the progress bar */}
                                     <h2
                                         className="gs-quiz-question"
                                         ref={questionRef}
                                         tabIndex={-1}
                                     >
-                                        Question {currentIndex + 1}
-                                        {" of "}
-                                        {questions.length}
-                                    </h2>
-
-                                    <p
-                                        className="gs-quiz-question"
-                                        style={{
-                                            marginTop: "1rem",
-                                        }}
-                                    >
                                         {question.question}
-                                    </p>
+                                    </h2>
 
                                     <div className="gs-quiz-options">
                                         {options.map((option, index) => {

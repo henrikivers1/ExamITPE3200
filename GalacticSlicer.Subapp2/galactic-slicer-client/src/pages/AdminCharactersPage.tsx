@@ -563,7 +563,7 @@ function AdminCharactersPage() {
                                     </span>
                                 </th>
                                 <th>Name</th>
-                                <th>Tier</th>
+                                <th className="gs-admin-hide-sm">Tier</th>
                                 <th>Price</th>
                                 <th className="gs-admin-actions-cell">
                                     Actions
@@ -582,7 +582,7 @@ function AdminCharactersPage() {
                                         </span>
                                     </td>
                                     <td>{character.name}</td>
-                                    <td>
+                                    <td className="gs-admin-hide-sm">
                                         {getTier(character.price).label}
                                     </td>
                                     <td>

@@ -240,7 +240,7 @@ The project ignores generated and local files such as:
 
 ## Group work
 
-### Jonas
+### Candidate ID 1
 
 My main responsibilities were:
 
@@ -253,7 +253,7 @@ My main responsibilities were:
 - Error handling
 - Logging
 
-### Henrik
+### Candidate ID 2
 
 My main responsibilities were:
 
@@ -264,7 +264,7 @@ My main responsibilities were:
 - Displaying Challenge data from the database
 - Connecting CRUD operations to Entity Framework Core
 
-### Filip
+### Candidate ID 3
 
 My main responsibilities were:
 

@@ -599,8 +599,8 @@ function AdminPlanetsPage() {
                                 </th>
                                 <th>Chapter</th>
                                 <th>Name</th>
-                                <th>Mission subject</th>
-                                <th>Questions</th>
+                                <th className="gs-admin-hide-sm">Mission subject</th>
+                                <th className="gs-admin-hide-sm">Questions</th>
                                 <th className="gs-admin-actions-cell">
                                     Actions
                                 </th>
@@ -618,11 +618,11 @@ function AdminPlanetsPage() {
                                     </td>
                                     <td>{planet.order}</td>
                                     <td>{planet.name}</td>
-                                    <td>
+                                    <td className="gs-admin-hide-sm">
                                         {planet.subject ??
                                             "Mixed (every subject)"}
                                     </td>
-                                    <td>
+                                    <td className="gs-admin-hide-sm">
                                         {questionCounts[planet.planetId] ?? 0}
                                     </td>
                                     <td className="gs-admin-actions-cell">
