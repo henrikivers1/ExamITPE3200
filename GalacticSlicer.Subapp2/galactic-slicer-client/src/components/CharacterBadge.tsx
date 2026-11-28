@@ -43,7 +43,7 @@ function CharacterBadge({ character }: CharacterBadgeProps) {
 // outer shape and inner ring, one pair per tier
 function BadgeShape({ tier }: { tier: string }) {
     switch (tier) {
-        case "starter":
+        case "common":
             return (
                 <>
                     <circle className="gs-badge-base" cx="50" cy="50" r="40" />

@@ -3,16 +3,17 @@
 
 export interface Tier {
     // used in CSS class names (gs-badge--rare, shop-card--rare)
-    key: "starter" | "uncommon" | "rare" | "epic" | "legendary";
+    key: "common" | "uncommon" | "rare" | "epic" | "legendary";
     // shown to the player
     label: string;
 }
 
 export function getTier(price: number): Tier {
-    if (price === 0) return { key: "starter", label: "Starter" };
-    if (price < 300) return { key: "uncommon", label: "Uncommon" };
-    if (price < 500) return { key: "rare", label: "Rare" };
-    if (price < 1000) return { key: "epic", label: "Epic" };
+    // one tier per seeded badge: 0, 500, 1000, 1500, 2000
+    if (price === 0) return { key: "common", label: "Common" };
+    if (price < 1000) return { key: "uncommon", label: "Uncommon" };
+    if (price < 1500) return { key: "rare", label: "Rare" };
+    if (price < 2000) return { key: "epic", label: "Epic" };
     return { key: "legendary", label: "Legendary" };
 }
 

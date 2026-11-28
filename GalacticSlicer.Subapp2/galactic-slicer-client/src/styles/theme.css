@@ -1604,8 +1604,8 @@ a.gs-star-node-link:hover .gs-star-node-name {
   overflow: visible;
 }
 
-/* tier colors (same as the Shop cards): starter grey-blue, uncommon teal, rare blue, epic violet, legendary gold */
-.gs-badge--starter { --tier: #8fa3c4; }
+/* tier colors (same as the Shop cards): common grey-blue, uncommon teal, rare blue, epic violet, legendary gold */
+.gs-badge--common { --tier: #8fa3c4; }
 .gs-badge--uncommon { --tier: #3ec9c0; }
 .gs-badge--rare { --tier: #4d8dff; }
 .gs-badge--epic { --tier: #8f73ff; }
