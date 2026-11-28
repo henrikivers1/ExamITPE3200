@@ -95,7 +95,110 @@ SQLite with Entity Framework Core. Main tables:
 
 ## Subapp 2 (API + React)
 
-See `GalacticSlicer.Subapp2/`. Run instructions for Subapp 2 will be added here.
+Subapp 2 is the same game built as an ASP.NET Core Web API (`GalacticSlicer.Subapp2/GalacticSlicer.Api`) and a React single-page app (`GalacticSlicer.Subapp2/galactic-slicer-client`). It has its own SQLite database and its own accounts, so it runs independently of Subapp 1.
+
+### Technologies
+
+- **API:** .NET SDK 10.0, ASP.NET Core 10.0 Web API, C#, Entity Framework Core 10.0 with SQLite, ASP.NET Core Identity with roles, JWT bearer authentication
+- **Client:** React 19, React Router 7, TypeScript 5.9, Vite 8, ESLint
+- **Tests:** xUnit and NSubstitute (API tests in `GalacticSlicer.Subapp2/GalacticSlicer.Api.Tests/`)
+
+### How to run
+
+Requirements: .NET SDK 10.0 and Node.js 20.19+ or 22.12+ (Vite 8 needs one of these; developed with Node.js 24).
+
+Start the API in one terminal:
+
+```
+cd GalacticSlicer.Subapp2/GalacticSlicer.Api
+dotnet run
+```
+
+The API runs on http://localhost:5190 (or https://localhost:7211 with `dotnet run --launch-profile https`).
+
+Start the client in a second terminal:
+
+```
+cd GalacticSlicer.Subapp2/galactic-slicer-client
+npm ci
+npm run dev
+```
+
+Then open http://localhost:5173. The client calls the API on http://localhost:5190; set `VITE_API_URL` to use another address.
+
+On Windows PowerShell, `npm` can be blocked with "running scripts is disabled on this system". Use `npm.cmd ci` and `npm.cmd run dev` instead, or allow local scripts once with `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`.
+
+On startup the API creates the SQLite database `GalacticSlicerApi.db` if it is missing, applies all migrations and seeds the six planets, the five characters, the mission questions (the same `Questions.json` as Subapp 1, linked from `GalacticSlicer/DAL/SeedData/`) and the Admin role.
+
+In Development the API creates a temporary key for signing the JWTs, so no setup is needed. Tokens then stop working when the API restarts, and players simply log in again. Outside Development a key must be set in `Jwt:Key`.
+
+### Logging in
+
+Subapp 2 logs in with **email** and password, and its accounts are separate from Subapp 1's.
+
+- **New players:** create an account with **Sign up**, then log in.
+- **Admin:** no admin is seeded by default. To get one, set the admin's email and password with user secrets before starting the API:
+
+  ```
+  cd GalacticSlicer.Subapp2/GalacticSlicer.Api
+  dotnet user-secrets set "BootstrapAdmin:Email" "admin@galacticslicer.local"
+  dotnet user-secrets set "BootstrapAdmin:Password" "Admin123!"
+  dotnet run
+  ```
+
+  Then log in with `admin@galacticslicer.local` / `Admin123!`. The admin gets a "Manage planets" button on the Galaxy page and a "Manage characters" button in the Shop, and receives 1,000,000 Credits once for testing the Shop.
+
+### Running the tests and checks
+
+From the repository root:
+
+```
+dotnet test GalacticSlicer.Subapp2/GalacticSlicer.Api.Tests
+```
+
+In `GalacticSlicer.Subapp2/galactic-slicer-client`: `npm run lint` (ESLint) and `npm run build` (TypeScript check and production build).
+
+`GalacticSlicer.Subapp2/GalacticSlicer.Api/GalacticSlicer.Api.http` has example requests for the API (Visual Studio, Rider or the VS Code REST Client).
+
+### Main features
+
+The game rules are the same as in Subapp 1: six planets, 10 random questions per mission (Endor mixes every subject), 80% to pass, and 2000 XP plus 500 Credits per chapter for the first pass. A completed mission can be replayed, but the rewards are only given once.
+
+- **Galaxy and missions:** the Starchart shows which planets are locked, unlocked and completed. A mission starts with a briefing and is graded on the server.
+- **Practice:** practice any subject with instant feedback and explanations (official questions only).
+- **Own challenges:** players can create, read, edit and delete their own practice questions, and search them by text and subject.
+- **Shop:** buy, equip and unequip character badges.
+- **Progress:** pilot panel with rank, Credits, the next mission, a mini starchart, progress bars and the mission history (the latest attempts, passed or failed, stored in the `MissionAttempts` table).
+- **Admin:** manage planets and characters (create, edit, delete), with delete rules so the game can't be broken.
+
+### Project structure
+
+API (`GalacticSlicer.Api/`):
+
+- `Controllers/`: Auth, Challenges, Characters, CharacterGameplay (Shop), Missions, Planets, Practice, Progress
+- `DTOs/`: the data sent to and from the client; controllers never return entities
+- `Services/`: the game rules and data access for the controllers (missions, practice, progress, purchases, planet unlocking, ranks)
+- `DAL/`: the repositories (Challenge, Character, Planet)
+- `Models/`: the entity classes, `GalacticSlicerDbContext` and `DBInit` (seeding)
+- `Filters/`: `LogExceptionFilter` (logs unexpected errors and returns a 500 with a message)
+- `Migrations/`: the Entity Framework Core migrations
+
+Controllers get data through the services and repositories (dependency injection); no controller uses the DbContext directly.
+
+Client (`galactic-slicer-client/src/`):
+
+- `pages/`: one component per page (Galaxy, Mission, Practice, Challenges, Shop, Progress, Log in, Sign up, admin pages)
+- `components/`: shared parts such as the navbar, planet cards, badges and progress bars
+- `services/`: `api.ts` (base URL, JWT and error handling) and one service per area (auth, planets, characters, challenges, missions, progress); no page calls `fetch` directly
+- `validation/`, `types/`, `utils/`, `hooks/` and `styles/`
+
+### Validation, error handling and logging
+
+- **Server-side validation:** Data Annotations on the DTOs (the API returns 400 with the errors per field), plus game rules in the services (unique names, protected official planets and standard characters, owned characters can't be deleted).
+- **Client-side validation:** the forms check required fields, lengths and the password rules before sending, and show the API's field errors next to the fields.
+- **Security:** JWT authentication, `[Authorize]` on player endpoints and `[Authorize(Roles = "Admin")]` on admin endpoints, owner checks on players' own challenges, and missions are graded on the server (only the questions the API handed out are accepted).
+- **Error handling:** expected problems return 400, 403, 404 or 409 with a message that the client shows. Any other unexpected error is logged by `LogExceptionFilter` (registered in `Program.cs`) and returns a 500 with a friendly message.
+- **Logging:** every controller and the game services log errors and important events (logins, missions, purchases, admin changes) with `ILogger`.
 
 ## Sources and inspiration
 

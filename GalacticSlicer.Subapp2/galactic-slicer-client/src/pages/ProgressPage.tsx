@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import PilotPanel from "../components/PilotPanel";
 import ProgressBars from "../components/ProgressBars";
+import MissionHistory from "../components/MissionHistory";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { getProgress } from "../services/progressService";
 import { getToken, ApiError } from "../services/api";
@@ -158,6 +159,7 @@ function ProgressPage() {
                         <>
                             <PilotPanel progress={progress} />
                             <ProgressBars progress={progress} />
+                            <MissionHistory attempts={progress.recentAttempts} />
                         </>
                     )}
                 </>

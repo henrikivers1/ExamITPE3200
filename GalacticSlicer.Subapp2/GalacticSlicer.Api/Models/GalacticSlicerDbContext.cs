@@ -20,6 +20,7 @@ public class GalacticSlicerDbContext : IdentityDbContext
     public DbSet<UserCharacter> UserCharacters { get; set; }
     public DbSet<CompletedChallenge> CompletedChallenges { get; set; }
     public DbSet<CompletedMission> CompletedMissions { get; set; }
+    public DbSet<MissionAttempt> MissionAttempts { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -53,6 +54,17 @@ public class GalacticSlicerDbContext : IdentityDbContext
             .WithMany()
             .HasForeignKey(cm => cm.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Connect mission attempts to ASP.NET Identity (a player's history is removed with the player)
+        modelBuilder.Entity<MissionAttempt>()
+            .HasOne<IdentityUser>()
+            .WithMany()
+            .HasForeignKey(ma => ma.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // The Progress page lists a player's latest attempts
+        modelBuilder.Entity<MissionAttempt>()
+            .HasIndex(ma => new { ma.UserId, ma.AttemptedAt });
 
         // Prevent users from completing the same challenge twice
         modelBuilder.Entity<CompletedChallenge>()

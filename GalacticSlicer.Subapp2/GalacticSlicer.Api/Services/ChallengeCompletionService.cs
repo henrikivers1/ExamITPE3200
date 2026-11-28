@@ -394,5 +394,71 @@ public class ChallengeCompletionService
 
         return planetIds.ToHashSet();
     }
+
+    // Saves one graded mission, passed or failed, for the mission history.
+    // Replays are saved too; the rewards are decided by CompletePassedMissionAsync.
+    public async Task<bool> SaveAttemptAsync(
+        string userId,
+        int planetId,
+        int correctCount,
+        int totalQuestions,
+        bool passed)
+    {
+        if (string.IsNullOrWhiteSpace(userId) ||
+            totalQuestions <= 0 ||
+            correctCount < 0 ||
+            correctCount > totalQuestions)
+        {
+            _logger.LogWarning(
+                "Mission attempt rejected for Planet {PlanetId}: {Correct}/{Total}",
+                planetId,
+                correctCount,
+                totalQuestions);
+
+            return false;
+        }
+
+        try
+        {
+            _context.MissionAttempts.Add(new MissionAttempt
+            {
+                UserId = userId,
+                PlanetId = planetId,
+                CorrectCount = correctCount,
+                TotalQuestions = totalQuestions,
+                Passed = passed,
+                AttemptedAt = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to save mission attempt for Planet {PlanetId}",
+                planetId);
+
+            // The player still sees the result; only the history entry is lost
+            _context.ChangeTracker.Clear();
+            return false;
+        }
+    }
+
+    // The player's latest attempts, newest first
+    public async Task<List<MissionAttempt>> GetRecentAttemptsAsync(
+        string userId,
+        int count)
+    {
+        return await _context.MissionAttempts
+            .AsNoTracking()
+            .Include(a => a.Planet)
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.AttemptedAt)
+            .ThenByDescending(a => a.Id)
+            .Take(count)
+            .ToListAsync();
+    }
 }
 

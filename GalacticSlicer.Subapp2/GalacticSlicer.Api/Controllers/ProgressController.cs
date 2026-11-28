@@ -1,13 +1,9 @@
-
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using GalacticSlicer.Api.DTOs;
-using GalacticSlicer.Api.Models;
 using GalacticSlicer.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace GalacticSlicer.Api.Controllers;
 
@@ -16,30 +12,18 @@ namespace GalacticSlicer.Api.Controllers;
 [Route("api/progress")]
 public class ProgressController : ControllerBase
 {
-    private readonly PlayerProgressService _progressService;
-    private readonly GalacticSlicerDbContext _context;
+    private readonly ProgressDashboardService _dashboardService;
     private readonly UserManager<IdentityUser> _userManager;
-    private readonly RankService _rankService;
-    private readonly PlanetProgressService _planetProgressService;
-    private readonly ChallengeCompletionService _completionService;
     private readonly ILogger<ProgressController> _logger;
 
     public ProgressController(
-        PlayerProgressService progressService,
-        GalacticSlicerDbContext context,
+        ProgressDashboardService dashboardService,
         UserManager<IdentityUser> userManager,
-        RankService rankService,
-        PlanetProgressService planetProgressService,
-        ChallengeCompletionService completionService,
         ILogger<ProgressController> logger)
     {
-        _logger = logger;
-        _progressService = progressService;
-        _context = context;
+        _dashboardService = dashboardService;
         _userManager = userManager;
-        _rankService = rankService;
-        _planetProgressService = planetProgressService;
-        _completionService = completionService;
+        _logger = logger;
     }
 
     // GET /api/progress/me
@@ -66,67 +50,10 @@ public class ProgressController : ControllerBase
             return Unauthorized();
         }
 
-        var progress = await _progressService
-            .GetOrCreateProgressAsync(userId);
+        var dashboard = await _dashboardService.GetDashboardAsync(
+            userId,
+            user.UserName ?? user.Email ?? string.Empty);
 
-        var xpRange = _rankService
-            .GetXpRange(progress.ExperiencePoints);
-
-        var challengesCompleted = await _context.CompletedChallenges
-            .CountAsync(cc => cc.UserId == userId);
-
-        var challengesTotal = await _context.Challenges
-            .CountAsync(c => c.SourceId != null);
-
-        var planets = await _context.Planets
-            .AsNoTracking()
-            .OrderBy(p => p.Order)
-            .ToListAsync();
-
-        var completedPlanetIds = await _completionService
-            .GetCompletedPlanetIdsAsync(userId);
-
-        var planetStatuses = _planetProgressService
-            .GetPlanetStatuses(
-                planets,
-                progress,
-                completedPlanetIds);
-
-        CharacterDto? activeCharacter = null;
-
-        if (progress.ActiveCharacterId.HasValue)
-        {
-            var character = await _context.Characters
-                .AsNoTracking()
-                .FirstOrDefaultAsync(c =>
-                    c.CharacterId == progress.ActiveCharacterId.Value);
-
-            if (character != null)
-            {
-                activeCharacter = new CharacterDto
-                {
-                    CharacterId = character.CharacterId,
-                    Name = character.Name,
-                    Description = character.Description,
-                    Price = character.Price,
-                    ImageUrl = character.ImageUrl
-                };
-            }
-        }
-
-        return Ok(new PlayerProgressDto
-        {
-            Username = user.UserName ?? user.Email ?? string.Empty,
-            Credits = progress.Credits,
-            ExperiencePoints = progress.ExperiencePoints,
-            Rank = _rankService.GetRank(progress.ExperiencePoints),
-            XpForCurrentRank = xpRange.Current,
-            XpForNextRank = xpRange.Next,
-            ChallengesCompleted = challengesCompleted,
-            ChallengesTotal = challengesTotal,
-            ActiveCharacterId = progress.ActiveCharacterId,
-            ActiveCharacter = activeCharacter,
-            Planets = planetStatuses
-        });
+        return Ok(dashboard);
     }
 }

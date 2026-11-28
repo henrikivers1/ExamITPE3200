@@ -64,6 +64,11 @@ builder.Services.AddScoped<ChallengeCompletionService>();
 builder.Services.AddScoped<PlanetProgressService>();
 builder.Services.AddScoped<RankService>();
 
+// Data access for the Missions, Practice and Progress controllers
+builder.Services.AddScoped<MissionService>();
+builder.Services.AddScoped<PracticeService>();
+builder.Services.AddScoped<ProgressDashboardService>();
+
 // Remembers the questions each mission handed out (see MissionQuestionStore)
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<MissionQuestionStore>();

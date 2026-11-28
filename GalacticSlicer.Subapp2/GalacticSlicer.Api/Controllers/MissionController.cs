@@ -5,7 +5,6 @@ using GalacticSlicer.Api.Models;
 using GalacticSlicer.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace GalacticSlicer.Api.Controllers;
 
@@ -14,36 +13,28 @@ namespace GalacticSlicer.Api.Controllers;
 [Route("api/missions")]
 public class MissionsController : ControllerBase
 {
-    private readonly GalacticSlicerDbContext _db;
+    private readonly MissionService _missionService;
     private readonly ChallengeCompletionService _completionService;
     private readonly PlayerProgressService _progressService;
-    private readonly PlanetProgressService _planetProgressService;
     private readonly MissionQuestionStore _questionStore;
     private readonly ILogger<MissionsController> _logger;
 
     public MissionsController(
-        GalacticSlicerDbContext db,
+        MissionService missionService,
         ChallengeCompletionService completionService,
         PlayerProgressService progressService,
-        PlanetProgressService planetProgressService,
         MissionQuestionStore questionStore,
         ILogger<MissionsController> logger)
     {
-        _logger = logger;
-        _db = db;
+        _missionService = missionService;
         _completionService = completionService;
         _progressService = progressService;
-        _planetProgressService = planetProgressService;
         _questionStore = questionStore;
+        _logger = logger;
     }
 
     private string? UserId =>
         User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-
-    private static bool IsFinalExam(Planet planet) =>
-        planet.Name.Equals(
-            "Endor", StringComparison.OrdinalIgnoreCase)
-        && planet.Subject == null;
 
     // GET /api/missions/1
     // 10 random questions, sent without the correct answers.
@@ -55,13 +46,13 @@ public class MissionsController : ControllerBase
 
         if (userId == null) return Unauthorized();
 
-        var planet = await _db.Planets.FindAsync(planetId);
+        var planet = await _missionService.GetPlanetAsync(planetId);
         if (planet == null) return NotFound();
 
         var progress = await _progressService
             .GetOrCreateProgressAsync(userId);
 
-        if (!await IsPlanetUnlockedAsync(
+        if (!await _missionService.IsUnlockedAsync(
             planet,
             progress,
             userId))
@@ -77,7 +68,7 @@ public class MissionsController : ControllerBase
             });
         }
 
-        var challenges = await GetMissionQuestionsAsync(planet);
+        var challenges = await _missionService.PickQuestionsAsync(planet);
 
         if (challenges.Count == 0)
         {
@@ -126,13 +117,13 @@ public class MissionsController : ControllerBase
 
         if (userId == null) return Unauthorized();
 
-        var planet = await _db.Planets.FindAsync(planetId);
+        var planet = await _missionService.GetPlanetAsync(planetId);
         if (planet == null) return NotFound();
 
         var progress = await _progressService
             .GetOrCreateProgressAsync(userId);
 
-        if (!await IsPlanetUnlockedAsync(
+        if (!await _missionService.IsUnlockedAsync(
             planet,
             progress,
             userId))
@@ -198,10 +189,7 @@ public class MissionsController : ControllerBase
 
         // Grade on the server, for the result screen.
         // CompletePassedMissionAsync checks the answers again before giving rewards.
-        var questions = await _db.Challenges
-            .AsNoTracking()
-            .Where(c => handedOut.Contains(c.ChallengeId))
-            .ToListAsync();
+        var questions = await _missionService.GetQuestionsAsync(handedOut);
 
         int correctCount = questions.Count(c => string.Equals(
             dto.Answers[c.ChallengeId],
@@ -212,10 +200,8 @@ public class MissionsController : ControllerBase
             correctCount * 100.0 / questions.Count >=
                 ChallengeCompletionService.PassPercent;
 
-        bool alreadyCompleted = await _db.CompletedMissions
-            .AnyAsync(m =>
-                m.UserId == userId &&
-                m.PlanetId == planetId);
+        bool alreadyCompleted = await _missionService
+            .IsCompletedAsync(userId, planetId);
 
         int creditsBefore = progress.Credits;
         int xpBefore = progress.ExperiencePoints;
@@ -240,6 +226,15 @@ public class MissionsController : ControllerBase
                 });
             }
         }
+
+        // Every graded attempt goes into the mission history, passed or not.
+        // A failed save is logged by the service and doesn't stop the player from seeing the result.
+        await _completionService.SaveAttemptAsync(
+            userId,
+            planetId,
+            correctCount,
+            questions.Count,
+            passed);
 
         // The answers are graded, so the same set can't be submitted again
         _questionStore.Remove(userId, planetId);
@@ -270,64 +265,5 @@ public class MissionsController : ControllerBase
             experiencePoints = updated.ExperiencePoints,
             rank = updated.Rank
         });
-    }
-
-    // 10 random official questions, like QuestionService in Subapp 1:
-    // the planet's own subject, or every subject before it for Endor.
-    private async Task<List<Challenge>> GetMissionQuestionsAsync(
-        Planet planet)
-    {
-        var query = _db.Challenges
-            .AsNoTracking()
-            .Where(c =>
-                c.SourceId != null &&
-                c.CreatedByUserId == null &&
-                c.PlanetId.HasValue);
-
-        if (IsFinalExam(planet))
-        {
-            var previousPlanetIds = await _db.Planets
-                .Where(p =>
-                    p.Order < planet.Order &&
-                    p.Subject != null)
-                .Select(p => p.PlanetId)
-                .ToListAsync();
-
-            query = query.Where(c =>
-                previousPlanetIds.Contains(c.PlanetId!.Value));
-        }
-        else
-        {
-            query = query.Where(c =>
-                c.PlanetId == planet.PlanetId &&
-                c.Subject == planet.Subject);
-        }
-
-        var pool = await query.ToListAsync();
-
-        return pool
-            .OrderBy(_ => Random.Shared.Next())
-            .Take(ChallengeCompletionService.QuestionsPerMission)
-            .ToList();
-    }
-
-    private async Task<bool> IsPlanetUnlockedAsync(
-        Planet planet,
-        PlayerProgress progress,
-        string userId)
-    {
-        var planets = await _db.Planets
-            .AsNoTracking()
-            .OrderBy(p => p.Order)
-            .ToListAsync();
-
-        var completedPlanetIds = await _completionService
-            .GetCompletedPlanetIdsAsync(userId);
-
-        return _planetProgressService.IsPlanetUnlocked(
-            planet,
-            progress,
-            planets,
-            completedPlanetIds);
     }
 }
